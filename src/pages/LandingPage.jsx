@@ -1,6 +1,6 @@
 export default function LandingPage() {
   return (
-    <div style={{ backgroundColor: "red", height: "100vh", width: "100vw" }}>
+    <div className="w-[100svw] h-[100svh]">
       Landing Page
     </div>
   )
