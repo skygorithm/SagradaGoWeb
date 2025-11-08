@@ -13,7 +13,7 @@ export default function NavButton({text, onClick}){
                 key={text}
                 onClick={onClick}
             >
-                <p>{text}</p>
+                {text}
             </button>
         </>
     )

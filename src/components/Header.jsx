@@ -5,7 +5,7 @@ import { NavbarContext } from "../context/AllContext";
 import "../styles/header.css"
 
 export default function Header() {
-  const { setSelectedNavbar } = useContext(NavbarContext);
+  const { setSelectedNavbar, setShowSignin } = useContext(NavbarContext);
   const navbar = [
     {
       text: "Home",
@@ -39,7 +39,14 @@ export default function Header() {
         </div>
 
         <div className="signin-container">
-          <Button text={"Sign in"} color={"#6B5F32"} textColor={"#ffffff"} />
+          <Button
+            text={"Sign in"}
+            color={"#6B5F32"}
+            textColor={"#ffffff"}
+            onClick={() => {
+              setShowSignin(true)
+            }}
+          />
         </div>
       </div>
     </>

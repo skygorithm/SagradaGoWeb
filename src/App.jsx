@@ -13,12 +13,18 @@ import { useState } from 'react'
 function App() {
 
   const [selectedNavbar, setSelectedNavbar] = useState("Home")
+  const [showSignin, setShowSignin] = useState(false)
+  const [showSignup, setShowSignup] = useState(false)
   return (
     <>
       <NavbarContext.Provider
         value={{
           selectedNavbar,
-          setSelectedNavbar
+          setSelectedNavbar,
+          showSignin,
+          setShowSignin,
+          showSignup,
+          setShowSignup
         }}
       >
           <BrowserRouter>
