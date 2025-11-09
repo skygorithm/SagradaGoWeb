@@ -4,14 +4,15 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC9LVXj9P4tj-E_jP-HGEn_WzoqECoxXMo",
-  authDomain: "sagradago-48104.firebaseapp.com",
-  projectId: "sagradago-48104",
-  storageBucket: "sagradago-48104.firebasestorage.app",
-  messagingSenderId: "850523414151",
-  appId: "1:850523414151:web:36fe6c90f05b83a1c26222",
-  measurementId: "G-055S9B1TYN"
+  apiKey: import.meta.env.VITE_FB_API,
+  authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FB_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FB_SENDER_ID,
+  appId: import.meta.env.VITE_FB_APP_ID,
+  measurementId: import.meta.env.VITE_FB_MEASUREMENT_ID 
 };
+
 
 
 const app = initializeApp(firebaseConfig);
