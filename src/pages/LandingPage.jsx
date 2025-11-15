@@ -13,7 +13,7 @@ export default function LandingPage() {
   return (
     <>
       <div className="home-main-container">
-        <Header />
+        {/* <Header /> */}
 
         <div className="w-full h-[1000px] bg-pink-500">
 
