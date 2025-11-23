@@ -174,6 +174,30 @@ export default function AccountManagement() {
     }
   };
 
+  const handleDisableUser = async (uid, currentStatus) => {
+    const action = currentStatus ? "disable" : "enable";
+    if (!window.confirm(`Are you sure you want to ${action} this account?`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axios.put(`${API_URL}/updateUserStatus`, {
+        uid,
+        is_active: !currentStatus, // true = active, false = disabled
+      });
+
+      alert(`User account has been ${!currentStatus ? "enabled" : "disabled"} successfully!`);
+      fetchUsers();
+
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      alert(error.response?.data?.message || `Failed to ${action} user account.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       first_name: "",
@@ -332,10 +356,10 @@ export default function AccountManagement() {
                           {user.is_priest ? "Priest" : "User"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                         <button
                           onClick={() => handleUpdateRole(user.uid, !user.is_priest)}
-                          className={`mr-2 px-3 py-1 rounded ${
+                          className={`px-3 py-1 rounded ${
                             user.is_priest
                               ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
                               : "bg-purple-100 text-purple-700 hover:bg-purple-200"
@@ -343,6 +367,18 @@ export default function AccountManagement() {
                           disabled={loading}
                         >
                           {user.is_priest ? "Remove Priest" : "Make Priest"}
+                        </button>
+
+                        <button
+                          onClick={() => handleDisableUser(user.uid, user.is_active ?? true)}
+                          className={`px-3 py-1 rounded ${
+                            user.is_active ?? true
+                              ? "bg-red-100 text-red-700 hover:bg-red-200"
+                              : "bg-green-100 text-green-700 hover:bg-green-200"
+                          } transition`}
+                          disabled={loading}
+                        >
+                          {user.is_active ?? true ? "Disable" : "Enable"}
                         </button>
                       </td>
                     </tr>
