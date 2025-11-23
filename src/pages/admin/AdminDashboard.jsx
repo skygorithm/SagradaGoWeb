@@ -1,89 +1,333 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, Row, Col, Statistic, Button, Space, Table, Tag, Typography, Spin, Empty } from "antd";
+import {
+  UserOutlined,
+  TeamOutlined,
+  CalendarOutlined,
+  DollarOutlined,
+  UserAddOutlined,
+  BookOutlined,
+  HeartOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+import axios from "axios";
+import { API_URL } from "../../Constants";
+import "../../styles/dashboard.css";
+
+const { Title, Text } = Typography;
+
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalPriests: 0,
+    pendingBookings: 0,
+    totalDonations: 0,
+    totalVolunteers: 0,
+    recentUsers: [],
+  });
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [usersResponse] = await Promise.all([
+        axios.get(`${API_URL}/getAllUsers`),
+      ]);
+
+      const users = usersResponse.data || [];
+      const priests = users.filter((user) => user.is_priest === true);
+      const regularUsers = users.filter((user) => user.is_priest === false);
+
+      // Get recent users (last 5) - sort by any available date field or just take last 5
+      const recentUsers = users
+        .slice()
+        .reverse()
+        .slice(0, 5);
+
+      setStats({
+        totalUsers: users.length,
+        totalPriests: priests.length,
+        pendingBookings: 0, // You can fetch this from your bookings API
+        totalDonations: 0, // You can fetch this from your donations API
+        totalVolunteers: 0, // You can fetch this from your volunteers API
+        recentUsers: recentUsers,
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const quickActions = [
+    {
+      title: "Account Management",
+      description: "Manage users and priests",
+      icon: <UserAddOutlined style={{ fontSize: 32, color: "#b87d3e" }} />,
+      path: "/admin/account-management",
+      color: "#b87d3e",
+    },
+    {
+      title: "View Bookings",
+      description: "Manage service bookings",
+      icon: <BookOutlined style={{ fontSize: 32, color: "#1890ff" }} />,
+      path: "/admin/bookings",
+      color: "#1890ff",
+    },
+    {
+      title: "View Donations",
+      description: "Track donations",
+      icon: <DollarOutlined style={{ fontSize: 32, color: "#52c41a" }} />,
+      path: "/admin/donations",
+      color: "#52c41a",
+    },
+    {
+      title: "View Volunteers",
+      description: "Manage volunteers",
+      icon: <HeartOutlined style={{ fontSize: 32, color: "#f5222d" }} />,
+      path: "/admin/volunteers",
+      color: "#f5222d",
+    },
+  ];
+
+  const recentUsersColumns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      render: (_, record) => (
+        <Text strong>
+          {record.first_name} {record.middle_name} {record.last_name}
+        </Text>
+      ),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+    },
+    {
+      title: "Role",
+      dataIndex: "is_priest",
+      key: "role",
+      render: (isPriest) => (
+        <Tag color={isPriest ? "purple" : "blue"}>
+          {isPriest ? "Priest" : "User"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Contact",
+      dataIndex: "contact_number",
+      key: "contact",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="dashboard-loading-container">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="dashboard-container">
+      <div className="dashboard-content">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Welcome to the admin control panel</p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Users</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">-</p>
-              </div>
-              <div className="text-4xl">👥</div>
+        <div className="dashboard-header">
+          <div className="dashboard-header-content">
+            <div>
+              <Title level={2} className="dashboard-title">
+                Admin Dashboard
+              </Title>
+              <Text type="secondary" className="dashboard-subtitle">
+                Welcome back! Here's what's happening today.
+              </Text>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Priests</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">-</p>
-              </div>
-              <div className="text-4xl">⛪</div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Pending Bookings</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">-</p>
-              </div>
-              <div className="text-4xl">📅</div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Donations</p>
-                <p className="text-3xl font-bold text-gray-800 mt-2">-</p>
-              </div>
-              <div className="text-4xl">💰</div>
-            </div>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={fetchDashboardData}
+              loading={loading}
+            >
+              Refresh
+            </Button>
           </div>
         </div>
+
+        {/* Statistics Cards */}
+        <Row gutter={[16, 16]} className="dashboard-stats-grid">
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="dashboard-stat-card">
+              <Statistic
+                title="Total Users"
+                value={stats.totalUsers}
+                prefix={<UserOutlined />}
+                valueStyle={{ color: "#1890ff" }}
+              />
+              <div className="dashboard-stat-title">
+                <Text type="secondary" className="dashboard-stat-text">
+                  Regular users
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="dashboard-stat-card">
+              <Statistic
+                title="Total Priests"
+                value={stats.totalPriests}
+                prefix={<TeamOutlined />}
+                valueStyle={{ color: "#722ed1" }}
+              />
+              <div className="dashboard-stat-title">
+                <Text type="secondary" className="dashboard-stat-text">
+                  Active priests
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="dashboard-stat-card">
+              <Statistic
+                title="Pending Bookings"
+                value={stats.pendingBookings}
+                prefix={<CalendarOutlined />}
+                valueStyle={{ color: "#fa8c16" }}
+              />
+              <div className="dashboard-stat-title">
+                <Text type="secondary" className="dashboard-stat-text">
+                  Awaiting approval
+                </Text>
+              </div>
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className="dashboard-stat-card">
+              <Statistic
+                title="Total Donations"
+                value={stats.totalDonations}
+                prefix={<DollarOutlined />}
+                precision={2}
+                valueStyle={{ color: "#52c41a" }}
+              />
+              <div className="dashboard-stat-title">
+                <Text type="secondary" className="dashboard-stat-text">
+                  All time donations
+                </Text>
+              </div>
+            </Card>
+          </Col>
+        </Row>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#b87d3e] hover:bg-[#b87d3e]/5 transition-all text-left">
-              <div className="text-2xl mb-2">👥</div>
-              <h3 className="font-semibold text-gray-800">Manage Accounts</h3>
-              <p className="text-sm text-gray-600 mt-1">View and manage user accounts</p>
-            </button>
+        <Card
+          title={<Title level={4} className="dashboard-quick-actions-title">Quick Actions</Title>}
+          className="dashboard-quick-actions-card"
+        >
+          <Row gutter={[16, 16]}>
+            {quickActions.map((action, index) => {
+              const cardClass = 
+                action.path.includes("account") ? "dashboard-quick-action-card-users" :
+                action.path.includes("bookings") ? "dashboard-quick-action-card-bookings" :
+                action.path.includes("donations") ? "dashboard-quick-action-card-donations" :
+                "dashboard-quick-action-card-volunteers";
+              
+              return (
+                <Col xs={24} sm={12} lg={6} key={index}>
+                  <Card
+                    hoverable
+                    onClick={() => navigate(action.path)}
+                    className={`dashboard-quick-action-card ${cardClass}`}
+                    bodyStyle={{
+                      padding: "24px",
+                    }}
+                  >
+                    <div className="dashboard-quick-action-icon">{action.icon}</div>
+                    <Title level={5} className="dashboard-quick-action-title">
+                      {action.title}
+                    </Title>
+                    <Text type="secondary" className="dashboard-quick-action-description">
+                      {action.description}
+                    </Text>
+                  </Card>
+                </Col>
+              );
+            })}
+          </Row>
+        </Card>
 
-            <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#b87d3e] hover:bg-[#b87d3e]/5 transition-all text-left">
-              <div className="text-2xl mb-2">📅</div>
-              <h3 className="font-semibold text-gray-800">View Bookings</h3>
-              <p className="text-sm text-gray-600 mt-1">Manage service bookings</p>
-            </button>
-
-            <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#b87d3e] hover:bg-[#b87d3e]/5 transition-all text-left">
-              <div className="text-2xl mb-2">💰</div>
-              <h3 className="font-semibold text-gray-800">View Donations</h3>
-              <p className="text-sm text-gray-600 mt-1">Track donations</p>
-            </button>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h2>
-          <div className="text-gray-500 text-center py-8">
-            <p>No recent activity to display</p>
-          </div>
-        </div>
+        {/* Recent Users and Activity */}
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={16}>
+            <Card
+              title={<Title level={4} className="dashboard-recent-users-title">Recent Users</Title>}
+              className="dashboard-recent-users-card"
+              extra={
+                <Button
+                  type="link"
+                  onClick={() => navigate("/admin/account-management")}
+                >
+                  View All
+                </Button>
+              }
+            >
+              {stats.recentUsers.length > 0 ? (
+                <Table
+                  dataSource={stats.recentUsers}
+                  columns={recentUsersColumns}
+                  pagination={false}
+                  size="small"
+                  rowKey="uid"
+                />
+              ) : (
+                <Empty description="No recent users" />
+              )}
+            </Card>
+          </Col>
+          <Col xs={24} lg={8}>
+            <Card 
+              title={<Title level={4} className="dashboard-system-overview-title">System Overview</Title>}
+              className="dashboard-system-overview-card"
+            >
+              <Space direction="vertical" style={{ width: "100%" }} size="large">
+                <div>
+                  <div className="dashboard-system-overview-item">
+                    <Text>System Status</Text>
+                    <Tag color="success">Operational</Tag>
+                  </div>
+                  <div className="dashboard-system-overview-item">
+                    <Text>Total Accounts</Text>
+                    <Text strong>{stats.totalUsers + stats.totalPriests}</Text>
+                  </div>
+                  <div className="dashboard-system-overview-item">
+                    <Text>User Ratio</Text>
+                    <Text strong>
+                      {stats.totalUsers > 0
+                        ? ((stats.totalUsers / (stats.totalUsers + stats.totalPriests)) * 100).toFixed(1)
+                        : 0}%
+                    </Text>
+                  </div>
+                  <div className="dashboard-system-overview-item">
+                    <Text>Priest Ratio</Text>
+                    <Text strong>
+                      {stats.totalPriests > 0
+                        ? ((stats.totalPriests / (stats.totalUsers + stats.totalPriests)) * 100).toFixed(1)
+                        : 0}%
+                    </Text>
+                  </div>
+                </div>
+              </Space>
+            </Card>
+          </Col>
+        </Row>
       </div>
     </div>
   );
 }
-

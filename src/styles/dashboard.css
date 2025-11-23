@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+.dashboard-container {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-title {
+  margin: 0;
+  color: #262626;
+}
+
+.dashboard-subtitle {
+  font-size: 16px;
+}
+
+.dashboard-stats-grid {
+  margin-bottom: 24px;
+}
+
+.dashboard-stat-card {
+  /* Card styles are handled by Ant Design Card component */
+}
+
+.dashboard-stat-title {
+  margin-top: 8px;
+}
+
+.dashboard-stat-text {
+  font-size: 12px;
+}
+
+.dashboard-quick-actions-card {
+  margin-bottom: 24px;
+}
+
+.dashboard-quick-actions-title {
+  margin: 0;
+}
+
+.dashboard-quick-action-card {
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+  padding: 24px;
+}
+
+.dashboard-quick-action-card:hover {
+  transform: translateY(-4px);
+}
+
+.dashboard-quick-action-icon {
+  margin-bottom: 12px;
+}
+
+.dashboard-quick-action-title {
+  margin: 8px 0;
+  color: #262626;
+}
+
+.dashboard-quick-action-description {
+  font-size: 12px;
+}
+
+.dashboard-recent-users-card {
+  /* Card styles handled by Ant Design */
+}
+
+.dashboard-recent-users-title {
+  margin: 0;
+}
+
+.dashboard-system-overview-card {
+  /* Card styles handled by Ant Design */
+}
+
+.dashboard-system-overview-title {
+  margin: 0;
+}
+
+.dashboard-system-overview-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.dashboard-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Quick Action Card Hover Effects */
+.dashboard-quick-action-card-users {
+  border-color: rgba(184, 125, 62, 0.2);
+}
+
+.dashboard-quick-action-card-users:hover {
+  border-color: #b87d3e;
+  box-shadow: 0 4px 12px rgba(184, 125, 62, 0.3);
+}
+
+.dashboard-quick-action-card-bookings {
+  border-color: rgba(24, 144, 255, 0.2);
+}
+
+.dashboard-quick-action-card-bookings:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.dashboard-quick-action-card-donations {
+  border-color: rgba(82, 196, 26, 0.2);
+}
+
+.dashboard-quick-action-card-donations:hover {
+  border-color: #52c41a;
+  box-shadow: 0 4px 12px rgba(82, 196, 26, 0.3);
+}
+
+.dashboard-quick-action-card-volunteers {
+  border-color: rgba(245, 34, 45, 0.2);
+}
+
+.dashboard-quick-action-card-volunteers:hover {
+  border-color: #f5222d;
+  box-shadow: 0 4px 12px rgba(245, 34, 45, 0.3);
+}
+

@@ -17,6 +17,9 @@ import AddAdmin from "./pages/admin/AddAdmin";
 import AdminLandingPage from "./pages/admin/AdminLandingPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AccountManagement from "./pages/admin/AccountManagement";
+import BookingPendingRequests from "./pages/admin/BookingPendingRequests";
+import DonationsList from "./pages/admin/DonationsList";
+import VolunteersList from "./pages/admin/VolunteersList";
 
 import Header from "./components/Header";
 import AdminLayout from "./components/AdminLayout";
@@ -54,6 +57,9 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="account-management" element={<AccountManagement />} />
+            <Route path="bookings" element={<BookingPendingRequests />} />
+            <Route path="donations" element={<DonationsList />} />
+            <Route path="volunteers" element={<VolunteersList />} />
             <Route path="" element={<AdminDashboard />} />
             <Route path="create" element={<AddAdmin />} />
           </Route>
