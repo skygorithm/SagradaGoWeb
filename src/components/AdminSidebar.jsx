@@ -1,8 +1,13 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContext } from "react";
+import { Layout, Menu, Button } from "antd";
+import { DashboardOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
 import { NavbarContext } from "../context/AllContext";
 import Cookies from "js-cookie";
 import Logo from "../assets/sagrada.png";
+import "../styles/adminSidebar.css";
+
+const { Sider } = Layout;
 
 export default function AdminSidebar() {
   const navigate = useNavigate();
@@ -10,9 +15,21 @@ export default function AdminSidebar() {
   const { setCurrentUser } = useContext(NavbarContext);
 
   const menuItems = [
-    { id: "dashboard", text: "Dashboard", path: "/admin/dashboard", icon: "📊" },
-    { id: "account", text: "Account Management", path: "/admin/account-management", icon: "👥" },
+    {
+      key: "/admin/dashboard",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+    },
+    {
+      key: "/admin/account-management",
+      icon: <UserOutlined />,
+      label: "Account Management",
+    },
   ];
+
+  const handleMenuClick = ({ key }) => {
+    navigate(key);
+  };
 
   const handleLogout = () => {
     Cookies.remove("email");
@@ -22,49 +39,75 @@ export default function AdminSidebar() {
   };
 
   return (
-    <div className="w-64 h-screen bg-[#b87d3e] text-white flex flex-col shadow-lg fixed left-0 top-0">
-      <div className="p-6 border-b border-white/20">
+    <Sider
+      width={256}
+      style={{
+        overflow: "auto",
+        height: "100vh",
+        position: "fixed",
+        left: 0,
+        top: 0,
+        bottom: 0,
+        background: "#b87d3e",
+      }}
+    >
+      <div
+        style={{
+          padding: "24px",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <img
           src={Logo}
           alt="Logo"
-          className="h-12 w-auto cursor-pointer"
+          style={{ height: "48px", cursor: "pointer" }}
           onClick={() => navigate("/admin/dashboard")}
         />
       </div>
 
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => navigate(item.path)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive
-                      ? "bg-white text-[#b87d3e] font-semibold"
-                      : "text-white hover:bg-white/10"
-                  }`}
-                >
-                  <span className="text-xl">{item.icon}</span>
-                  <span>{item.text}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      <Menu
+        theme="dark"
+        mode="inline"
+        selectedKeys={[location.pathname]}
+        items={menuItems}
+        onClick={handleMenuClick}
+        style={{
+          background: "#b87d3e",
+          border: "none",
+          marginTop: "16px",
+        }}
+        className="custom-admin-menu"
+      />
 
-      <div className="p-4 border-t border-white/20">
-        <button
+      <div
+        style={{
+          padding: "16px",
+          borderTop: "1px solid rgba(255, 255, 255, 0.2)",
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+        }}
+      >
+        <Button
+          type="text"
+          icon={<LogoutOutlined />}
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-all"
+          block
+          style={{
+            color: "white",
+            textAlign: "left",
+            height: "auto",
+            padding: "12px 16px",
+          }}
         >
-          <span className="text-xl">🚪</span>
-          <span>Logout</span>
-        </button>
+          Logout
+        </Button>
       </div>
-    </div>
+    </Sider>
   );
 }
 

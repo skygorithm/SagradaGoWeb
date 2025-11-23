@@ -1,14 +1,27 @@
 import { Outlet } from "react-router-dom";
+import { Layout } from "antd";
 import AdminSidebar from "./AdminSidebar";
+
+const { Content } = Layout;
 
 export default function AdminLayout() {
   return (
-    <div className="flex w-screen h-screen bg-gray-50">
+    <Layout style={{ minHeight: "100vh" }}>
       <AdminSidebar />
-      <main className="flex-1 ml-64 overflow-y-auto">
-        <Outlet />
-      </main>
-    </div>
+      <Layout style={{ marginLeft: 256 }}>
+        <Content
+          style={{
+            margin: 0,
+            padding: 0,
+            minHeight: "100vh",
+            background: "#f0f2f5",
+            overflow: "auto",
+          }}
+        >
+          <Outlet />
+        </Content>
+      </Layout>
+    </Layout>
   );
 }
 

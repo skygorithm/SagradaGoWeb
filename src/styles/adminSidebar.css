@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/* Custom styling for Ant Design Menu in Admin Sidebar */
+.custom-admin-menu.ant-menu-dark {
+  background: #b87d3e !important;
+}
+
+.custom-admin-menu.ant-menu-dark .ant-menu-item {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 4px 8px !important;
+  border-radius: 8px !important;
+}
+
+.custom-admin-menu.ant-menu-dark .ant-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+}
+
+.custom-admin-menu.ant-menu-dark .ant-menu-item-selected {
+  background-color: white !important;
+  color: #b87d3e !important;
+}
+
+.custom-admin-menu.ant-menu-dark .ant-menu-item-selected::after {
+  display: none !important;
+}
+
+.custom-admin-menu.ant-menu-dark .ant-menu-item-icon {
+  color: inherit !important;
+}
+
