@@ -17,9 +17,9 @@ export default function SignUpPage() {
   const [inputFname, setInputFname] = useState("");
   const [inputMname, setInputMname] = useState("");
   const [inputLname, setInputLname] = useState("");
-  const [inputGender, setInputGender] = useState("");
+  // const [inputGender, setInputGender] = useState("");
   const [inputContactNumber, setInputContactNumber] = useState("");
-  const [inputCivilStatus, setInputCivilStatus] = useState("");
+  // const [inputCivilStatus, setInputCivilStatus] = useState("");
   const [inputBirthday, setInputBirthday] = useState("");
   const [inputEmail, setInputEmail] = useState("");
   const [inputPassword, setInputPassword] = useState("");
@@ -63,9 +63,9 @@ export default function SignUpPage() {
         first_name: inputFname,
         middle_name: inputMname,
         last_name: inputLname,
-        gender: inputGender,
+        // gender: inputGender,
         contact_number: inputContactNumber,
-        civil_status: inputCivilStatus,
+        // civil_status: inputCivilStatus,
         birthday: inputBirthday,
         email: inputEmail,
         password: inputPassword,
@@ -141,7 +141,7 @@ export default function SignUpPage() {
           </div>
 
           {/* Gender */}
-          <div className="flex flex-col w-full">
+          {/* <div className="flex flex-col w-full">
             <p>Gender</p>
             {["Male", "Female", "None"].map((g) => (
               <label key={g}>
@@ -155,7 +155,7 @@ export default function SignUpPage() {
                 {g === "None" ? "Prefer not to say" : g.charAt(0).toUpperCase() + g.slice(1)}
               </label>
             ))}
-          </div>
+          </div> */}
 
           {/* Contact */}
           <div>
@@ -169,7 +169,7 @@ export default function SignUpPage() {
           </div>
 
           {/* Civil Status */}
-          <div className="w-full flex flex-col">
+          {/* <div className="w-full flex flex-col">
             <p>Civil Status</p>
             {["Single", "Married", "Widowed", "Divorced"].map((status) => (
               <label key={status}>
@@ -183,7 +183,7 @@ export default function SignUpPage() {
                 {status}
               </label>
             ))}
-          </div>
+          </div> */}
 
           <div>
             <p>Birthday</p>
