@@ -3,7 +3,6 @@ import { NavbarContext } from "../../context/AllContext";
 import { auth } from "../../config/firebase";
 import {
   createUserWithEmailAndPassword,
-  sendEmailVerification,
 } from "firebase/auth";
 import axios from "axios";
 import { API_URL } from "../../Constants";

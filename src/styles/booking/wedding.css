@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+
+.input-text{
+    @apply w-10/12 h-8 bg-white border border-black px-1;
+}
