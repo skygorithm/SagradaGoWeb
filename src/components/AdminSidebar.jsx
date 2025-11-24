@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContext } from "react";
 import { Layout, Menu, Button } from "antd";
-import { DashboardOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
+import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined } from "@ant-design/icons";
 import { NavbarContext } from "../context/AllContext";
 import Cookies from "js-cookie";
 import Logo from "../assets/sagrada.png";
@@ -25,6 +25,21 @@ export default function AdminSidebar() {
       icon: <UserOutlined />,
       label: "Account Management",
     },
+    {
+      key: "/admin/bookings",
+      icon: <BookOutlined />,
+      label: "Bookings",
+    },
+    {
+      key: "/admin/donations",
+      icon: <DollarOutlined />,
+      label: "Donations",
+    },
+    {
+      key: "/admin/volunteers",
+      icon: <TeamOutlined />,
+      label: "Volunteers",
+    },
   ];
 
   const handleMenuClick = ({ key }) => {
@@ -34,7 +49,7 @@ export default function AdminSidebar() {
   const handleLogout = () => {
     Cookies.remove("email");
     setCurrentUser({});
-    navigate("/admin/login");
+    navigate("/");
     window.location.reload();
   };
 
@@ -110,4 +125,3 @@ export default function AdminSidebar() {
     </Sider>
   );
 }
-
