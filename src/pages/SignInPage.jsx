@@ -215,6 +215,7 @@ export default function SignInPage() {
         inputEmail,
         inputPassword
       );
+      
       const user = userCredential.user;
       const uid = user.uid;
 

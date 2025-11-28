@@ -10,17 +10,14 @@ import BookService from "./pages/BookService";
 import Events from "./pages/Events";
 import BeVolunteer from "./pages/BeVolunteer";
 import Donate from "./pages/Donate";
-import Profile from "./pages/ProfilePage";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AddAdmin from "./pages/admin/AddAdmin";
-import AdminLandingPage from "./pages/admin/AdminLandingPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AccountManagement from "./pages/admin/AccountManagement";
 import BookingPendingRequests from "./pages/admin/BookingPendingRequests";
 import DonationsList from "./pages/admin/DonationsList";
 import VolunteersList from "./pages/admin/VolunteersList";
-
 import Header from "./components/Header";
 import AdminLayout from "./components/AdminLayout";
 
@@ -50,42 +47,32 @@ function App() {
       }}
     >
       <BrowserRouter>
+        <Header />   {/* If you want header everywhere */}
+
         <Routes>
-
+          {/* Admin */}
           <Route path="/admin/login" element={<AdminLogin />} />
-
           <Route path="/admin" element={<AdminLayout />}>
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/account-management" element={<AccountManagement />} />
-            <Route path="/admin/bookings" element={<BookingPendingRequests />} />
-            <Route path="/admin/donations" element={<DonationsList />} />
-            <Route path="/admin/volunteers" element={<VolunteersList />} />
-            <Route path="" element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="account-management" element={<AccountManagement />} />
+            <Route path="bookings" element={<BookingPendingRequests />} />
+            <Route path="donations" element={<DonationsList />} />
+            <Route path="volunteers" element={<VolunteersList />} />
+            <Route index element={<AdminDashboard />} />
             <Route path="create" element={<AddAdmin />} />
           </Route>
 
-          <Route
-            path="*"
-            element={
-              <div className="main-container">
-                <Header />
-                <div className="body-container">
-                <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/sign-up" element={<SignUpPage />} />
-                  <Route path="/sign-in" element={<SignInPage />} />
-                  <Route path="/book-service" element={<BookService />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/be-volunteer" element={<BeVolunteer />} />
-                  <Route path="/donate" element={<Donate />} />
-                  <Route path="/profile" element={<Profile isAdmin={false} />} />
-                </Routes>
-                </div>
-              </div>
-            }
-          />
+          {/* Public */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/book-service" element={<BookService />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/be-volunteer" element={<BeVolunteer />} />
+          <Route path="/donate" element={<Donate />} />
         </Routes>
       </BrowserRouter>
+
     </NavbarContext.Provider>
   );
 }

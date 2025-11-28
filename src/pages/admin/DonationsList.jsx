@@ -84,11 +84,9 @@ export default function DonationsList() {
         total: response.data.pagination.total,
         pages: response.data.pagination.pages,
       });
-
     } catch (error) {
       console.error("Error fetching donations:", error);
       message.error("Failed to fetch donations. Please try again.");
-
     } finally {
       setLoading(false);
     }
@@ -124,11 +122,9 @@ export default function DonationsList() {
       );
       fetchDonations();
       setDetailModalVisible(false);
-
     } catch (error) {
       console.error("Error updating donation status:", error);
       message.error("Failed to update donation status. Please try again.");
-      
     } finally {
       setUpdateLoading(false);
     }
