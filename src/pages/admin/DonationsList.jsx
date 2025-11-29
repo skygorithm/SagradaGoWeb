@@ -25,6 +25,7 @@ import {
   ReloadOutlined,
   SearchOutlined,
   EyeOutlined,
+  PictureOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -53,6 +54,9 @@ export default function DonationsList() {
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+  const [selectedImageTitle, setSelectedImageTitle] = useState("");
 
   useEffect(() => {
     fetchDonations();
@@ -69,6 +73,7 @@ export default function DonationsList() {
         page: pagination.page,
         limit: pagination.limit,
       };
+      
       if (statusFilter !== "all") {
         params.status = statusFilter;
       }
@@ -84,9 +89,11 @@ export default function DonationsList() {
         total: response.data.pagination.total,
         pages: response.data.pagination.pages,
       });
+
     } catch (error) {
       console.error("Error fetching donations:", error);
       message.error("Failed to fetch donations. Please try again.");
+
     } finally {
       setLoading(false);
     }
@@ -122,9 +129,11 @@ export default function DonationsList() {
       );
       fetchDonations();
       setDetailModalVisible(false);
+
     } catch (error) {
       console.error("Error updating donation status:", error);
       message.error("Failed to update donation status. Please try again.");
+
     } finally {
       setUpdateLoading(false);
     }
@@ -171,7 +180,35 @@ export default function DonationsList() {
       Cash: "green",
       "In Kind": "purple",
     };
+
     return <Tag color={colorMap[method] || "default"}>{method}</Tag>;
+  };
+
+  const getSupabaseImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+
+    if (imagePath.startsWith("http")) {
+      return imagePath;
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+    if (!supabaseUrl) {
+      console.warn("Supabase URL not configured");
+      return null;
+    }
+
+    return `${supabaseUrl}/storage/v1/object/public/donations/${imagePath}`;
+  };
+
+  const handleViewImage = (imagePath, title) => {
+    const imageUrl = getSupabaseImageUrl(imagePath);
+    if (imageUrl) {
+      setSelectedImageUrl(imageUrl);
+      setSelectedImageTitle(title);
+      setImageModalVisible(true);
+    } else {
+      message.warning("Image URL not available");
+    }
   };
 
   const columns = [
@@ -454,7 +491,72 @@ export default function DonationsList() {
                     </div>
                   </Col>
                 )}
+                {selectedDonation.donationImage && (
+                  <Col span={24}>
+                    <Text strong>Donation Image (In Kind):</Text>
+                    <div style={{ marginTop: 8 }}>
+                      <Button
+                        type="link"
+                        icon={<PictureOutlined />}
+                        onClick={() => handleViewImage(selectedDonation.donationImage, "Donation Image")}
+                      >
+                        View Image
+                      </Button>
+                    </div>
+                  </Col>
+                )}
+                {selectedDonation.receipt && (
+                  <Col span={24}>
+                    <Text strong>GCash Receipt:</Text>
+                    <div style={{ marginTop: 8 }}>
+                      <Button
+                        type="link"
+                        icon={<PictureOutlined />}
+                        onClick={() => handleViewImage(selectedDonation.receipt, "GCash Receipt")}
+                      >
+                        View Receipt
+                      </Button>
+                    </div>
+                  </Col>
+                )}
               </Row>
+            </div>
+          )}
+        </Modal>
+
+        {/* Image View Modal */}
+        <Modal
+          title={selectedImageTitle}
+          open={imageModalVisible}
+          onCancel={() => {
+            setImageModalVisible(false);
+            setSelectedImageUrl(null);
+            setSelectedImageTitle("");
+          }}
+          footer={[
+            <Button key="close" onClick={() => setImageModalVisible(false)}>
+              Close
+            </Button>,
+          ]}
+          width={800}
+          centered
+        >
+          {selectedImageUrl && (
+            <div style={{ textAlign: "center" }}>
+              <img
+                src={selectedImageUrl}
+                alt={selectedImageTitle}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "70vh",
+                  objectFit: "contain",
+                  borderRadius: 8,
+                }}
+                onError={(e) => {
+                  message.error("Failed to load image");
+                  console.error("Image load error:", selectedImageUrl);
+                }}
+              />
             </div>
           )}
         </Modal>
