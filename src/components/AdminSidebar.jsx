@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useContext } from "react";
 import { Layout, Menu, Button } from "antd";
-import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined } from "@ant-design/icons";
+import { DashboardOutlined, UserOutlined, LogoutOutlined, BookOutlined, DollarOutlined, TeamOutlined, CalendarOutlined } from "@ant-design/icons";
 import { NavbarContext } from "../context/AllContext";
 import Cookies from "js-cookie";
 import Logo from "../assets/sagrada.png";
@@ -44,6 +44,11 @@ export default function AdminSidebar() {
       key: "/admin/volunteers",
       icon: <TeamOutlined />,
       label: "Volunteers",
+    },
+    {
+      key: "/admin/events",
+      icon: <CalendarOutlined />,
+      label: "Events",
     },
   ];
 
