@@ -81,7 +81,7 @@ export default function BookingPendingRequests() {
       ];
 
       let filtered = allBookings;
-      
+
       if (statusFilter !== "all") {
         filtered = allBookings.filter((b) => b.status === statusFilter);
       }
@@ -215,16 +215,16 @@ export default function BookingPendingRequests() {
   const getName = (booking) => {
     if (booking.bookingType === "Wedding") {
       return `${booking.groom_first_name || ""} ${booking.groom_last_name || ""} & ${booking.bride_first_name || ""} ${booking.bride_last_name || ""}`.trim();
-
+      
     } else if (booking.bookingType === "Burial") {
       return booking.deceased_name || "N/A";
 
     } else {
-      return booking.user?.name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
+      return booking.user?.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
     }
   };
 
-  const getEmail = (booking) => booking.user?.email || "N/A";
+  const getEmail = (booking) => booking.user?.email || booking.email || "N/A";
 
   const columns = [
     {
