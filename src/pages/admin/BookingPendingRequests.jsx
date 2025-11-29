@@ -1,15 +1,525 @@
-import { Card, Typography } from "antd";
+import { useState, useEffect } from "react";
+import {
+  Card,
+  Table,
+  Tag,
+  Button,
+  Space,
+  Typography,
+  Row,
+  Col,
+  Statistic,
+  Select,
+  Input,
+  Modal,
+  message,
+  Spin,
+  Empty,
+  Tooltip,
+  Tabs,
+} from "antd";
+import {
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  EyeOutlined,
+  CalendarOutlined,
+} from "@ant-design/icons";
+import axios from "axios";
+import { API_URL } from "../../Constants";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
+const { Option } = Select;
+const { TabPane } = Tabs;
 
 export default function BookingPendingRequests() {
+  const [bookings, setBookings] = useState([]);
+  const [filteredBookings, setFilteredBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    cancelled: 0,
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("pending");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
+
+  useEffect(() => {
+    fetchAllBookings();
+  }, [statusFilter]);
+
+  useEffect(() => {
+    filterBookings();
+  }, [searchTerm, bookings, typeFilter]);
+
+  const fetchAllBookings = async () => {
+    try {
+      setLoading(true);
+      const [weddings, baptisms, burials, communions, confirmations, anointings] = await Promise.all([
+        axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
+        axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
+        axios.get(`${API_URL}/admin/getAllBurials`).catch(() => ({ data: { burials: [] } })),
+        axios.get(`${API_URL}/admin/getAllCommunions`).catch(() => ({ data: { communions: [] } })),
+        axios.get(`${API_URL}/admin/getAllConfirmations`).catch(() => ({ data: { confirmations: [] } })),
+        axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
+      ]);
+
+      const allBookings = [
+        ...(weddings.data.weddings || []).map((b) => ({ ...b, bookingType: "Wedding", typeLabel: "Wedding" })),
+        ...(baptisms.data.baptisms || []).map((b) => ({ ...b, bookingType: "Baptism", typeLabel: "Baptism" })),
+        ...(burials.data.burials || []).map((b) => ({ ...b, bookingType: "Burial", typeLabel: "Burial" })),
+        ...(communions.data.communions || []).map((b) => ({ ...b, bookingType: "Communion", typeLabel: "Communion" })),
+        ...(confirmations.data.confirmations || []).map((b) => ({ ...b, bookingType: "Confirmation", typeLabel: "Confirmation" })),
+        ...(anointings.data.anointings || []).map((b) => ({ ...b, bookingType: "Anointing", typeLabel: "Anointing of the Sick" })),
+      ];
+
+      let filtered = allBookings;
+      if (statusFilter !== "all") {
+        filtered = allBookings.filter((b) => b.status === statusFilter);
+      }
+
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setBookings(filtered);
+
+      const total = allBookings.length;
+      const pending = allBookings.filter((b) => b.status === "pending").length;
+      const confirmed = allBookings.filter((b) => b.status === "confirmed").length;
+      const cancelled = allBookings.filter((b) => b.status === "cancelled").length;
+
+      setStats({ total, pending, confirmed, cancelled });
+
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      message.error("Failed to fetch bookings. Please try again.");
+
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterBookings = () => {
+    let filtered = bookings;
+
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((b) => b.bookingType === typeFilter);
+    }
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter((b) => {
+        const searchableFields = [
+          b.transaction_id,
+          b.contact_number,
+          b.groom_first_name,
+          b.groom_last_name,
+          b.bride_first_name,
+          b.bride_last_name,
+          b.first_name,
+          b.last_name,
+          b.deceased_name,
+        ].filter(Boolean);
+        return searchableFields.some((field) => field?.toLowerCase().includes(term));
+      });
+    }
+
+    setFilteredBookings(filtered);
+  };
+
+  const handleStatusUpdate = async (bookingId, bookingType, newStatus) => {
+    try {
+      setUpdateLoading(true);
+      const endpointMap = {
+        Wedding: "updateWeddingStatus",
+        Baptism: "updateBaptismStatus",
+        Burial: "updateBurialStatus",
+        Communion: "updateCommunionStatus",
+        Confirmation: "updateConfirmationStatus",
+        Anointing: "updateAnointingStatus",
+      };
+
+      const endpoint = endpointMap[bookingType];
+      if (!endpoint) {
+        message.error("Invalid booking type");
+        return;
+      }
+
+      await axios.put(`${API_URL}/${endpoint}`, {
+        transaction_id: bookingId,
+        status: newStatus,
+      });
+
+      message.success(`Booking ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`);
+      fetchAllBookings();
+      setDetailModalVisible(false);
+
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      message.error("Failed to update booking status. Please try again.");
+
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getStatusTag = (status) => {
+    const statusConfig = {
+      pending: { color: "orange", icon: <ClockCircleOutlined />, text: "Pending" },
+      confirmed: { color: "green", icon: <CheckCircleOutlined />, text: "Confirmed" },
+      cancelled: { color: "red", icon: <CloseCircleOutlined />, text: "Cancelled" },
+    };
+
+    const config = statusConfig[status] || statusConfig.pending;
+    return (
+      <Tag color={config.color} icon={config.icon}>
+        {config.text}
+      </Tag>
+    );
+  };
+
+  const getTypeTag = (type) => {
+    const colorMap = {
+      Wedding: "purple",
+      Baptism: "blue",
+      Burial: "gray",
+      Communion: "cyan",
+      Confirmation: "geekblue",
+      Anointing: "orange",
+    };
+
+    return <Tag color={colorMap[type] || "default"}>{type}</Tag>;
+  };
+
+  const getName = (booking) => {
+    if (booking.bookingType === "Wedding") {
+      return `${booking.groom_first_name || ""} ${booking.groom_last_name || ""} & ${booking.bride_first_name || ""} ${booking.bride_last_name || ""}`.trim();
+
+    } else if (booking.bookingType === "Burial") {
+      return booking.deceased_name || "N/A";
+
+    } else {
+      return `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
+    }
+  };
+
+  const columns = [
+    {
+      title: "Type",
+      dataIndex: "bookingType",
+      key: "bookingType",
+      render: (type) => getTypeTag(type),
+      width: 120,
+    },
+    {
+      title: "Name",
+      key: "name",
+      render: (_, record) => <Text strong>{getName(record)}</Text>,
+    },
+    {
+      title: "Transaction ID",
+      dataIndex: "transaction_id",
+      key: "transaction_id",
+      render: (id) => <Text code>{id || "N/A"}</Text>,
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      key: "date",
+      render: (date) => {
+        if (!date) return "N/A";
+        const d = new Date(date);
+        return d.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      },
+    },
+    {
+      title: "Time",
+      dataIndex: "time",
+      key: "time",
+      render: (time) => time || "N/A",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => getStatusTag(status),
+      width: 120,
+    },
+    {
+      title: "Created",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date) => formatDate(date),
+      width: 180,
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <Space>
+          <Tooltip title="View Details">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => {
+                setSelectedBooking(record);
+                setDetailModalVisible(true);
+              }}
+            >
+              View
+            </Button>
+          </Tooltip>
+          {record.status === "pending" && (
+            <>
+              <Button
+                type="link"
+                style={{ color: "#52c41a" }}
+                onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "confirmed")}
+                loading={updateLoading}
+              >
+                Confirm
+              </Button>
+              <Button
+                type="link"
+                danger
+                onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "cancelled")}
+                loading={updateLoading}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+        </Space>
+      ),
+      width: 200,
+    },
+  ];
+
+  const renderBookingDetails = () => {
+    if (!selectedBooking) return null;
+
+    const details = [];
+    Object.keys(selectedBooking).forEach((key) => {
+      if (key === "_id" || key === "__v" || key === "bookingType" || key === "typeLabel") return;
+      const value = selectedBooking[key];
+
+      if (value !== null && value !== undefined && value !== "") {
+        details.push({ key, value });
+      }
+    });
+
+    return (
+      <div>
+        <Row gutter={[16, 16]}>
+          <Col span={24}>
+            <Text strong>Booking Type:</Text>
+            <div>{getTypeTag(selectedBooking.bookingType)}</div>
+          </Col>
+          <Col span={24}>
+            <Text strong>Status:</Text>
+            <div>{getStatusTag(selectedBooking.status)}</div>
+          </Col>
+          {details.map(({ key, value }) => (
+            <Col span={12} key={key}>
+              <Text strong>{key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:</Text>
+              <div>{typeof value === "object" ? JSON.stringify(value) : String(value)}</div>
+            </Col>
+          ))}
+        </Row>
+      </div>
+    );
+  };
+
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <Card>
-        <Title level={2}>Booking Pending Requests</Title>
-        <p>This page will display pending booking requests.</p>
-      </Card>
+      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <Title level={2} style={{ margin: 0, color: "#262626" }}>
+                Booking Pending Requests
+              </Title>
+              <Text type="secondary" style={{ fontSize: 16 }}>
+                Manage and track all booking requests
+              </Text>
+            </div>
+            <Button icon={<ReloadOutlined />} onClick={fetchAllBookings} loading={loading}>
+              Refresh
+            </Button>
+          </div>
+        </div>
+
+        {/* Statistics Cards */}
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Total Bookings"
+                value={stats.total}
+                prefix={<CalendarOutlined />}
+                valueStyle={{ color: "#1890ff" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Pending"
+                value={stats.pending}
+                prefix={<ClockCircleOutlined />}
+                valueStyle={{ color: "#fa8c16" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Confirmed"
+                value={stats.confirmed}
+                prefix={<CheckCircleOutlined />}
+                valueStyle={{ color: "#52c41a" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic
+                title="Cancelled"
+                value={stats.cancelled}
+                prefix={<CloseCircleOutlined />}
+                valueStyle={{ color: "#f5222d" }}
+              />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Filters */}
+        <Card style={{ marginBottom: 24 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={8}>
+              <Input
+                placeholder="Search by name, transaction ID, or contact..."
+                prefix={<SearchOutlined />}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                allowClear
+              />
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Select
+                style={{ width: "100%" }}
+                value={statusFilter}
+                onChange={setStatusFilter}
+                placeholder="Filter by status"
+              >
+                <Option value="all">All Status</Option>
+                <Option value="pending">Pending</Option>
+                <Option value="confirmed">Confirmed</Option>
+                <Option value="cancelled">Cancelled</Option>
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Select
+                style={{ width: "100%" }}
+                value={typeFilter}
+                onChange={setTypeFilter}
+                placeholder="Filter by type"
+              >
+                <Option value="all">All Types</Option>
+                <Option value="Wedding">Wedding</Option>
+                <Option value="Baptism">Baptism</Option>
+                <Option value="Burial">Burial</Option>
+                <Option value="Communion">Communion</Option>
+                <Option value="Confirmation">Confirmation</Option>
+                <Option value="Anointing">Anointing</Option>
+              </Select>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Bookings Table */}
+        <Card>
+          <Table
+            columns={columns}
+            dataSource={filteredBookings}
+            rowKey={(record) => `${record.bookingType}-${record.transaction_id || record._id}`}
+            loading={loading}
+            pagination={{
+              pageSize: 20,
+              showSizeChanger: true,
+              showTotal: (total) => `Total ${total} bookings`,
+            }}
+            scroll={{ x: 1200 }}
+            locale={{
+              emptyText: <Empty description="No bookings found" />,
+            }}
+          />
+        </Card>
+
+        {/* Booking Detail Modal */}
+        <Modal
+          title="Booking Details"
+          open={detailModalVisible}
+          onCancel={() => {
+            setDetailModalVisible(false);
+            setSelectedBooking(null);
+          }}
+          footer={[
+            <Button key="close" onClick={() => setDetailModalVisible(false)}>
+              Close
+            </Button>,
+            selectedBooking?.status === "pending" && (
+              <Button
+                key="confirm"
+                type="primary"
+                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "confirmed")}
+                loading={updateLoading}
+              >
+                Confirm Booking
+              </Button>
+            ),
+            selectedBooking?.status === "pending" && (
+              <Button
+                key="cancel"
+                danger
+                onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "cancelled")}
+                loading={updateLoading}
+              >
+                Cancel Booking
+              </Button>
+            ),
+          ].filter(Boolean)}
+          width={800}
+        >
+          {renderBookingDetails()}
+        </Modal>
+      </div>
     </div>
   );
 }
+
 
