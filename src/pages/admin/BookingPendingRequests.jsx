@@ -217,8 +217,13 @@ export default function BookingPendingRequests() {
       return `${booking.groom_first_name || ""} ${booking.groom_last_name || ""} & ${booking.bride_first_name || ""} ${booking.bride_last_name || ""}`.trim();
       
     } else if (booking.bookingType === "Burial") {
-      return booking.deceased_name || "N/A";
-
+      return (
+        booking.deceased_name ||
+        booking.full_name ||
+        `${booking.first_name || ""} ${booking.last_name || ""}`.trim() ||
+        "N/A"
+      );
+      
     } else {
       return booking.user?.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
     }
