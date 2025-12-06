@@ -12,7 +12,6 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
-import { Badge } from "antd";
 import dayjs from "dayjs";
 import { API_URL } from "../../Constants";
 import "../../styles/dashboard.css";
@@ -53,29 +52,86 @@ export default function AdminDashboard() {
           axios.get(`${API_URL}/admin/getAllCommunions`).catch(() => ({ data: { communions: [] } })),
           axios.get(`${API_URL}/admin/getAllConfirmations`).catch(() => ({ data: { confirmations: [] } })),
           axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
+          axios.get(`${API_URL}/admin/getAllConfessions`).catch(() => ({ data: { bookings: [] } })),
         ]),
       ]);
 
       const users = usersResponse.data || [];
       const priests = users.filter((user) => user.is_priest === true);
 
-      const [weddings, baptisms, burials, communions, confirmations, anointings] = bookingsRes;
+      const [weddings, baptisms, burials, communions, confirmations, anointings, confessions] = bookingsRes;
+      
+      // Normalize confessions data
+      const normalizedConfessions = (confessions.data.bookings || []).map((b) => ({
+        ...b,
+        bookingType: "Confession",
+        date: b.date ? new Date(b.date).toISOString() : null,
+        status: b.status || "pending",
+        full_name: b.full_name || "N/A",
+      }));
+
       const allBookings = [
-        ...(weddings.data.weddings || []),
-        ...(baptisms.data.baptisms || []),
-        ...(burials.data.burials || []),
-        ...(communions.data.communions || []),
-        ...(confirmations.data.confirmations || []),
-        ...(anointings.data.anointings || []),
+        ...(weddings.data.weddings || []).map((b) => ({ ...b, bookingType: "Wedding" })),
+        ...(baptisms.data.baptisms || []).map((b) => ({ ...b, bookingType: "Baptism" })),
+        ...(burials.data.burials || []).map((b) => ({ ...b, bookingType: "Burial" })),
+        ...(communions.data.communions || []).map((b) => ({ ...b, bookingType: "Communion" })),
+        ...(confirmations.data.confirmations || []).map((b) => ({ ...b, bookingType: "Confirmation" })),
+        ...(anointings.data.anointings || []).map((b) => ({ ...b, bookingType: "Anointing" })),
+        ...normalizedConfessions,
       ];
 
-      const approvedBookings = allBookings.filter((b) => b.status === "approved");
+      // Filter confirmed bookings
+      const confirmedBookings = allBookings.filter((b) => {
+        const status = (b.status || "").toLowerCase();
+        return status === "confirmed";
+      });
 
-      const eventsForCalendar = approvedBookings.map((b) => ({
-        date: b.date,
-        type: b.serviceType || b.service || b.type || "Other",
-        name: b.title || b.full_name || b.name || b.serviceType || "Event",
-      }));
+      if (confirmedBookings.length > 0) {
+        console.log(`Found ${confirmedBookings.length} confirmed booking(s) for calendar`);
+      }
+
+      // Helper function to get booking name
+      const getBookingName = (booking) => {
+        if (booking.bookingType === "Wedding") {
+          const groom = `${booking.groom_first_name || ''} ${booking.groom_last_name || ''}`.trim();
+          const bride = `${booking.bride_first_name || ''} ${booking.bride_last_name || ''}`.trim();
+          return groom && bride ? `${groom} & ${bride}` : (groom || bride || booking.full_name || "Wedding");
+        } else if (booking.bookingType === "Burial") {
+          return booking.deceased_name || booking.full_name || "Burial Service";
+        } else {
+          return booking.full_name || booking.user?.name || booking.name || booking.bookingType || "Event";
+        }
+      };
+
+      // Normalize date to local timezone for calendar
+      const eventsForCalendar = confirmedBookings.map((b) => {
+        if (!b.date) {
+          console.warn("Booking missing date:", b);
+          return null;
+        }
+
+        // Handle both string and Date objects
+        let bookingDate;
+        if (typeof b.date === 'string') {
+          bookingDate = dayjs(b.date);
+        } else if (b.date instanceof Date) {
+          bookingDate = dayjs(b.date);
+        } else {
+          bookingDate = dayjs(b.date);
+        }
+
+        if (!bookingDate.isValid()) {
+          console.warn("Invalid date for booking:", b.date, b);
+          return null;
+        }
+        
+        const dateStr = bookingDate.format("YYYY-MM-DD");
+        return {
+          date: dateStr,
+          type: b.bookingType || "Other",
+          name: getBookingName(b),
+        };
+      }).filter(Boolean); // Remove null entries
 
       setCalendarEvents(eventsForCalendar);
 
@@ -101,28 +157,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const dateCellRender = (value) => {
-    const dateStr = value.format("YYYY-MM-DD");
-    const dayEvents = calendarEvents.filter((event) => event.date === dateStr);
-
-    return (
-        <ul style={{ padding: 0, margin: 0, listStyle: "none" }}>
-          {dayEvents.map((item, index) => (
-            <li key={index}>
-              <Badge
-                status={
-                  item.type === "Wedding" ? "success" :
-                  item.type === "Baptism" ? "processing" :
-                  item.type === "Burial" ? "error" :
-                  "default"
-                }
-                text={item.name}
-              />
-          </li>
-        ))}
-      </ul>
-    );
-  };
 
   const quickActions = [
     {

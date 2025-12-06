@@ -3,38 +3,52 @@ import { Badge, Calendar } from "antd";
 import dayjs from "dayjs";
 import "../styles/custom-calendar.css";
 
-const CustomCalendar = ({ events }) => {
+const CustomCalendar = ({ events = [] }) => {
+  // Render events for each date
   const dateCellRender = (value) => {
-    const dateStr = dayjs(value).format("YYYY-MM-DD");
-    const dayEvents = events.filter((event) => event.date === dateStr);
+    if (!events || events.length === 0) {
+      return null;
+    }
 
-    if (dayEvents.length === 0) return null;
+    const dateStr = dayjs(value).format("YYYY-MM-DD"); // normalize to local date
+    const dayEvents = events.filter((event) => event && event.date === dateStr);
+
+    if (dayEvents.length === 0) {
+      return null;
+    }
 
     return (
-      <ul className="events" style={{ padding: 0, margin: 0, listStyle: "none" }}>
+      <div style={{ minHeight: 50, position: "relative" }}>
         {dayEvents.map((item, index) => (
-          <li key={index} style={{ marginBottom: 4 }}>
-            <Badge
-              status={
-                item.type === "Wedding"
-                  ? "success"
-                  : item.type === "Baptism"
-                  ? "processing"
-                  : item.type === "Burial"
-                  ? "error"
-                  : "default"
-              }
-              text={item.name}
-            />
-          </li>
+          <Badge
+            key={index}
+            status={
+              item.type === "Wedding"
+                ? "success"
+                : item.type === "Baptism"
+                ? "processing"
+                : item.type === "Burial"
+                ? "error"
+                : item.type === "Communion"
+                ? "warning"
+                : item.type === "Confirmation"
+                ? "processing"
+                : item.type === "Anointing"
+                ? "default"
+                : item.type === "Confession"
+                ? "default"
+                : "default"
+            }
+            text={item.name || "Event"}
+            style={{ display: "block", marginBottom: 2, fontSize: "11px" }}
+          />
         ))}
-      </ul>
+      </div>
     );
   };
 
-  // Optionally, you can show month data if needed
+  // Optional month cell render
   const monthCellRender = (value) => {
-    // Example: return number of events in the month
     const monthStr = dayjs(value).format("YYYY-MM");
     const monthEventsCount = events.filter((event) =>
       event.date.startsWith(monthStr)
@@ -48,6 +62,7 @@ const CustomCalendar = ({ events }) => {
     ) : null;
   };
 
+  // Cell render wrapper to preserve default AntD calendar structure
   const cellRender = (current, info) => {
     if (info.type === "date") {
       return dateCellRender(current);
