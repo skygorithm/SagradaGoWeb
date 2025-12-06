@@ -50,10 +50,29 @@ export default function BookingPendingRequests() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [priests, setPriests] = useState([]);
+  const [selectedPriestId, setSelectedPriestId] = useState(null);
+  const [loadingPriests, setLoadingPriests] = useState(false);
 
   useEffect(() => {
     fetchAllBookings();
+    fetchPriests();
   }, [statusFilter]);
+
+  const fetchPriests = async () => {
+    try {
+      setLoadingPriests(true);
+      const response = await axios.get(`${API_URL}/getAllPriests`);
+      if (response.data && response.data.priests) {
+        setPriests(response.data.priests);
+      }
+    } catch (error) {
+      console.error("Error fetching priests:", error);
+      message.error("Failed to load priests list");
+    } finally {
+      setLoadingPriests(false);
+    }
+  };
 
   useEffect(() => {
     filterBookings();
@@ -151,6 +170,12 @@ export default function BookingPendingRequests() {
 
   const handleStatusUpdate = async (bookingId, bookingType, newStatus) => {
     try {
+      // If confirming, require priest selection
+      if (newStatus === "confirmed" && !selectedPriestId) {
+        message.warning("Please select a priest before confirming the booking.");
+        return;
+      }
+
       setUpdateLoading(true);
       const endpointMap = {
         Wedding: "updateWeddingStatus",
@@ -168,14 +193,19 @@ export default function BookingPendingRequests() {
         return;
       }
 
+      const selectedPriest = priests.find(p => p.uid === selectedPriestId);
+      
       await axios.put(`${API_URL}/${endpoint}`, {
         transaction_id: bookingId,
         status: newStatus,
+        priest_id: newStatus === "confirmed" ? selectedPriestId : null,
+        priest_name: newStatus === "confirmed" && selectedPriest ? selectedPriest.full_name : null,
       });
 
       message.success(`Booking ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`);
       fetchAllBookings();
       setDetailModalVisible(false);
+      setSelectedPriestId(null); // Reset selection
 
     } catch (error) {
       console.error("Error updating booking status:", error);
@@ -388,6 +418,43 @@ export default function BookingPendingRequests() {
             <div>{getStatusTag(selectedBooking.status)}</div>
           </Col>
 
+          {/* Priest Assignment - Show when confirming pending booking */}
+          {selectedBooking?.status === "pending" && (
+            <Col span={24}>
+              <Text strong>Assign Priest:</Text>
+              <Select
+                style={{ width: "100%", marginTop: 8 }}
+                placeholder="Select a priest"
+                value={selectedPriestId}
+                onChange={(value) => setSelectedPriestId(value)}
+                loading={loadingPriests}
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.children?.toLowerCase() ?? '').includes(input.toLowerCase())
+                }
+              >
+                {priests.map((priest) => (
+                  <Option key={priest.uid} value={priest.uid}>
+                    {priest.full_name}
+                  </Option>
+                ))}
+              </Select>
+              {selectedBooking.priest_name && (
+                <Text type="secondary" style={{ marginTop: 4, display: 'block' }}>
+                  Currently assigned: {selectedBooking.priest_name}
+                </Text>
+              )}
+            </Col>
+          )}
+
+          {/* Show assigned priest if confirmed */}
+          {selectedBooking?.status === "confirmed" && selectedBooking.priest_name && (
+            <Col span={24}>
+              <Text strong>Assigned Priest:</Text>
+              <div>{selectedBooking.priest_name}</div>
+            </Col>
+          )}
+
           {/* Name */}
           <Col span={12}>
             <Text strong>Name:</Text>
@@ -576,6 +643,7 @@ export default function BookingPendingRequests() {
           onCancel={() => {
             setDetailModalVisible(false);
             setSelectedBooking(null);
+            setSelectedPriestId(null);
           }}
           footer={[
             <Button key="close" onClick={() => setDetailModalVisible(false)}>
