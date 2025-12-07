@@ -9,6 +9,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import no_image from "../../assets/blank-image.jpg";
+import { supabase } from "../../config/supabase";
 
 export default function Wedding() {
   const { currentUser, bookingSelected, setBookingSelected } =
@@ -35,8 +36,8 @@ export default function Wedding() {
   const [time, setTime] = useState("");
   const [contact, setContact] = useState("");
   const [attendees, setAttendees] = useState(0);
-  const [groomPhoto, setGroomPhoto] = useState(null);
-  const [bridePhoto, setBridePhoto] = useState(null);
+  const [groomPhoto, setGroomPhoto] = useState("");
+  const [bridePhoto, setBridePhoto] = useState("");
   const [groomBaptismal, setGroomBaptismal] = useState("");
   const [brideBaptismal, setBrideBaptismal] = useState("");
   const [groomConfirmation, setGroomConfirmation] = useState("");
@@ -122,29 +123,112 @@ export default function Wedding() {
     },
   ];
 
-  const groomPreview = groomPhoto ? URL.createObjectURL(groomPhoto) : default_profile;
-  const bridePreview = bridePhoto ? URL.createObjectURL(bridePhoto) : default_profile;
+  // function convertToBase64(file) {
+  //   return new Promise((resolve, reject) => {
+  //     const reader = new FileReader();
+  //     reader.readAsDataURL(file);
+  //     reader.onload = () => resolve(reader.result);
+  //     reader.onerror = (error) => reject(error);
+  //   });
+  // }
+
+  // const groomPreview = groomPhoto || default_profile;
+  // const bridePreview = bridePhoto || default_profile;
+
+  const brideUploadPhoto = async (e) => {
+    const file = e.target.files[0];
+    console.log("file", file);
+
+    if (!file) return;
+    // if (!file || !currentUser?.uid) return;
+
+    const fileExt = file.name.split(".").pop().toLowerCase();
+    const fileName = `bride_${currentUser.uid}_${Date.now()}.${fileExt}`;
+    const filePath = `wedding/${fileName}`;
+
+    // Upload to Supabase
+    const { error } = await supabase.storage
+      .from("profile")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("Upload error:", error.message);
+      return;
+    }
+
+
+    const { data } = supabase.storage.from("wedding").getPublicUrl(filePath);
+    const timestamp = Date.now();
+
+    setBridePhoto(`${data.publicUrl}?t=${timestamp}`);
+
+    alert("Bride photo uploaded successfully");
+  };
+
+  const groomUploadPhoto = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !currentUser?.uid) return;
+
+    const fileExt = file.name.split(".").pop().toLowerCase();
+    const fileName = `groom_${currentUser.uid}_${Date.now()}.${fileExt}`;
+    const filePath = `wedding/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("profile")
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("Upload error:", error.message);
+      return;
+    }
+
+    const { data } = supabase.storage.from("profile").getPublicUrl(filePath);
+    const timestamp = Date.now();
+
+    setGroomPhoto(`${data.publicUrl}?t=${timestamp}`);
+    alert("Groom photo uploaded successfully!");
+  };
+
   const uploadProfileImage = [
     {
       key: "groom_1x1",
       title: "Groom Photo",
-      onChange: setGroomPhoto,
-      preview: groomPreview,
+      onChange: groomUploadPhoto,
+      preview: groomPhoto, 
     },
     {
       key: "bride_1x1",
       title: "Bride Photo",
-      onChange: setBridePhoto,
-      preview: bridePreview,
+      onChange: brideUploadPhoto,
+      preview: bridePhoto,
     },
   ];
 
-  
-  const groomBaptismalPrev = groomBaptismal ? URL.createObjectURL(groomBaptismal) : no_image;
-  const brideBaptismalPrev = brideBaptismal ? URL.createObjectURL(brideBaptismal) : no_image;
+  const groomBaptismalPrev = groomBaptismal
+    ? URL.createObjectURL(groomBaptismal)
+    : no_image;
+  const brideBaptismalPrev = brideBaptismal
+    ? URL.createObjectURL(brideBaptismal)
+    : no_image;
   const uploadBaptismal = [
-    { key: "groom_baptismal", title: "Groom Baptismal Certificate Photo", onChange: setGroomBaptismal, preview: groomBaptismalPrev },
-    { key: "bride_baptismal", title: "Bride Baptismal Certificate Photo", onChange: setBrideBaptismal, preview: brideBaptismalPrev },
+    {
+      key: "groom_baptismal",
+      title: "Groom Baptismal Certificate Photo",
+      onChange: setGroomBaptismal,
+      preview: groomBaptismalPrev,
+    },
+    {
+      key: "bride_baptismal",
+      title: "Bride Baptismal Certificate Photo",
+      onChange: setBrideBaptismal,
+      preview: brideBaptismalPrev,
+    },
   ];
 
   const uploadConfirmation = [
@@ -182,24 +266,82 @@ export default function Wedding() {
     bride_last: brideLname,
     groom_1x1: groomPhoto,
     bride_1x1: bridePhoto,
-    marriage_docu: marriageDocu,
-    groom_baptismal_cert: groomBaptismal,
-    bride_baptismal_cert: brideBaptismal,
-    groom_confirmation_cert: groomConfirmation,
-    bride_confirmation_cert: brideConfirmation,
-    groom_cenomar: groomCenomar,
-    bride_cenomar: brideCenomar,
-    groom_permission: groomPermission,
-    bride_permission: bridePermission,
+    // marriage_docu: marriageDocu,
+    // groom_baptismal_cert: groomBaptismal,
+    // bride_baptismal_cert: brideBaptismal,
+    // groom_confirmation_cert: groomConfirmation,
+    // bride_confirmation_cert: brideConfirmation,
+    // groom_cenomar: groomCenomar,
+    // bride_cenomar: brideCenomar,
+    // groom_permission: groomPermission,
+    // bride_permission: bridePermission,
   });
 
   async function handleSubmit() {
+    console.log("bride photo", bridePhoto);
+    console.log("groom photo", groomPhoto);
+
     alert("gege");
     setBookingSelected(bookingSelected);
+
+    const dateOnly = date.split("T")[0];
+    setForm({
+      // uid: currentUser?.uid || "",
+      date: dateOnly,
+      time: time,
+      attendees: attendees,
+      contact_number: contact,
+      groom_first: groomFname,
+      groom_middle: groomMname,
+      groom_last: groomLname,
+      bride_first: brideFname,
+      bride_middle: brideMname,
+      bride_last: brideLname,
+      groom_1x1: groomPhoto,
+      bride_1x1: bridePhoto,
+      // marriage_docu: marriageDocu,
+      // groom_baptismal_cert: groomBaptismal,
+      // bride_baptismal_cert: brideBaptismal,
+      // groom_confirmation_cert: groomConfirmation,
+      // bride_confirmation_cert: brideConfirmation,
+      // groom_cenomar: groomCenomar,
+      // bride_cenomar: brideCenomar,
+      // groom_permission: groomPermission,
+      // bride_permission: bridePermission,
+    });
+    console.log("forms:", form);
   }
 
+
+
+
+  async function getAllWeddingImages() {
+    const { data: files, error } = await supabase.storage
+      .from("wedding")
+      .list();
+
+    if (error) {
+      console.error(error);
+      return [];
+    }
+
+    return files.map((file) => {
+      const { data: urlData } = supabase.storage
+        .from("wedding")
+        .getPublicUrl(file.name);
+
+      return urlData.publicUrl;
+    });
+  }
+
+
+
+
+  
+
   return (
-    <form className="form-container">
+    <div className="form-container">
+      
       {inputText.map((elem) => (
         <div className="flex flex-col" key={elem.key}>
           <h1>{elem.title}</h1>
@@ -218,8 +360,10 @@ export default function Wedding() {
             <div className="time-container">
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <MobileTimePicker
-                  value={time ? dayjs(time) : null}
-                  onChange={(v) => setTime(v ? v.toISOString() : "")}
+                  value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                  onChange={(v) => {
+                    setTime(v ? dayjs(v).format("HH:mm") : "");
+                  }}
                   slotProps={{
                     textField: {
                       className: "time-slot-props",
@@ -241,12 +385,6 @@ export default function Wedding() {
                         "& .MuiInputBase-input": {
                           height: "100%",
                           padding: 0,
-                        },
-                        "&:hover fieldset": {
-                          border: "none !important",
-                        },
-                        "&.Mui-focused fieldset": {
-                          border: "none !important",
                         },
                       },
                     },
@@ -281,7 +419,7 @@ export default function Wedding() {
               type="file"
               accept="image/*"
               name={elem.key}
-              onChange={(e) => elem.onChange(e.target.files[0])}
+              onChange={elem.onChange}
             />
           </div>
 
@@ -404,6 +542,6 @@ export default function Wedding() {
         className="bg-blue-400 px-6 py-3"
         onClick={handleSubmit}
       />
-    </form>
+    </div>
   );
 }
