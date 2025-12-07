@@ -104,43 +104,37 @@ export default function AdminDashboard() {
         }
       };
 
-      const eventsForCalendar = confirmedBookings.map((b) => {
-        if (!b.date) {
-          console.warn("Booking missing date:", b);
-          return null;
-        }
+    const eventsForCalendar = confirmedBookings.map((b) => {
+      if (!b.date) return null;
 
-        let bookingDate;
-        if (typeof b.date === 'string') {
-          bookingDate = dayjs(b.date);
+      const bookingDate = dayjs(b.date);
+      if (!bookingDate.isValid()) return null;
 
-        } else if (b.date instanceof Date) {
-          bookingDate = dayjs(b.date);
-          
-        } else {
-          bookingDate = dayjs(b.date);
-        }
+      const bookingType = b.bookingType || "Event";
 
-        if (!bookingDate.isValid()) {
-          console.warn("Invalid date for booking:", b.date, b);
-          return null;
-        }
-        
-        const dateStr = bookingDate.format("YYYY-MM-DD");
-        return {
-          date: dateStr,
-          type: b.bookingType || "Other",
-          name: getBookingName(b),
-          status: b.status || "pending",  
-          groom_first_name: b.groom_first_name,
-          groom_last_name: b.groom_last_name,
-          bride_first_name: b.bride_first_name,
-          bride_last_name: b.bride_last_name,
-          deceased_name: b.deceased_name,
-        };
-      }).filter(Boolean);
+      return {
+        date: bookingDate.format("YYYY-MM-DD"),
+        name: bookingType,
+        type: bookingType,
+        status: b.status || "pending",
+        bookingName: getBookingName(b),
+        bookingType,
 
-      setCalendarEvents(eventsForCalendar);
+        email: b.email,
+        transaction_id: b.transaction_id,
+        time: b.time,
+        attendees: b.attendees,
+        contact_number: b.contact_number,
+
+        groom_first_name: b.groom_first_name,
+        groom_last_name: b.groom_last_name,
+        bride_first_name: b.bride_first_name,
+        bride_last_name: b.bride_last_name,
+        deceased_name: b.deceased_name,
+      };
+    }).filter(Boolean);
+
+    setCalendarEvents(eventsForCalendar);
 
       const pendingBookingsCount = allBookings.filter((b) => b.status === "pending").length;
 
@@ -245,6 +239,42 @@ export default function AdminDashboard() {
       </div>
     );
   }
+
+  const renderBookingDetails = () => {
+    if (!selectedBooking) return null;
+
+    const details = [];
+    Object.keys(selectedBooking).forEach((key) => {
+      if (["_id", "__v", "user"].includes(key)) return;
+
+      const value = selectedBooking[key];
+
+      if (value !== null && value !== undefined && value !== "") {
+        details.push({ key, value });
+      }
+    });
+
+    return (
+      <div>
+        <Row gutter={[16, 16]}>
+          <Col span={24}>
+            <Text strong>Booking Type:</Text>
+            <div>{selectedBooking.bookingType}</div>
+          </Col>
+          <Col span={24}>
+            <Text strong>Status:</Text>
+            <div>{selectedBooking.status}</div>
+          </Col>
+          {details.map(({ key, value }) => (
+            <Col span={12} key={key}>
+              <Text strong>{key.replace(/_/g, " ")}</Text>
+              <div>{value}</div>
+            </Col>
+          ))}
+        </Row>
+      </div>
+    );
+  };
 
   return (
     <div className="dashboard-container">
@@ -466,32 +496,14 @@ export default function AdminDashboard() {
       </div>
 
       <Modal
-        title={selectedBooking ? selectedBooking.name : "Booking Details"}
+        title={selectedBooking ? selectedBooking.bookingName : "Booking Details"}
         open={isModalVisible}
         onCancel={handleModalClose}
         footer={null}
+        width={800}
       >
-        {selectedBooking ? (
-          <div>
-            <p><strong>Type:</strong> {selectedBooking.type}</p>
-            <p><strong>Date:</strong> {selectedBooking.date}</p>
-
-            {selectedBooking.bookingType === "Wedding" && (
-              <>
-                <p><strong>Groom:</strong> {selectedBooking.groom_first_name} {selectedBooking.groom_last_name}</p>
-                <p><strong>Bride:</strong> {selectedBooking.bride_first_name} {selectedBooking.bride_last_name}</p>
-              </>
-            )}
-
-            {selectedBooking.bookingType === "Burial" && (
-              <p><strong>Deceased:</strong> {selectedBooking.deceased_name}</p>
-            )}
-
-            <p><strong>Status:</strong> {selectedBooking.status}</p>
-          </div>
-        ) : null}
+        {renderBookingDetails()}
       </Modal>
-
     </div>
   );
 }
