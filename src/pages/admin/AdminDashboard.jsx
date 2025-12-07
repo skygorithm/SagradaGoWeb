@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import { API_URL } from "../../Constants";
 import "../../styles/dashboard.css";
 import CustomCalendar from "../../components/CustomCalendar";
+import ReportTemplate from "../../components/ReportTemplate";
 
 const { Title, Text } = Typography;
 
@@ -25,6 +26,9 @@ export default function AdminDashboard() {
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [donationReportData, setDonationReportData] = useState([]);
+  const [bookingReportData, setBookingReportData] = useState([]);
+  const [systemReportData, setSystemReportData] = useState([]);
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalPriests: 0,
@@ -86,58 +90,47 @@ export default function AdminDashboard() {
         return status === "confirmed";
       });
 
-      if (confirmedBookings.length > 0) {
-        console.log(`Found ${confirmedBookings.length} confirmed booking(s) for calendar`);
-      }
-
       const getBookingName = (booking) => {
         if (booking.bookingType === "Wedding") {
           const groom = `${booking.groom_first_name || ''} ${booking.groom_last_name || ''}`.trim();
           const bride = `${booking.bride_first_name || ''} ${booking.bride_last_name || ''}`.trim();
           return groom && bride ? `${groom} & ${bride}` : (groom || bride || booking.full_name || "Wedding");
-
         } else if (booking.bookingType === "Burial") {
           return booking.deceased_name || booking.full_name || "Burial Service";
-
         } else {
           return booking.full_name || booking.user?.name || booking.name || booking.bookingType || "Event";
         }
       };
 
-    const eventsForCalendar = confirmedBookings.map((b) => {
-      if (!b.date) return null;
+      const eventsForCalendar = confirmedBookings.map((b) => {
+        if (!b.date) return null;
+        const bookingDate = dayjs(b.date);
+        if (!bookingDate.isValid()) return null;
+        const bookingType = b.bookingType || "Event";
 
-      const bookingDate = dayjs(b.date);
-      if (!bookingDate.isValid()) return null;
+        return {
+          date: bookingDate.format("YYYY-MM-DD"),
+          name: bookingType,
+          type: bookingType,
+          status: b.status || "pending",
+          bookingName: getBookingName(b),
+          bookingType,
+          email: b.email,
+          transaction_id: b.transaction_id,
+          time: b.time,
+          attendees: b.attendees,
+          contact_number: b.contact_number,
+          groom_first_name: b.groom_first_name,
+          groom_last_name: b.groom_last_name,
+          bride_first_name: b.bride_first_name,
+          bride_last_name: b.bride_last_name,
+          deceased_name: b.deceased_name,
+        };
+      }).filter(Boolean);
 
-      const bookingType = b.bookingType || "Event";
-
-      return {
-        date: bookingDate.format("YYYY-MM-DD"),
-        name: bookingType,
-        type: bookingType,
-        status: b.status || "pending",
-        bookingName: getBookingName(b),
-        bookingType,
-
-        email: b.email,
-        transaction_id: b.transaction_id,
-        time: b.time,
-        attendees: b.attendees,
-        contact_number: b.contact_number,
-
-        groom_first_name: b.groom_first_name,
-        groom_last_name: b.groom_last_name,
-        bride_first_name: b.bride_first_name,
-        bride_last_name: b.bride_last_name,
-        deceased_name: b.deceased_name,
-      };
-    }).filter(Boolean);
-
-    setCalendarEvents(eventsForCalendar);
+      setCalendarEvents(eventsForCalendar);
 
       const pendingBookingsCount = allBookings.filter((b) => b.status === "pending").length;
-
       const recentUsers = users.slice().reverse().slice(0, 5);
 
       setStats({
@@ -150,9 +143,25 @@ export default function AdminDashboard() {
         recentUsers: recentUsers,
       });
 
+      setDonationReportData(allDonationsRes.data.donations || []);
+
+      setBookingReportData(allBookings.map((b) => ({
+        bookingName: getBookingName(b),
+        bookingType: b.bookingType,
+        status: b.status || "pending",
+        date: b.date,
+        contact_number: b.contact_number,
+      })));
+
+      setSystemReportData([
+        { metric: "Total Users", value: users.filter((u) => !u.is_priest).length },
+        { metric: "Total Priests", value: priests.length },
+        { metric: "Total Donations", value: allDonationsRes.data.stats.amounts.total || 0 },
+        { metric: "Pending Bookings", value: allBookings.filter((b) => b.status === "pending").length },
+      ]);
+
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
-
     } finally {
       setLoading(false);
     }
@@ -245,18 +254,14 @@ export default function AdminDashboard() {
 
   const renderBookingDetails = () => {
     if (!selectedBooking) return null;
-
     const details = [];
     Object.keys(selectedBooking).forEach((key) => {
       if (["_id", "__v", "user"].includes(key)) return;
-
       const value = selectedBooking[key];
-
       if (value !== null && value !== undefined && value !== "") {
         details.push({ key, value });
       }
     });
-
     return (
       <div>
         <Row gutter={[16, 16]}>
@@ -279,6 +284,27 @@ export default function AdminDashboard() {
     );
   };
 
+  const donationColumns = [
+    { title: "Donor Name", dataIndex: "donor_name", key: "donor_name" },
+    { title: "Email", dataIndex: "email", key: "email" },
+    { title: "Amount", dataIndex: "amount", key: "amount" },
+    { title: "Date", dataIndex: "date", key: "date" },
+    { title: "Transaction ID", dataIndex: "transaction_id", key: "transaction_id" },
+  ];
+
+  const bookingColumns = [
+    { title: "Booking Name", dataIndex: "bookingName", key: "bookingName" },
+    { title: "Type", dataIndex: "bookingType", key: "bookingType" },
+    { title: "Status", dataIndex: "status", key: "status" },
+    { title: "Date", dataIndex: "date", key: "date" },
+    { title: "Contact", dataIndex: "contact_number", key: "contact_number" },
+  ];
+
+  const systemOverviewColumns = [
+    { title: "Metric", dataIndex: "metric", key: "metric" },
+    { title: "Value", dataIndex: "value", key: "value" },
+  ];
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-content">
@@ -286,18 +312,12 @@ export default function AdminDashboard() {
         <div className="dashboard-header">
           <div className="dashboard-header-content">
             <div>
-              <Title level={2} className="dashboard-title">
-                Admin Dashboard
-              </Title>
+              <Title level={2} className="dashboard-title">Admin Dashboard</Title>
               <Text type="secondary" className="dashboard-subtitle">
                 Welcome back! Here's what's happening today.
               </Text>
             </div>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchDashboardData}
-              loading={loading}
-            >
+            <Button icon={<ReloadOutlined />} onClick={fetchDashboardData} loading={loading}>
               Refresh
             </Button>
           </div>
@@ -315,14 +335,11 @@ export default function AdminDashboard() {
                   valueStyle={{ color: "#1890ff" }}
                 />
                 <div className="dashboard-stat-title">
-                  <Text type="secondary" className="dashboard-stat-text">
-                    Regular users
-                  </Text>
+                  <Text type="secondary" className="dashboard-stat-text">Regular users</Text>
                 </div>
               </Card>
             </Col>
           )}
-
           <Col xs={24} sm={12} lg={6}>
             <Card className="dashboard-stat-card">
               <Statistic
@@ -332,13 +349,10 @@ export default function AdminDashboard() {
                 valueStyle={{ color: "#722ed1" }}
               />
               <div className="dashboard-stat-title">
-                <Text type="secondary" className="dashboard-stat-text">
-                  Active priests
-                </Text>
+                <Text type="secondary" className="dashboard-stat-text">Active priests</Text>
               </div>
             </Card>
           </Col>
-
           <Col xs={24} sm={12} lg={6}>
             <Card
               className="dashboard-stat-card"
@@ -353,57 +367,30 @@ export default function AdminDashboard() {
                 valueStyle={{ color: "#fa8c16" }}
               />
               <div className="dashboard-stat-title">
-                <Text type="secondary" className="dashboard-stat-text">
-                  Awaiting approval (click to view)
-                </Text>
+                <Text type="secondary" className="dashboard-stat-text">Awaiting approval (click to view)</Text>
               </div>
             </Card>
           </Col>
-
           {!isPriest && (
-            <>
-              <Col xs={24} sm={12} lg={6}>
-                <Card className="dashboard-stat-card">
-                  <Statistic
-                    title="Total Donations"
-                    value={stats.totalDonations}
-                    prefix={<DollarOutlined />}
-                    precision={2}
-                    valueStyle={{ color: "#52c41a" }}
-                  />
-                  <div className="dashboard-stat-title">
-                    <Text type="secondary" className="dashboard-stat-text">
-                      All-time donations
-                    </Text>
-                  </div>
-                </Card>
-              </Col>
-
-              {/* <Col xs={24} sm={12} lg={6}>
-                <Card className="dashboard-stat-card">
-                  <Statistic
-                    title="Donations This Month"
-                    value={stats.monthlyDonations}
-                    prefix={<DollarOutlined />}
-                    precision={2}
-                    valueStyle={{ color: "#13c2c2" }}
-                  />
-                  <div className="dashboard-stat-title">
-                    <Text type="secondary" className="dashboard-stat-text">
-                      Current month
-                    </Text>
-                  </div>
-                </Card>
-              </Col> */}
-            </>
+            <Col xs={24} sm={12} lg={6}>
+              <Card className="dashboard-stat-card">
+                <Statistic
+                  title="Total Donations"
+                  value={stats.totalDonations}
+                  prefix={<DollarOutlined />}
+                  precision={2}
+                  valueStyle={{ color: "#52c41a" }}
+                />
+                <div className="dashboard-stat-title">
+                  <Text type="secondary" className="dashboard-stat-text">All-time donations</Text>
+                </div>
+              </Card>
+            </Col>
           )}
         </Row>
 
         {/* Quick Actions */}
-        <Card
-          title={<Title level={4} className="dashboard-quick-actions-title">Quick Actions</Title>}
-          className="dashboard-quick-actions-card"
-        >
+        <Card title={<Title level={4} className="dashboard-quick-actions-title">Quick Actions</Title>} className="dashboard-quick-actions-card">
           <Row gutter={[16, 16]}>
             {quickActions.map((action, index) => {
               const cardClass =
@@ -411,24 +398,12 @@ export default function AdminDashboard() {
                 action.path.includes("bookings") ? "dashboard-quick-action-card-bookings" :
                 action.path.includes("donations") ? "dashboard-quick-action-card-donations" :
                 "dashboard-quick-action-card-volunteers";
-
               return (
                 <Col xs={24} sm={12} lg={6} key={index}>
-                  <Card
-                    hoverable
-                    onClick={() => navigate(action.path)}
-                    className={`dashboard-quick-action-card ${cardClass}`}
-                    bodyStyle={{
-                      padding: "24px",
-                    }}
-                  >
+                  <Card hoverable onClick={() => navigate(action.path)} className={`dashboard-quick-action-card ${cardClass}`} bodyStyle={{ padding: "24px" }}>
                     <div className="dashboard-quick-action-icon">{action.icon}</div>
-                    <Title level={5} className="dashboard-quick-action-title">
-                      {action.title}
-                    </Title>
-                    <Text type="secondary" className="dashboard-quick-action-description">
-                      {action.description}
-                    </Text>
+                    <Title level={5} className="dashboard-quick-action-title">{action.title}</Title>
+                    <Text type="secondary" className="dashboard-quick-action-description">{action.description}</Text>
                   </Card>
                 </Col>
               );
@@ -442,14 +417,7 @@ export default function AdminDashboard() {
             <Card
               title={<Title level={4} className="dashboard-recent-users-title">Recent Users</Title>}
               className="dashboard-recent-users-card"
-              extra={
-                <Button
-                  type="link"
-                  onClick={() => navigate("/admin/account-management")}
-                >
-                  View All
-                </Button>
-              }
+              extra={<Button type="link" onClick={() => navigate("/admin/account-management")}>View All</Button>}
             >
               {stats.recentUsers.length > 0 ? (
                 <Table
@@ -465,10 +433,7 @@ export default function AdminDashboard() {
             </Card>
           </Col>
           <Col xs={24} lg={8}>
-            <Card 
-              title={<Title level={4} className="dashboard-system-overview-title">System Overview</Title>}
-              className="dashboard-system-overview-card"
-            >
+            <Card title={<Title level={4} className="dashboard-system-overview-title">System Overview</Title>} className="dashboard-system-overview-card">
               <Space direction="vertical" style={{ width: "100%" }} size="large">
                 <div>
                   <div className="dashboard-system-overview-item">
@@ -501,9 +466,7 @@ export default function AdminDashboard() {
           </Col>
         </Row>
 
-        <Card
-          title={<Title level={4}>Calendar</Title>}
-        >
+        <Card title={<Title level={4}>Calendar</Title>}>
           <CustomCalendar events={calendarEvents} onEventClick={handleBookingClick} />
         </Card>
       </div>
@@ -517,6 +480,27 @@ export default function AdminDashboard() {
       >
         {renderBookingDetails()}
       </Modal>
+
+      {/* Donation Report */}
+      <ReportTemplate
+        title="Donation Report"
+        columns={donationColumns}
+        data={donationReportData}
+      />
+
+      {/* Booking Report */}
+      <ReportTemplate
+        title="Booking Report"
+        columns={bookingColumns}
+        data={bookingReportData}
+      />
+
+      {/* System Overview Report */}
+      <ReportTemplate
+        title="System Overview Report"
+        columns={systemOverviewColumns}
+        data={systemReportData}
+      />
     </div>
   );
 }
