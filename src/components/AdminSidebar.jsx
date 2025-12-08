@@ -71,6 +71,7 @@ export default function AdminSidebar() {
   return (
     <Sider
       width={256}
+      theme="dark"
       style={{
         overflow: "auto",
         height: "100vh",
@@ -79,47 +80,83 @@ export default function AdminSidebar() {
         top: 0,
         bottom: 0,
         background: "#b87d3e",
+        boxShadow: "2px 0 8px rgba(0, 0, 0, 0.15)",
       }}
     >
+      {/* Logo Section */}
       <div
         style={{
-          padding: "24px",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.2)",
+          padding: "24px 20px",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.15)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          background: "rgba(0, 0, 0, 0.1)",
         }}
       >
-        <img
-          src={Logo}
-          alt="Logo"
-          style={{ height: "48px", cursor: "pointer" }}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            cursor: "pointer",
+            transition: "opacity 0.3s",
+          }}
           onClick={() => navigate("/admin/dashboard")}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+        >
+          <img
+            src={Logo}
+            alt="Sagrada Familia Logo"
+            style={{ height: "48px", width: "48px", objectFit: "contain" }}
+          />
+          <div>
+            <div
+              style={{
+                color: "white",
+                fontSize: "16px",
+                fontWeight: "600",
+                lineHeight: "1.2",
+              }}
+            >
+              Sagrada Familia
+            </div>
+            <div
+              style={{
+                color: "rgba(255, 255, 255, 0.7)",
+                fontSize: "12px",
+                lineHeight: "1.2",
+              }}
+            >
+              Admin Panel
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Section */}
+      <div style={{ padding: "16px 8px", flex: 1 }}>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          items={menuItems}
+          onClick={handleMenuClick}
+          style={{
+            background: "transparent",
+            border: "none",
+          }}
+          className="custom-admin-menu"
         />
       </div>
 
-      <Menu
-        theme="dark"
-        mode="inline"
-        selectedKeys={[location.pathname]}
-        items={menuItems}
-        onClick={handleMenuClick}
-        style={{
-          background: "#b87d3e",
-          border: "none",
-          marginTop: "16px",
-        }}
-        className="custom-admin-menu"
-      />
-
+      {/* Logout Section */}
       <div
         style={{
           padding: "16px",
-          borderTop: "1px solid rgba(255, 255, 255, 0.2)",
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
+          borderTop: "1px solid rgba(255, 255, 255, 0.15)",
+          background: "rgba(0, 0, 0, 0.1)",
         }}
       >
         <Button
@@ -130,8 +167,19 @@ export default function AdminSidebar() {
           style={{
             color: "white",
             textAlign: "left",
-            height: "auto",
+            height: "48px",
             padding: "12px 16px",
+            borderRadius: "8px",
+            fontWeight: "500",
+            transition: "all 0.3s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
+            e.currentTarget.style.color = "white";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "white";
           }}
         >
           Logout
