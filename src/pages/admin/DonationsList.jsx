@@ -50,6 +50,7 @@ export default function DonationsList() {
     pages: 1,
   });
   const [statusFilter, setStatusFilter] = useState("all");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -64,7 +65,7 @@ export default function DonationsList() {
 
   useEffect(() => {
     filterDonations();
-  }, [searchTerm, donations]);
+  }, [searchTerm, paymentMethodFilter, donations]);
 
   const fetchDonations = async () => {
     try {
@@ -101,6 +102,24 @@ export default function DonationsList() {
 
   const filterDonations = () => {
     let filtered = donations;
+
+    if (paymentMethodFilter !== "all") {
+      filtered = filtered.filter((donation) => {
+        const method = donation.paymentMethod || "";
+        
+        if (paymentMethodFilter === "In Kind") {
+          return method.toLowerCase() === "in kind";
+
+        } else if (paymentMethodFilter === "GCash") {
+          return method.toLowerCase() === "gcash";
+
+        } else if (paymentMethodFilter === "Cash") {
+          return method.toLowerCase() === "cash";
+
+        }
+        return true;
+      });
+    }
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -392,6 +411,19 @@ export default function DonationsList() {
                 <Option value="pending">Pending</Option>
                 <Option value="confirmed">Confirmed</Option>
                 <Option value="cancelled">Cancelled</Option>
+              </Select>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Select
+                style={{ width: "100%" }}
+                value={paymentMethodFilter}
+                onChange={setPaymentMethodFilter}
+                placeholder="Filter by payment method"
+              >
+                <Option value="all">All Payment Methods</Option>
+                <Option value="GCash">GCash</Option>
+                <Option value="Cash">Cash</Option>
+                <Option value="In Kind">In Kind</Option>
               </Select>
             </Col>
           </Row>
