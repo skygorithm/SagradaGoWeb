@@ -7,9 +7,37 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
-import Button from "../../components/Button";
+import {
+  Card,
+  Table,
+  Tag,
+  Button,
+  Space,
+  Typography,
+  Row,
+  Col,
+  Input,
+  Select,
+  Modal,
+  message,
+  Spin,
+  Empty,
+  Checkbox,
+  Form,
+} from "antd";
+import {
+  UserOutlined,
+  TeamOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  EyeOutlined,
+  EyeInvisibleOutlined,
+  ArrowLeftOutlined,
+} from "@ant-design/icons";
 
-import { Table, Tag, Button as AntButton } from "antd";
+const { Title, Text } = Typography;
+const { Option } = Select;
 
 export default function AccountManagement() {
   const navigate = useNavigate();
@@ -52,7 +80,7 @@ export default function AccountManagement() {
 
     } catch (error) {
       console.error("Error fetching users:", error);
-      alert("Failed to fetch users. Please try again.");
+      message.error("Failed to fetch users. Please try again.");
 
     } finally {
       setLoading(false);
@@ -129,7 +157,7 @@ export default function AccountManagement() {
         is_priest: formData.is_priest,
       });
 
-      alert("User created successfully!");
+      message.success("User created successfully!");
       setShowAddModal(false);
       resetForm();
       fetchUsers();
@@ -138,13 +166,13 @@ export default function AccountManagement() {
       console.error("Error creating user:", error);
 
       if (error.response) {
-        alert(error.response.data.message || "Failed to create user.");
+        message.error(error.response.data.message || "Failed to create user.");
 
       } else if (error.code === "auth/email-already-in-use") {
-        alert("Email is already in use.");
+        message.error("Email is already in use.");
 
       } else {
-        alert("Failed to create user. Please try again.");
+        message.error("Failed to create user. Please try again.");
       }
 
     } finally {
@@ -153,52 +181,29 @@ export default function AccountManagement() {
   };
 
   const handleUpdateRole = async (uid, newRole) => {
-    if (!window.confirm(`Are you sure you want to ${newRole ? 'make this user a priest' : 'remove priest role from this user'}?`)) {
-      return;
-    }
+    Modal.confirm({
+      title: "Confirm Role Change",
+      content: `Are you sure you want to ${newRole ? 'make this user a priest' : 'remove priest role from this user'}?`,
+      onOk: async () => {
+        try {
+          setLoading(true);
+          await axios.put(`${API_URL}/updateUserRole`, {
+            uid: uid,
+            is_priest: newRole,
+          });
 
-    try {
-      setLoading(true);
-      await axios.put(`${API_URL}/updateUserRole`, {
-        uid: uid,
-        is_priest: newRole,
-      });
+          message.success("User role updated successfully!");
+          fetchUsers();
 
-      alert(`User role updated successfully!`);
-      fetchUsers();
+        } catch (error) {
+          console.error("Error updating user role:", error);
+          message.error(error.response?.data?.message || "Failed to update user role.");
 
-    } catch (error) {
-      console.error("Error updating user role:", error);
-      alert(error.response?.data?.message || "Failed to update user role.");
-
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDisableUser = async (uid, currentStatus) => {
-    const action = currentStatus ? "disable" : "enable";
-    if (!window.confirm(`Are you sure you want to ${action} this account?`)) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await axios.put(`${API_URL}/updateUserStatus`, {
-        uid,
-        is_active: !currentStatus,
-      });
-
-      alert(`User account has been ${!currentStatus ? "enabled" : "disabled"} successfully!`);
-      fetchUsers();
-
-    } catch (error) {
-      console.error("Error updating user status:", error);
-      alert(error.response?.data?.message || `Failed to ${action} user account.`);
-
-    } finally {
-      setLoading(false);
-    }
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const resetForm = () => {
@@ -226,12 +231,11 @@ export default function AccountManagement() {
   const columns = [
     {
       title: "Name",
-      dataIndex: "first_name",
       key: "name",
-      render: (_, user) => (
-        <span className="font-medium text-gray-900">
-          {user.first_name} {user.middle_name} {user.last_name}
-        </span>
+      render: (_, record) => (
+        <Text strong>
+          {record.first_name} {record.middle_name} {record.last_name}
+        </Text>
       ),
     },
     {
@@ -242,251 +246,317 @@ export default function AccountManagement() {
     {
       title: "Contact",
       dataIndex: "contact_number",
-      key: "contact",
+      key: "contact_number",
     },
     {
       title: "Birthday",
       dataIndex: "birthday",
       key: "birthday",
-      render: (date) => <span>{formatDate(date)}</span>,
+      render: (date) => formatDate(date),
     },
     {
       title: "Role",
       dataIndex: "is_priest",
       key: "role",
-      render: (is_priest) => (
-        <Tag color={is_priest ? "purple" : "blue"}>
-          {is_priest ? "Priest" : "User"}
+      render: (isPriest) => (
+        <Tag color={isPriest ? "purple" : "blue"} icon={isPriest ? <TeamOutlined /> : <UserOutlined />}>
+          {isPriest ? "Priest" : "User"}
         </Tag>
       ),
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_, user) => (
-        <div className="flex gap-2">
-          <AntButton
-            size="small"
-            type={user.is_priest ? "default" : "primary"}
-            ghost={!user.is_priest}
-            onClick={() => handleUpdateRole(user.uid, !user.is_priest)}
-            loading={loading}
-          >
-            {user.is_priest ? "Remove Priest" : "Make Priest"}
-          </AntButton>
-
-          <AntButton
-            size="small"
-            danger={user.is_active ?? true}
-            type={(user.is_active ?? true) ? "primary" : "default"}
-            onClick={() =>
-              handleDisableUser(user.uid, user.is_active ?? true)
-            }
-            loading={loading}
-          >
-            {user.is_active ?? true ? "Disable" : "Enable"}
-          </AntButton>
-        </div>
+      render: (_, record) => (
+        <Button
+          type={record.is_priest ? "default" : "primary"}
+          onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
+          loading={loading}
+        >
+          {record.is_priest ? "Remove Priest" : "Make Priest"}
+        </Button>
       ),
     },
   ];
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">Account Management</h1>
-            <p className="text-gray-600 mt-1">Manage users and priests</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => {
-                resetForm();
-                setShowAddModal(true);
-              }}
-              className="px-4 py-2 bg-[#b87d3e] text-white rounded-lg hover:bg-[#a06d2e] transition"
-            >
-              + Add User/Priest
-            </button>
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <Title level={2} style={{ margin: 0, color: "#262626" }}>
+                Account Management
+              </Title>
+              <Text type="secondary" style={{ fontSize: 16 }}>
+                Manage users and priests
+              </Text>
+            </div>
+            <Space>
+              <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/admin")}>
+                Back to Dashboard
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  resetForm();
+                  setShowAddModal(true);
+                }}
+                style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+              >
+                Add User/Priest
+              </Button>
+            </Space>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <input
-                type="text"
+        {/* Filters */}
+        <Card style={{ marginBottom: 24 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={12}>
+              <Input
                 placeholder="Search by name, email, or contact number..."
+                prefix={<SearchOutlined />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b87d3e]"
+                allowClear
               />
-            </div>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => setFilterType("all")}
-                className={`px-4 py-2 rounded-lg transition ${
-                  filterType === "all"
-                    ? "bg-[#b87d3e] text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
+            </Col>
+            <Col xs={24} sm={12} md={12}>
+              <Select
+                style={{ width: "100%" }}
+                value={filterType}
+                onChange={setFilterType}
+                placeholder="Filter by type"
               >
-                All
-              </button>
-              <button
-                onClick={() => setFilterType("users")}
-                className={`px-4 py-2 rounded-lg transition ${
-                  filterType === "users"
-                    ? "bg-[#b87d3e] text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Users
-              </button>
-              <button
-                onClick={() => setFilterType("priests")}
-                className={`px-4 py-2 rounded-lg transition ${
-                  filterType === "priests"
-                    ? "bg-[#b87d3e] text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                Priests
-              </button>
-            </div>
-          </div>
-        </div>
+                <Option value="all">All</Option>
+                <Option value="users">Users</Option>
+                <Option value="priests">Priests</Option>
+              </Select>
+            </Col>
+          </Row>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {loading && !filteredUsers.length ? (
-            <div className="p-8 text-center">
-              <p className="text-gray-500">Loading users...</p>
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-gray-500">No users found.</p>
-            </div>
-          ) : (
-            <Table
-              dataSource={filteredUsers}
-              rowKey="uid"
-              pagination={{ pageSize: 10 }}
-              className="antd-table-custom"
-              columns={columns}
-            />
-          )}
-        </div>
+        {/* Users Table */}
+        <Card>
+          <Table
+            columns={columns}
+            dataSource={filteredUsers}
+            rowKey="uid"
+            loading={loading}
+            pagination={{
+              pageSize: 20,
+              showSizeChanger: true,
+              showTotal: (total) => `Total ${total} users`,
+            }}
+            scroll={{ x: 1000 }}
+            locale={{
+              emptyText: <Empty description="No users found" />,
+            }}
+          />
+        </Card>
 
-       {showAddModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-xl font-semibold mb-4">Add User/Priest</h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="First Name"
-                  value={formData.first_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, first_name: e.target.value })
+        {/* Add User Modal */}
+        <Modal
+          title="Add New User/Priest"
+          open={showAddModal}
+          onCancel={() => {
+            setShowAddModal(false);
+            resetForm();
+          }}
+          footer={null}
+          width={800}
+        >
+          <Form layout="vertical">
+            <Row gutter={16}>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label={
+                    <>
+                      First Name <span style={{ color: "red" }}>*</span>
+                    </>
                   }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Middle Name"
-                  value={formData.middle_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, middle_name: e.target.value })
+                  validateStatus={errors.first_name ? "error" : ""}
+                  help={errors.first_name}
+                >
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, first_name: e.target.value })
+                    }
+                    placeholder="Enter first name"
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item label="Middle Name">
+                  <Input
+                    value={formData.middle_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, middle_name: e.target.value })
+                    }
+                    placeholder="Enter middle name"
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label={
+                    <>
+                      Last Name <span style={{ color: "red" }}>*</span>
+                    </>
                   }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  value={formData.last_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, last_name: e.target.value })
+                  validateStatus={errors.last_name ? "error" : ""}
+                  help={errors.last_name}
+                >
+                  <Input
+                    value={formData.last_name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, last_name: e.target.value })
+                    }
+                    placeholder="Enter last name"
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label={
+                    <>
+                      Contact Number <span style={{ color: "red" }}>*</span>
+                    </>
                   }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                  validateStatus={errors.contact_number ? "error" : ""}
+                  help={errors.contact_number}
+                >
+                  <Input
+                    value={formData.contact_number}
+                    onChange={(e) =>
+                      setFormData({ ...formData, contact_number: e.target.value })
+                    }
+                    placeholder="Enter contact number"
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label={
+                    <>
+                      Birthday <span style={{ color: "red" }}>*</span>
+                    </>
                   }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <input
-                  type="text"
-                  placeholder="Contact Number"
-                  value={formData.contact_number}
-                  onChange={(e) =>
-                    setFormData({ ...formData, contact_number: e.target.value })
+                  validateStatus={errors.birthday ? "error" : ""}
+                  help={errors.birthday}
+                >
+                  <Input
+                    type="date"
+                    value={formData.birthday}
+                    onChange={(e) =>
+                      setFormData({ ...formData, birthday: e.target.value })
+                    }
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label={
+                    <>
+                      Email <span style={{ color: "red" }}>*</span>
+                    </>
                   }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <input
-                  type="date"
-                  placeholder="Birthday"
-                  value={formData.birthday}
-                  onChange={(e) =>
-                    setFormData({ ...formData, birthday: e.target.value })
+                  validateStatus={errors.email ? "error" : ""}
+                  help={errors.email}
+                >
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    placeholder="Enter email"
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label={
+                    <>
+                      Password <span style={{ color: "red" }}>*</span>
+                    </>
                   }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
+                  validateStatus={errors.password ? "error" : ""}
+                  help={errors.password}
+                >
+                  <Input.Password
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
+                    placeholder="Enter password"
+                    iconRender={(visible) =>
+                      visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+                    }
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  label={
+                    <>
+                      Confirm Password <span style={{ color: "red" }}>*</span>
+                    </>
                   }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, confirmPassword: e.target.value })
-                  }
-                  className="border rounded px-2 py-1 w-full"
-                />
-                <label className="flex items-center gap-2 mt-2 md:col-span-2">
-                  <input
-                    type="checkbox"
+                  validateStatus={errors.confirmPassword ? "error" : ""}
+                  help={errors.confirmPassword}
+                >
+                  <Input.Password
+                    value={formData.confirmPassword}
+                    onChange={(e) =>
+                      setFormData({ ...formData, confirmPassword: e.target.value })
+                    }
+                    placeholder="Confirm password"
+                    iconRender={(visible) =>
+                      visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
+                    }
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24}>
+                <Form.Item>
+                  <Checkbox
                     checked={formData.is_priest}
                     onChange={(e) =>
                       setFormData({ ...formData, is_priest: e.target.checked })
                     }
-                  />
-                  Is Priest?
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-2 mt-4">
-                <Button
-                  text="Cancel"
-                  color="#ccc"
-                  textColor="#000"
-                  onClick={() => setShowAddModal(false)}
-                />
-                <Button
-                  text="Save"
-                  color="#b87d3e"
-                  textColor="#fff"
-                  onClick={handleAddUser}
-                />
-              </div>
+                  >
+                    This user is a priest
+                  </Checkbox>
+                </Form.Item>
+              </Col>
+            </Row>
+            <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <Button
+                onClick={() => {
+                  setShowAddModal(false);
+                  resetForm();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                onClick={handleAddUser}
+                loading={loading}
+                style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+              >
+                Create User
+              </Button>
             </div>
-          </div>
-        )}
+          </Form>
+        </Modal>
       </div>
     </div>
   );
 }
+
