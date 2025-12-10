@@ -103,7 +103,7 @@ export default function BookingPendingRequests() {
         date: b.date ? new Date(b.date).toISOString() : null,
         createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : null,
         status: b.status || "pending",
-        full_name: b.full_name || "N/A",
+        full_name: b.full_name || b.name || "N/A",
         transaction_id: b.transaction_id || `CONF-${Date.now()}`, 
       }));
 
@@ -304,17 +304,21 @@ export default function BookingPendingRequests() {
     } else if (booking.bookingType === "Burial") {
       return (
         booking.deceased_name ||
+        booking.name ||
+        booking.user?.name ||
         booking.full_name ||
         `${booking.first_name || ""} ${booking.last_name || ""}`.trim() ||
         "N/A"
       );
 
     } else {
-      return booking.user?.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
+      return booking.user?.name || booking.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
     }
   };
 
-  const getEmail = (booking) => booking.user?.email || booking.email || "N/A";
+  const getEmail = (booking) => {
+    return booking.user?.email || booking.email || "N/A";
+  };
 
   const formatTimeOnly = (dateString) => {
     if (!dateString) return "N/A";

@@ -125,8 +125,8 @@ export default function DonationsList() {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (donation) =>
-          donation.user_name?.toLowerCase().includes(term) ||
-          donation.user_email?.toLowerCase().includes(term) ||
+          (donation.name || donation.user_name)?.toLowerCase().includes(term) ||
+          (donation.email || donation.user_email)?.toLowerCase().includes(term) ||
           donation.paymentMethod?.toLowerCase().includes(term) ||
           donation.intercession?.toLowerCase().includes(term)
       );
@@ -235,12 +235,13 @@ export default function DonationsList() {
       title: "Donor Name",
       dataIndex: "user_name",
       key: "user_name",
-      render: (text) => <Text strong>{text || "N/A"}</Text>,
+      render: (_, record) => <Text strong>{record.name || record.user_name || "N/A"}</Text>,
     },
     {
       title: "Email",
       dataIndex: "user_email",
       key: "user_email",
+      render: (_, record) => record.email || record.user_email || "N/A",
     },
     {
       title: "Amount",
@@ -491,11 +492,11 @@ export default function DonationsList() {
               <Row gutter={[16, 16]}>
                 <Col span={12}>
                   <Text strong>Donor Name:</Text>
-                  <div>{selectedDonation.user_name}</div>
+                  <div>{selectedDonation.name || selectedDonation.user_name || "N/A"}</div>
                 </Col>
                 <Col span={12}>
                   <Text strong>Email:</Text>
-                  <div>{selectedDonation.user_email}</div>
+                  <div>{selectedDonation.email || selectedDonation.user_email || "N/A"}</div>
                 </Col>
                 <Col span={12}>
                   <Text strong>Amount:</Text>
