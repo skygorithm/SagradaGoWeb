@@ -160,22 +160,7 @@ export default function Wedding() {
 
 
 
-  async function handleUpload() {
-    if (!groomFile && !brideFile) {
-      alert("Please select files first.");
-      return;
-    }
-
-    if (groomFile) {
-      await uploadImage(groomFile, `groom_photo`, setGroomPhoto);
-    }
-
-    if (brideFile) {
-      await uploadImage(brideFile, `bride_photo`, setBridePhoto);
-    }
-
-    alert("Upload success!");
-  }
+  
 
   const uploadProfileImage = [
     {
@@ -201,30 +186,81 @@ export default function Wedding() {
   
 
 
+  const [groomBapFile, setGroomBapFile] = useState(null);
+  const [brideBapFile, setBrideBapFile] = useState(null);
+
+  const [groomBapPreview, setGroomBapPreview] = useState("");
+  const [brideBapPreview, setBrideBapPreview] = useState("");
+
+  const [groomBaptismal, setGroomBaptismal] = useState("");
+  const [brideBaptismal, setBrideBaptismal] = useState("");
 
 
 
 
-
-
-
-
-
-
-  const uploadBaptismal = [
+    const uploadBaptismal = [
     {
       key: "groom_baptismal",
       title: "Groom Baptismal Certificate Photo",
-
-
+      fileSetter: setGroomBapFile,
+      preview: groomBapPreview,
+      previewSetter: setGroomBapPreview,
     },
     {
       key: "bride_baptismal",
       title: "Bride Baptismal Certificate Photo",
-
-
+      fileSetter: setBrideBapFile,
+      preview: brideBapPreview,
+      previewSetter: setBrideBapPreview,
     },
   ];
+
+
+
+  const [groomConfFile, setGroomConfFile] = useState(null);
+  const [brideConfFile, setBrideConfFile] = useState(null);
+
+  const [groomConfPreview, setGroomConfPreview] = useState("");
+  const [brideConfPreview, setBrideConfPreview] = useState("");
+
+  const [groomConfirmation, setGroomConfirmation] = useState("");
+  const [brideConfirmation, setBrideConfirmation] = useState("");
+
+
+
+
+  async function handleUpload() {
+    if (!groomFile && !brideFile && !groomBapFile && !brideBapFile) {
+      alert("Please select files first.");
+      return;
+    }
+
+    if (groomFile) {
+      await uploadImage(groomFile, `groom_photo`, setGroomPhoto);
+    }
+
+    if (brideFile) {
+      await uploadImage(brideFile, `bride_photo`, setBridePhoto);
+    }
+
+    if(groomBapFile){
+      await uploadImage(groomBapFile, `groom_baptismal`, setGroomBaptismal);
+    }
+
+    if(brideBapFile){
+      await uploadImage(brideBapFile, `groom_baptismal`, setBrideBaptismal);
+    }
+
+    alert("Upload success!");
+  }
+
+
+
+
+
+
+
+
 
   const uploadConfirmation = [
     {
@@ -262,8 +298,8 @@ export default function Wedding() {
     groom_1x1: groomPhoto,
     bride_1x1: bridePhoto,
     // marriage_docu: marriageDocu,
-    // groom_baptismal_cert: groomBaptismal,
-    // bride_baptismal_cert: brideBaptismal,
+    groom_baptismal_cert: groomBaptismal,
+    bride_baptismal_cert: brideBaptismal,
     // groom_confirmation_cert: groomConfirmation,
     // bride_confirmation_cert: brideConfirmation,
     // groom_cenomar: groomCenomar,
@@ -393,8 +429,10 @@ export default function Wedding() {
       ))}
 
        {uploadProfileImage.map((elem) => (
-        <div key={elem.key} style={{ marginBottom: "20px" }}>
-          <h1>{elem.title}</h1>
+        <div key={elem.key} className="per-grid-container">
+          <div>
+
+            <h1>{elem.title}</h1>
 
           <input
             type="file"
@@ -408,39 +446,48 @@ export default function Wedding() {
               }
             }}
           />
+          </div>
+          
 
-          {elem.preview && (
-            <div>
+
+            <div className="image-container">
               <h3>Preview:</h3>
-              <img src={elem.preview} alt="Preview" width={200} />
+              <img src={elem.preview ? elem.preview : no_image} alt="Preview" className="image-preview" />
             </div>
-          )}
+          
+        </div>
+      ))}
 
+      {uploadBaptismal.map((elem) => (
+        <div key={elem.key} className="per-grid-container">
+          <div>
+
+            <h1>{elem.title}</h1>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              elem.fileSetter(file);
+
+              if (file) {
+                elem.previewSetter(URL.createObjectURL(file));
+              }
+            }}
+          />
+          </div>
+          
+
+
+            <div className="image-container">
+              <h3>Preview:</h3>
+              <img src={elem.preview ? elem.preview : no_image} alt="Preview" className="image-preview" />
+            </div>
+          
         </div>
       ))}
 {/* 
-      {uploadBaptismal.map((elem) => (
-        <div className="grid grid-cols-[3fr_1fr]" key={elem.key}>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {elem.title}
-            </label>
-
-            <input
-              type="file"
-              accept="image/*"
-              name={elem.key}
-              onChange={(e) => elem.onChange(e.target.files[0])}
-            />
-          </div>
-          <img
-            src={elem.preview ? elem.preview : no_image}
-            alt="no-profile"
-            className="w-15"
-          />
-        </div>
-      ))}
-
       {uploadConfirmation.map((elem) => (
         <div className="grid grid-cols-[3fr_1fr]" key={elem.key}>
           <div>

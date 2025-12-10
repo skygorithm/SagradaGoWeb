@@ -17,3 +17,15 @@
     @apply w-full h-full bg-white p-0 m-0;
 }
 
+.per-grid-container{
+    @apply w-full bg-red-500 flex justify-between p-3!;
+}
+
+.image-container{
+    @apply bg-red-400 w-full h-full;
+}
+
+.image-preview{
+    @apply w-full aspect-3/5;
+}
+
