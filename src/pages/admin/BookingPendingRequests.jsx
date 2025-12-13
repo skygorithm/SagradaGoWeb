@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import {
   Card,
   Table,
@@ -623,8 +623,29 @@ export default function BookingPendingRequests() {
           )}
 
           {/* Dynamic details */}
-          {details.map(({ key, value }) => {
-            if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic'].includes(key)) return null;
+          {(() => {
+            let addressShown = false;
+            let godparentsShown = false;
+            
+            return details.map(({ key, value }) => {
+              if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic'].includes(key)) return null;
+              
+              if (selectedBooking?.bookingType === "Baptism" && [
+                'main_godfather_first_name', 
+                'main_godfather_middle_name', 
+                'main_godfather_last_name',
+                'main_godmother_first_name', 
+                'main_godmother_middle_name', 
+                'main_godmother_last_name',
+                'main_godfather',
+                'main_godmother'
+              ].includes(key)) return null;
+
+              const isAddressField = key === 'address';
+              const showGodparentsAfterAddress = isAddressField && selectedBooking?.bookingType === "Baptism" && !godparentsShown;
+              
+              if (isAddressField) addressShown = true;
+              if (showGodparentsAfterAddress) godparentsShown = true;
 
             const isImageField = typeof value === "string" && (
               value.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
@@ -634,79 +655,113 @@ export default function BookingPendingRequests() {
             );
             
             return (
-              <Col span={12} key={key}>
-                <Text strong>
-                  {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
-                </Text>
-                
-                <div style={{ marginTop: 4 }}>
-                  {key === "date" ? (
-                    formatDateOnly(value)
-                  ) : key === "time" ? (
-                    formatTimeOnly(value)
-                  ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
-                    <Button
-                      type="link"
-                      icon={<EyeOutlined />}
-                      onClick={() =>
-                        window.open(
-                          `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
-                          "_blank"
-                        )
-                      }
-                    >
-                      View PDF
-                    </Button>
-                  ) : isImageField ? (
-                    <div>
-                      {(() => {
-                        let imageUrl = value;
-                        if (!imageUrl.startsWith('http')) {
-                          const { data } = supabase.storage.from('bookings').getPublicUrl(value);
-                          imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`;
+              <Fragment key={key}>
+                <Col span={12}>
+                  <Text strong>
+                    {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
+                  </Text>
+                  
+                  <div style={{ marginTop: 4 }}>
+                    {key === "date" || key === "candidate_birthday" ? (
+                      formatDateOnly(value)
+                    ) : key === "time" ? (
+                      formatTimeOnly(value)
+                    ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
+                      <Button
+                        type="link"
+                        icon={<EyeOutlined />}
+                        onClick={() =>
+                          window.open(
+                            `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
+                            "_blank"
+                          )
                         }
-                        return (
-                          <img
-                            src={imageUrl}
-                            alt={key.replace(/_/g, " ")}
-                            style={{
-                              maxWidth: '100%',
-                              maxHeight: '200px',
-                              borderRadius: 8,
-                              border: '1px solid #d9d9d9',
-                              cursor: 'pointer',
-                              objectFit: 'cover',
-                            }}
-                            onClick={() => {
-                              setSelectedImageUrl(imageUrl);
-                              setSelectedImageTitle(key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
-                              setImageModalVisible(true);
-                            }}
-                            onError={(e) => {
-                              console.error(`Error loading ${key} image:`, e);
-                              e.target.style.display = 'none';
-                            }}
-                          />
-                        );
-                      })()}
-                    </div>
-                  ) : typeof value === "boolean" ? (
-                    value ? "Yes" : "No"
-                  ) : Array.isArray(value) ? (
-                    <ul style={{ paddingLeft: 20 }}>
-                      {value.map((v, i) => (
-                        <li key={i}>{v}</li>
-                      ))}
-                    </ul>
-                  ) : typeof value === "object" ? (
-                    <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(value, null, 2)}</pre>
-                  ) : (
-                    String(value)
-                  )}
-                </div>
-              </Col>
+                      >
+                        View PDF
+                      </Button>
+                    ) : isImageField ? (
+                      <div>
+                        {(() => {
+                          let imageUrl = value;
+                          if (!imageUrl.startsWith('http')) {
+                            const { data } = supabase.storage.from('bookings').getPublicUrl(value);
+                            imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`;
+                          }
+                          return (
+                            <img
+                              src={imageUrl}
+                              alt={key.replace(/_/g, " ")}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '200px',
+                                borderRadius: 8,
+                                border: '1px solid #d9d9d9',
+                                cursor: 'pointer',
+                                objectFit: 'cover',
+                              }}
+                              onClick={() => {
+                                setSelectedImageUrl(imageUrl);
+                                setSelectedImageTitle(key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+                                setImageModalVisible(true);
+                              }}
+                              onError={(e) => {
+                                console.error(`Error loading ${key} image:`, e);
+                                e.target.style.display = 'none';
+                              }}
+                            />
+                          );
+                        })()}
+                      </div>
+                    ) : typeof value === "boolean" ? (
+                      value ? "Yes" : "No"
+                    ) : Array.isArray(value) ? (
+                      <ul style={{ paddingLeft: 20 }}>
+                        {value.map((v, i) => (
+                          <li key={i}>{v}</li>
+                        ))}
+                      </ul>
+                    ) : typeof value === "object" ? (
+                      <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(value, null, 2)}</pre>
+                    ) : (
+                      String(value)
+                    )}
+                  </div>
+                </Col>
+                
+                {/* Show godparents after address field for Baptism */}
+                {showGodparentsAfterAddress && (
+                  <>
+                    {/* Main Godfather - Only First Name */}
+                    {selectedBooking.main_godfather_first_name && (
+                      <Col span={12}>
+                        <Text strong>Main Godfather Name:</Text>
+                        <div>{selectedBooking.main_godfather_first_name}</div>
+                        {selectedBooking.main_godfather?.relationship && (
+                          <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                            Relationship: {selectedBooking.main_godfather.relationship}
+                          </Text>
+                        )}
+                      </Col>
+                    )}
+
+                    {/* Main Godmother - Only First Name */}
+                    {selectedBooking.main_godmother_first_name && (
+                      <Col span={12}>
+                        <Text strong>Main Godmother Name:</Text>
+                        <div>{selectedBooking.main_godmother_first_name}</div>
+                        {selectedBooking.main_godmother?.relationship && (
+                          <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
+                            Relationship: {selectedBooking.main_godmother.relationship}
+                          </Text>
+                        )}
+                      </Col>
+                    )}
+                  </>
+                )}
+              </Fragment>
             );
-          })}
+            });
+          })()}
 
           {/* Proof of Payment Section */}
           {selectedBooking?.payment_method === 'gcash' && selectedBooking?.proof_of_payment && (
