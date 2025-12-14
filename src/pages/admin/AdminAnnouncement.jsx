@@ -30,6 +30,7 @@ export default function AdminAnnouncements() {
   const [saving, setSaving] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingData, setEditingData] = useState(null);
+  const [priorityFilter, setPriorityFilter] = useState("all");
 
   const [form] = Form.useForm();
 
@@ -117,6 +118,12 @@ export default function AdminAnnouncements() {
     }
   };
 
+  const filteredAnnouncements = announcements.filter((announcement) => {
+    if (priorityFilter === "all") return true;
+    const priority = announcement.priority || "normal";
+    return priority === priorityFilter;
+  });
+
   const columns = [
     {
       title: "Title",
@@ -188,8 +195,22 @@ export default function AdminAnnouncements() {
         </Space>
       }
     >
+      <Space style={{ marginBottom: 16 }}>
+        <Text strong>Filter by Priority:</Text>
+        <Select
+          value={priorityFilter}
+          onChange={setPriorityFilter}
+          style={{ width: 150 }}
+        >
+          <Option value="all">All Priorities</Option>
+          <Option value="normal">Normal</Option>
+          <Option value="important">Important</Option>
+          <Option value="urgent">Urgent</Option>
+        </Select>
+      </Space>
+
       <Table
-        dataSource={announcements}
+        dataSource={filteredAnnouncements}
         columns={columns}
         rowKey="_id"
         loading={loading}
