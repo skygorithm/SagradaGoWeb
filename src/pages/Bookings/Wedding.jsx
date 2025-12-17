@@ -13,8 +13,6 @@ import { supabase } from "../../config/supabase";
 import axios from "axios";
 import { API_URL } from "../../Constants";
 
-
-
 export default function Wedding() {
   const { currentUser, bookingSelected, setBookingSelected } =
     useContext(NavbarContext);
@@ -29,9 +27,6 @@ export default function Wedding() {
   ];
 
   //-------------------
-
-
-
 
   const [groomFname, setGroomFname] = useState("");
   const [groomMname, setGroomMname] = useState("");
@@ -132,23 +127,22 @@ export default function Wedding() {
   const [bridePhoto, setBridePhoto] = useState("");
 
   async function uploadImage(file, namePrefix) {
-  const ext = file.name.split(".").pop();
-  const fileName = `${namePrefix}_${Date.now()}.${ext}`;
-  const filePath = `wedding/${fileName}`;
+    const ext = file.name.split(".").pop();
+    const fileName = `${namePrefix}_${Date.now()}.${ext}`;
+    const filePath = `wedding/${fileName}`;
 
-  const { error } = await supabase.storage
-    .from("wedding")
-    .upload(filePath, file, { upsert: true });
+    const { error } = await supabase.storage
+      .from("wedding")
+      .upload(filePath, file, { upsert: true });
 
-  if (error) {
-    console.error("Upload Error:", error);
-    throw error;
+    if (error) {
+      console.error("Upload Error:", error);
+      throw error;
+    }
+
+    const { data } = supabase.storage.from("wedding").getPublicUrl(filePath);
+    return data.publicUrl;
   }
-
-  const { data } = supabase.storage.from("wedding").getPublicUrl(filePath);
-  return data.publicUrl;
-}
-
 
   const uploadProfileImage = [
     {
@@ -297,415 +291,431 @@ export default function Wedding() {
     return `TX-${timestamp}-${random}`;
   }
 
-
   async function handleUpload() {
-  try {
-    if (
-      !date ||
-      !time ||
-      attendees <= 0 ||
-      !contact.trim() ||
-      !groomFname.trim() ||
-      !groomLname.trim() ||
-      !brideFname.trim() ||
-      !brideLname.trim()
-    ) {
-      alert("Please fill all input fields.");
-      return;
+    try {
+      if (
+        !date ||
+        !time ||
+        attendees <= 0 ||
+        !contact.trim() ||
+        !groomFname.trim() ||
+        !groomLname.trim() ||
+        !brideFname.trim() ||
+        !brideLname.trim()
+      ) {
+        alert("Please fill all input fields.");
+        return;
+      }
+
+      // Upload files & store URLs locally
+      const uploaded = {};
+
+      if (groomFile)
+        uploaded.groomPhoto = await uploadImage(groomFile, "groom_photo");
+
+      if (brideFile)
+        uploaded.bridePhoto = await uploadImage(brideFile, "bride_photo");
+
+      if (groomBapFile)
+        uploaded.groomBaptismal = await uploadImage(
+          groomBapFile,
+          "groom_baptismal"
+        );
+
+      if (brideBapFile)
+        uploaded.brideBaptismal = await uploadImage(
+          brideBapFile,
+          "bride_baptismal"
+        );
+
+      if (groomConfFile)
+        uploaded.groomConfirmation = await uploadImage(
+          groomConfFile,
+          "groom_confirmation"
+        );
+
+      if (brideConfFile)
+        uploaded.brideConfirmation = await uploadImage(
+          brideConfFile,
+          "bride_confirmation"
+        );
+
+      if (groomCenomarFile)
+        uploaded.groomCenomar = await uploadImage(
+          groomCenomarFile,
+          "groom_cenomar"
+        );
+
+      if (brideCenomarFile)
+        uploaded.brideCenomar = await uploadImage(
+          brideCenomarFile,
+          "bride_cenomar"
+        );
+
+      if (groomPermFile)
+        uploaded.groomPermission = await uploadImage(
+          groomPermFile,
+          "groom_permission"
+        );
+
+      if (bridePermFile)
+        uploaded.bridePermission = await uploadImage(
+          bridePermFile,
+          "bride_permission"
+        );
+
+      if (marriageDocuFile)
+        uploaded.marriageDocu = await uploadImage(
+          marriageDocuFile,
+          "marriage_docu"
+        );
+
+      // Save to DB using returned URLs (NOT state)
+      await axios.post(`${API_URL}/createWeddingBooking`, {
+        uid: "123123123",
+        email,
+        transaction_id: generateTransactionID(),
+        date,
+        time,
+        attendees,
+        contact_number: contact,
+
+        groom_first_name: groomFname,
+        groom_middle_name: groomMname,
+        groom_last_name: groomLname,
+        groom_pic: uploaded.groomPhoto,
+
+        bride_first_name: brideFname,
+        bride_middle_name: brideMname,
+        bride_last_name: brideLname,
+        bride_pic: uploaded.bridePhoto,
+
+        marriage_docu: uploaded.marriageDocu,
+        groom_cenomar: uploaded.groomCenomar,
+        bride_cenomar: uploaded.brideCenomar,
+        groom_baptismal_cert: uploaded.groomBaptismal,
+        bride_baptismal_cert: uploaded.brideBaptismal,
+        groom_confirmation_cert: uploaded.groomConfirmation,
+        bride_confirmation_cert: uploaded.brideConfirmation,
+        groom_permission: uploaded.groomPermission,
+        bride_permission: uploaded.bridePermission,
+      });
+
+      alert("Booking submitted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong during upload.");
     }
-
-    // Upload files & store URLs locally
-    const uploaded = {};
-
-    if (groomFile)
-      uploaded.groomPhoto = await uploadImage(groomFile, "groom_photo");
-
-    if (brideFile)
-      uploaded.bridePhoto = await uploadImage(brideFile, "bride_photo");
-
-    if (groomBapFile)
-      uploaded.groomBaptismal = await uploadImage(groomBapFile, "groom_baptismal");
-
-    if (brideBapFile)
-      uploaded.brideBaptismal = await uploadImage(brideBapFile, "bride_baptismal");
-
-    if (groomConfFile)
-      uploaded.groomConfirmation = await uploadImage(groomConfFile, "groom_confirmation");
-
-    if (brideConfFile)
-      uploaded.brideConfirmation = await uploadImage(brideConfFile, "bride_confirmation");
-
-    if (groomCenomarFile)
-      uploaded.groomCenomar = await uploadImage(groomCenomarFile, "groom_cenomar");
-
-    if (brideCenomarFile)
-      uploaded.brideCenomar = await uploadImage(brideCenomarFile, "bride_cenomar");
-
-    if (groomPermFile)
-      uploaded.groomPermission = await uploadImage(groomPermFile, "groom_permission");
-
-    if (bridePermFile)
-      uploaded.bridePermission = await uploadImage(bridePermFile, "bride_permission");
-
-    if (marriageDocuFile)
-      uploaded.marriageDocu = await uploadImage(marriageDocuFile, "marriage_docu");
-
-    // Save to DB using returned URLs (NOT state)
-    await axios.post(`${API_URL}/createWeddingBooking`, {
-      uid: "123123123",
-      email,
-      transaction_id: generateTransactionID(),
-      date,
-      time,
-      attendees,
-      contact_number: contact,
-
-      groom_first_name: groomFname,
-      groom_middle_name: groomMname,
-      groom_last_name: groomLname,
-      groom_pic: uploaded.groomPhoto,
-
-      bride_first_name: brideFname,
-      bride_middle_name: brideMname,
-      bride_last_name: brideLname,
-      bride_pic: uploaded.bridePhoto,
-
-      marriage_docu: uploaded.marriageDocu,
-      groom_cenomar: uploaded.groomCenomar,
-      bride_cenomar: uploaded.brideCenomar,
-      groom_baptismal_cert: uploaded.groomBaptismal,
-      bride_baptismal_cert: uploaded.brideBaptismal,
-      groom_confirmation_cert: uploaded.groomConfirmation,
-      bride_confirmation_cert: uploaded.brideConfirmation,
-      groom_permission: uploaded.groomPermission,
-      bride_permission: uploaded.bridePermission,
-    });
-
-    alert("Booking submitted successfully!");
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong during upload.");
   }
-}
-
-
- 
-
 
   return (
     <div className="main-holder">
       <div className="form-container">
-      {inputText.map((elem) => (
-        <div className="flex flex-col" key={elem.key}>
-          <h1>{elem.title}</h1>
+        {inputText.map((elem) => (
+          <div className="flex flex-col" key={elem.key}>
+            <h1>{elem.title}</h1>
 
-          {elem.type === "date" ? (
-            <>
-              <DatePicker
-                selected={date ? new Date(date) : null}
-                onChange={(v) => setDate(v ? v.toISOString() : "")}
-                className="input-text"
-                dateFormat="yyyy-MM-dd"
-                excludeDates={occupiedDates}
-              />
-            </>
-          ) : elem.type === "time" ? (
-            <div className="time-container">
-              <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <MobileTimePicker
-                  value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                  onChange={(v) => {
-                    setTime(v ? dayjs(v).format("HH:mm") : "");
-                  }}
-                  slotProps={{
-                    textField: {
-                      className: "time-slot-props",
-                      InputProps: {
+            {elem.type === "date" ? (
+              <>
+                <DatePicker
+                  selected={date ? new Date(date) : null}
+                  onChange={(v) => setDate(v ? v.toISOString() : "")}
+                  className="input-text"
+                  dateFormat="yyyy-MM-dd"
+                  excludeDates={occupiedDates}
+                />
+              </>
+            ) : elem.type === "time" ? (
+              <div className="time-container">
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <MobileTimePicker
+                    value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                    onChange={(v) => {
+                      setTime(v ? dayjs(v).format("HH:mm") : "");
+                    }}
+                    slotProps={{
+                      textField: {
+                        className: "time-slot-props",
+                        InputProps: {
+                          sx: {
+                            padding: 0,
+                            height: "100%",
+                            "& fieldset": { border: "none" },
+                          },
+                        },
                         sx: {
                           padding: 0,
+                          margin: 0,
                           height: "100%",
-                          "& fieldset": { border: "none" },
+                          "& .MuiInputBase-root": {
+                            height: "100%",
+                            padding: 0,
+                          },
+                          "& .MuiInputBase-input": {
+                            height: "100%",
+                            padding: 0,
+                          },
                         },
                       },
-                      sx: {
-                        padding: 0,
-                        margin: 0,
-                        height: "100%",
-                        "& .MuiInputBase-root": {
-                          height: "100%",
-                          padding: 0,
-                        },
-                        "& .MuiInputBase-input": {
-                          height: "100%",
-                          padding: 0,
-                        },
-                      },
-                    },
-                  }}
+                    }}
+                  />
+                </LocalizationProvider>
+              </div>
+            ) : (
+              <>
+                <input
+                  name={elem.key}
+                  type={elem.type}
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
                 />
-              </LocalizationProvider>
-            </div>
-          ) : (
-            <>
-              <input
-                name={elem.key}
-                type={elem.type}
-                className="input-text"
-                onChange={(e) => elem.onChange(e.target.value)}
-                value={elem.value}
-              />
-            </>
-          )}
-        </div>
-      ))}
-
+              </>
+            )}
+          </div>
+        ))}
       </div>
       <div className="upload-container">
+        {uploadProfileImage.map((elem) => (
+          <div key={elem.key} className="per-grid-container">
+            <div>
+              <h1 className="text-center">{elem.title}</h1>
 
-      {uploadProfileImage.map((elem) => (
-        <div key={elem.key} className="per-grid-container">
-          <div>
-            <h1 className="text-center">{elem.title}</h1>
-
-            <input
-            type="file"
-            accept="image/*"
-            className="inputFile-properties"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              elem.fileSetter(file);
-
-              if (file) {
-                elem.previewSetter(URL.createObjectURL(file));
-              }
-            }}
-          />
-          </div>
-
-          <div className="image-container">
-            
-            <img
-              src={elem.preview ? elem.preview : no_image}
-              alt="Preview"
-              className="image-preview"
-            />
-          </div>
-        </div>
-      ))}
-
-      {uploadBaptismal.map((elem) => (
-        <div key={elem.key} className="per-grid-container">
-          <div>
-            <h1>{elem.title}</h1>
-
-            <input
-              type="file"
-              accept="image/*"
-              className="inputFile-properties"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                elem.fileSetter(file);
-
-                if (file) {
-                  elem.previewSetter(URL.createObjectURL(file));
-                }
-              }}
-            />
-          </div>
-
-          <div className="image-container">
-            
-            <img
-              src={elem.preview ? elem.preview : no_image}
-              alt="Preview"
-              className="image-preview"
-            />
-          </div>
-        </div>
-      ))}
-
-      {uploadConfirmation.map((elem) => (
-        <div key={elem.key} className="per-grid-container">
-          <div>
-            <h1>{elem.title}</h1>
-
-            <input
-              type="file"
-              accept="image/*"
-              className="inputFile-properties"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                elem.fileSetter(file);
-
-                if (file) {
-                  elem.previewSetter(URL.createObjectURL(file));
-                }
-              }}
-            />
-          </div>
-
-          <div className="image-container">
-            
-            <img
-              src={elem.preview ? elem.preview : no_image}
-              alt="Preview"
-              className="image-preview"
-            />
-          </div>
-        </div>
-      ))}
-
-      {uploadCenomar.map((elem) => (
-        <div key={elem.key} className="per-grid-container">
-          <div>
-            <h1>{elem.title}</h1>
-
-            <input
-              type="file"
-              accept="image/*"
-              className="inputFile-properties"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                elem.fileSetter(file);
-
-                if (file) {
-                  elem.previewSetter(URL.createObjectURL(file));
-                }
-              }}
-            />
-          </div>
-
-          <div className="image-container">
-            
-            <img
-              src={elem.preview ? elem.preview : no_image}
-              alt="Preview"
-              className="image-preview"
-            />
-          </div>
-        </div>
-      ))}
-
-      {uploadPermission.map((elem) => (
-        <div key={elem.key} className="per-grid-container">
-          <div>
-            <h1>{elem.title}</h1>
-
-            <input
-              type="file"
-              accept="image/*"
-              className="inputFile-properties"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                elem.fileSetter(file);
-
-                if (file) {
-                  elem.previewSetter(URL.createObjectURL(file));
-                }
-              }}
-            />
-          </div>
-
-          <div className="image-container">
-            
-            <img
-              src={elem.preview ? elem.preview : no_image}
-              alt="Preview"
-              className="image-preview"
-            />
-          </div>
-        </div>
-      ))}
-
-      <div className="flex flex-col gap-2">
-        <p>Are you civilly married?</p>
-
-        <div className="flex w-auto gap-10">
-          {civil_choices.map((elem) => (
-            <div className="flex gap-1">
               <input
-                type="radio"
-                name="civil"
-                
-                value={elem.value}
-                onChange={() => setIsCivil(elem.text)}
+                type="file"
+                accept="image/*"
+                className="inputFile-properties"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  elem.fileSetter(file);
+
+                  if (file) {
+                    elem.previewSetter(URL.createObjectURL(file));
+                  }
+                }}
               />
-              <span>{elem.text}</span>
             </div>
-          ))}
+
+            <div className="image-container">
+              <img
+                src={elem.preview ? elem.preview : no_image}
+                alt="Preview"
+                className="image-preview"
+              />
+            </div>
+          </div>
+        ))}
+
+        {uploadBaptismal.map((elem) => (
+          <div key={elem.key} className="per-grid-container">
+            <div>
+              <h1>{elem.title}</h1>
+
+              <input
+                type="file"
+                accept="*/*"
+                className="inputFile-properties"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  elem.fileSetter(file);
+                  elem.previewSetter({
+                    url: URL.createObjectURL(file),
+                    type: file.type,
+                    name: file.name,
+                  });
+                }}
+              />
+            </div>
+
+            <div className="image-container">
+              <img
+                src={elem.preview ? elem.preview : no_image}
+                alt="Preview"
+                className="image-preview"
+              />
+            </div>
+          </div>
+        ))}
+
+        {uploadConfirmation.map((elem) => (
+          <div key={elem.key} className="per-grid-container">
+            <div>
+              <h1>{elem.title}</h1>
+
+              <input
+                type="file"
+                accept="*/*"
+                className="inputFile-properties"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  elem.fileSetter(file);
+                  elem.previewSetter({
+                    url: URL.createObjectURL(file),
+                    type: file.type,
+                    name: file.name,
+                  });
+                }}
+              />
+            </div>
+
+            <div className="image-container">
+              <img
+                src={elem.preview ? elem.preview : no_image}
+                alt="Preview"
+                className="image-preview"
+              />
+            </div>
+          </div>
+        ))}
+
+        {uploadCenomar.map((elem) => (
+          <div key={elem.key} className="per-grid-container">
+            <div>
+              <h1>{elem.title}</h1>
+
+              <input
+                type="file"
+                accept="image/*"
+                className="inputFile-properties"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  elem.fileSetter(file);
+
+                  if (file) {
+                    elem.previewSetter(URL.createObjectURL(file));
+                  }
+                }}
+              />
+            </div>
+
+            <div className="image-container">
+              <img
+                src={elem.preview ? elem.preview : no_image}
+                alt="Preview"
+                className="image-preview"
+              />
+            </div>
+          </div>
+        ))}
+
+        {uploadPermission.map((elem) => (
+          <div key={elem.key} className="per-grid-container">
+            <div>
+              <h1>{elem.title}</h1>
+
+              <input
+                type="file"
+                accept="image/*"
+                className="inputFile-properties"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  elem.fileSetter(file);
+
+                  if (file) {
+                    elem.previewSetter(URL.createObjectURL(file));
+                  }
+                }}
+              />
+            </div>
+
+            <div className="image-container">
+              <img
+                src={elem.preview ? elem.preview : no_image}
+                alt="Preview"
+                className="image-preview"
+              />
+            </div>
+          </div>
+        ))}
+
+        <div className="flex flex-col gap-2">
+          <p>Are you civilly married?</p>
+
+          <div className="flex w-auto gap-10">
+            {civil_choices.map((elem) => (
+              <div className="flex gap-1">
+                <input
+                  type="radio"
+                  name="civil"
+                  value={elem.value}
+                  onChange={() => setIsCivil(elem.text)}
+                />
+                <span>{elem.text}</span>
+              </div>
+            ))}
+          </div>
+
+          {isCivil === "" ? (
+            <></>
+          ) : isCivil === "Yes" ? (
+            uploadMarriageDocu.map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <div>
+                  <h1>Upload Marriage Contract</h1>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="inputFile-properties"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      elem.fileSetter(file);
+
+                      if (file) {
+                        elem.previewSetter(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="image-container">
+                  <img
+                    src={elem.preview ? elem.preview : no_image}
+                    alt="Preview"
+                    className="image-preview"
+                  />
+                </div>
+              </div>
+            ))
+          ) : (
+            uploadMarriageDocu.map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <div>
+                  <h1>Upload Marriage License</h1>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="inputFile-properties"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      elem.fileSetter(file);
+
+                      if (file) {
+                        elem.previewSetter(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className="image-container">
+                  <img
+                    src={elem.preview ? elem.preview : no_image}
+                    alt="Preview"
+                    className="image-preview"
+                  />
+                </div>
+              </div>
+            ))
+          )}
         </div>
-
-        {isCivil === "" ? (
-          <></>
-        ) : isCivil === "Yes" ? (
-          uploadMarriageDocu.map((elem) => (
-            <div key={elem.key} className="per-grid-container">
-              <div>
-                <h1>Upload Marriage Contract</h1>
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="inputFile-properties"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    elem.fileSetter(file);
-
-                    if (file) {
-                      elem.previewSetter(URL.createObjectURL(file));
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="image-container">
-                
-                <img
-                  src={elem.preview ? elem.preview : no_image}
-                  alt="Preview"
-                  className="image-preview"
-                />
-              </div>
-            </div>
-          ))
-        ) : (
-          uploadMarriageDocu.map((elem) => (
-            <div key={elem.key} className="per-grid-container">
-              <div>
-                <h1>Upload Marriage License</h1>
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="inputFile-properties"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    elem.fileSetter(file);
-
-                    if (file) {
-                      elem.previewSetter(URL.createObjectURL(file));
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="image-container">
-                
-                <img
-                  src={elem.preview ? elem.preview : no_image}
-                  alt="Preview"
-                  className="image-preview"
-                />
-              </div>
-            </div>
-          ))
-        )}
       </div>
 
-      
-    </div>
-
-    <input
+      <input
         type="submit"
         value="Submit"
         className="submit-button"
