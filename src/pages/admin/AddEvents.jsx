@@ -403,9 +403,13 @@ export default function AddEvents() {
 
                 <Form.Item name="description" label="Description">
                   <TextArea
-                    rows={4}
+                    rows={6}
                     placeholder="Event description (optional)"
                     size="large"
+                    style={{
+                      resize: "none",
+                      overflowY: "auto",
+                    }}
                   />
                 </Form.Item>
 

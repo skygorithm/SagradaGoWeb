@@ -596,7 +596,7 @@ export default function AccountManagement() {
         {/* Filters */}
         <Card style={{ marginBottom: 24 }}>
           <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={12}>
+            <Col xs={24} sm={12} md={18}>
               <Input
                 placeholder="Search by name, email, or contact number..."
                 prefix={<SearchOutlined style={{ marginRight: 8 }} />}
@@ -611,7 +611,7 @@ export default function AccountManagement() {
                 }}
               />
             </Col>
-            <Col xs={24} sm={12} md={12}>
+            <Col xs={24} sm={12} md={6}>
               <Select
                 value={filterType}
                 onChange={setFilterType}
