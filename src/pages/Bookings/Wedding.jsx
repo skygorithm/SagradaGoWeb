@@ -483,7 +483,7 @@ export default function Wedding() {
 
               <input
                 type="file"
-                accept="image/*"
+                accept="*/*"
                 className="inputFile-properties"
                 onChange={(e) => {
                   const file = e.target.files[0];
@@ -528,14 +528,6 @@ export default function Wedding() {
                 }}
               />
             </div>
-
-            <div className="image-container">
-              <img
-                src={elem.preview ? elem.preview : no_image}
-                alt="Preview"
-                className="image-preview"
-              />
-            </div>
           </div>
         ))}
 
@@ -562,13 +554,6 @@ export default function Wedding() {
               />
             </div>
 
-            <div className="image-container">
-              <img
-                src={elem.preview ? elem.preview : no_image}
-                alt="Preview"
-                className="image-preview"
-              />
-            </div>
           </div>
         ))}
 
@@ -579,7 +564,7 @@ export default function Wedding() {
 
               <input
                 type="file"
-                accept="image/*"
+                accept="*/*"
                 className="inputFile-properties"
                 onChange={(e) => {
                   const file = e.target.files[0];
@@ -592,13 +577,6 @@ export default function Wedding() {
               />
             </div>
 
-            <div className="image-container">
-              <img
-                src={elem.preview ? elem.preview : no_image}
-                alt="Preview"
-                className="image-preview"
-              />
-            </div>
           </div>
         ))}
 
@@ -609,7 +587,7 @@ export default function Wedding() {
 
               <input
                 type="file"
-                accept="image/*"
+                accept="*/*"
                 className="inputFile-properties"
                 onChange={(e) => {
                   const file = e.target.files[0];
@@ -619,14 +597,6 @@ export default function Wedding() {
                     elem.previewSetter(URL.createObjectURL(file));
                   }
                 }}
-              />
-            </div>
-
-            <div className="image-container">
-              <img
-                src={elem.preview ? elem.preview : no_image}
-                alt="Preview"
-                className="image-preview"
               />
             </div>
           </div>
@@ -659,7 +629,7 @@ export default function Wedding() {
 
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="*/*"
                     className="inputFile-properties"
                     onChange={(e) => {
                       const file = e.target.files[0];
@@ -669,14 +639,6 @@ export default function Wedding() {
                         elem.previewSetter(URL.createObjectURL(file));
                       }
                     }}
-                  />
-                </div>
-
-                <div className="image-container">
-                  <img
-                    src={elem.preview ? elem.preview : no_image}
-                    alt="Preview"
-                    className="image-preview"
                   />
                 </div>
               </div>
@@ -689,7 +651,7 @@ export default function Wedding() {
 
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="*/*"
                     className="inputFile-properties"
                     onChange={(e) => {
                       const file = e.target.files[0];
@@ -699,14 +661,6 @@ export default function Wedding() {
                         elem.previewSetter(URL.createObjectURL(file));
                       }
                     }}
-                  />
-                </div>
-
-                <div className="image-container">
-                  <img
-                    src={elem.preview ? elem.preview : no_image}
-                    alt="Preview"
-                    className="image-preview"
                   />
                 </div>
               </div>
