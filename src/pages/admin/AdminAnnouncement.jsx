@@ -11,6 +11,7 @@ import {
   message,
   Typography,
   Select,
+  Spin
 } from "antd";
 import {
   PlusOutlined,
@@ -21,7 +22,7 @@ import {
 import axios from "axios";
 import { API_URL } from "../../Constants";
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 const { Option } = Select;
 
 export default function AdminAnnouncements() {
@@ -79,7 +80,7 @@ export default function AdminAnnouncements() {
 
       const payload = {
         ...values,
-        date: new Date().toISOString(), 
+        date: new Date().toISOString(),
       };
 
       if (editingData) {
@@ -111,7 +112,7 @@ export default function AdminAnnouncements() {
       await axios.delete(`${API_URL}/admin/deleteAnnouncement/${id}`);
       message.success("Announcement deleted");
       fetchAnnouncements();
-      
+
     } catch (error) {
       console.error(error);
       message.error("Failed to delete announcement");
@@ -181,83 +182,118 @@ export default function AdminAnnouncements() {
   ];
 
   return (
-    <Card
-      title="Announcement Management"
-      extra={
-        <Space>
-          <Button icon={<ReloadOutlined />} onClick={fetchAnnouncements}>
-            Refresh
-          </Button>
+    <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
+      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
+        <div>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <Title level={2} style={{ fontFamily: 'Poppins' }}>Announcement Management</Title>
 
-          <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-            New Announcement
-          </Button>
-        </Space>
-      }
-    >
-      <Space style={{ marginBottom: 16 }}>
-        <Text strong>Filter by Priority:</Text>
-        <Select
-          value={priorityFilter}
-          onChange={setPriorityFilter}
-          style={{ width: 150 }}
-        >
-          <Option value="all">All Priorities</Option>
-          <Option value="normal">Normal</Option>
-          <Option value="important">Important</Option>
-          <Option value="urgent">Urgent</Option>
-        </Select>
-      </Space>
+            <Space>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchAnnouncements}
+                className="border-btn"
+              >
+                Refresh
+              </Button>
 
-      <Table
-        dataSource={filteredAnnouncements}
-        columns={columns}
-        rowKey="_id"
-        loading={loading}
-        pagination={{ pageSize: 5 }}
-      />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={openCreate}
+                className="border-btn"
+              >
+                New Announcement
+              </Button>
+            </Space>
+          </div>
 
-      <Modal
-        title={editingData ? "Edit Announcement" : "Create Announcement"}
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        onOk={handleSubmit}
-        okText={editingData ? "Update" : "Create"}
-        confirmLoading={saving}
-      >
-        <Form layout="vertical" form={form}>
-          <Form.Item
-            label="Title"
-            name="title"
-            rules={[{ required: true, message: "Title is required" }]}
+          {/* Filters */}
+          <Card style={{ marginBottom: 16 }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Text strong style={{ fontFamily: 'Poppins', fontSize: 14 }}>Filter by Priority:</Text>
+              <Select
+                value={priorityFilter}
+                onChange={setPriorityFilter}
+                style={{
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  height: '42px',
+                }}
+                placeholder="Select priority"
+              >
+                <Option value="all">All Priorities</Option>
+                <Option value="normal">Normal</Option>
+                <Option value="important">Important</Option>
+                <Option value="urgent">Urgent</Option>
+              </Select>
+            </Space>
+          </Card>
+
+          {/* Table */}
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "50px 0" }}>
+              <Spin size="large" />
+            </div>
+          ) : (
+            <Card>
+              <Table
+                dataSource={filteredAnnouncements}
+                columns={columns}
+                rowKey="_id"
+                pagination={{ pageSize: 5 }}
+              />
+            </Card>
+          )}
+
+          {/* Modal */}
+          <Modal
+            title={editingData ? "Edit Announcement" : "Create Announcement"}
+            open={isModalOpen}
+            onCancel={() => setIsModalOpen(false)}
+            onOk={handleSubmit}
+            okText={editingData ? "Update" : "Create"}
+            confirmLoading={saving}
+            width={800}
           >
-            <Input placeholder="Enter announcement title" />
-          </Form.Item>
+            <Form layout="vertical" form={form}>
+              <Form.Item
+                label="Title"
+                name="title"
+                rules={[{ required: true, message: "Title is required" }]}
+              >
+                <Input placeholder="Enter announcement title" />
+              </Form.Item>
 
-          <Form.Item
-            label="Content"
-            name="content"
-            rules={[{ required: true, message: "Content is required" }]}
-          >
-            <Input.TextArea
-              rows={6}
-              placeholder="Enter announcement details"
-            />
-          </Form.Item>
+              <Form.Item
+                label="Content"
+                name="content"
+                rules={[{ required: true, message: "Content is required" }]}
+              >
+                <Input.TextArea
+                  rows={6}
+                  placeholder="Enter announcement details"
+                />
+              </Form.Item>
 
-          <Form.Item label="Priority" name="priority">
-            <Select>
-              <Option value="normal">Normal</Option>
-              <Option value="important">Important</Option>
-              <Option value="urgent">Urgent</Option>
-            </Select>
-          </Form.Item>
+              <Form.Item label="Priority" name="priority">
+                <Select>
+                  <Option value="normal">Normal</Option>
+                  <Option value="important">Important</Option>
+                  <Option value="urgent">Urgent</Option>
+                </Select>
+              </Form.Item>
 
-          <Form.Item label="Author" name="author">
-            <Input placeholder="Author name" />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </Card>
+              <Form.Item label="Author" name="author">
+                <Input placeholder="Author name" />
+              </Form.Item>
+            </Form>
+          </Modal>
+        </div>
+      </div>
+    </div>
   );
+
 }
