@@ -39,11 +39,8 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 
-
-
 const { Title, Text } = Typography;
 const { Option } = Select;
-
 
 export default function AccountManagement() {
   const navigate = useNavigate();
@@ -51,7 +48,7 @@ export default function AccountManagement() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all"); 
+  const [filterType, setFilterType] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -68,7 +65,7 @@ export default function AccountManagement() {
     is_priest: false,
   });
 
-  const [birthdayDisplay, setBirthdayDisplay] = useState(""); 
+  const [birthdayDisplay, setBirthdayDisplay] = useState("");
 
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -142,17 +139,17 @@ export default function AccountManagement() {
 
   const parseDateInput = (value) => {
     if (!value) return "";
-    
+
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       return value;
     }
-  
+
     const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (match) {
       const [, month, day, year] = match;
       return `${year}-${month}-${day}`;
     }
-    
+
     return value;
   };
 
@@ -166,7 +163,7 @@ export default function AccountManagement() {
     if (!date.isValid()) {
       date = dayjs(dateString);
     }
-    
+
     const today = dayjs();
     const minDate = dayjs().subtract(120, "years");
 
@@ -190,7 +187,7 @@ export default function AccountManagement() {
       if (currentUserEmail && currentUserEmail.toLowerCase() === email.trim().toLowerCase()) {
         return false;
       }
-      
+
       const response = await axios.post(`${API_URL}/checkEmail`, { email: email.trim().toLowerCase() });
       return response.data.exists || false;
 
@@ -205,7 +202,7 @@ export default function AccountManagement() {
       if (currentUserContact && currentUserContact.trim() === contactNumber.trim()) {
         return false;
       }
-      
+
       const response = await axios.post(`${API_URL}/checkContact`, { contact_number: contactNumber.trim() });
       return response.data.exists || false;
 
@@ -237,7 +234,7 @@ export default function AccountManagement() {
     const numericOnly = value.replace(/\D/g, "");
     const limited = numericOnly.slice(0, 11);
     setFormData({ ...formData, contact_number: limited });
-   
+
     if (errors.contact_number) {
       setErrors((prev) => ({ ...prev, contact_number: "" }));
     }
@@ -248,17 +245,17 @@ export default function AccountManagement() {
     if (!formData.first_name) newErrors.first_name = "First name is required";
     if (!formData.last_name) newErrors.last_name = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
-    
+
     const contactError = validateContactNumber(formData.contact_number);
     if (contactError) {
       newErrors.contact_number = contactError;
     }
-    
+
     const birthdayError = validateBirthday(formData.birthday);
     if (birthdayError) {
       newErrors.birthday = birthdayError;
     }
-    
+
     if (!formData.password) newErrors.password = "Password is required";
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
@@ -393,19 +390,19 @@ export default function AccountManagement() {
     if (!formData.first_name) newErrors.first_name = "First name is required";
     if (!formData.last_name) newErrors.last_name = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
-    
+
     const contactError = validateContactNumber(formData.contact_number);
     if (contactError) {
       newErrors.contact_number = contactError;
     }
-    
+
     let birthdayToValidate = formData.birthday;
     if (birthdayDisplay && /^\d{2}\/\d{2}\/\d{4}$/.test(birthdayDisplay)) {
       birthdayToValidate = parseDateInput(birthdayDisplay);
     } else if (!birthdayToValidate && birthdayDisplay) {
       birthdayToValidate = parseDateInput(birthdayDisplay);
     }
-    
+
     const birthdayError = validateBirthday(birthdayToValidate);
     if (birthdayError) {
       newErrors.birthday = birthdayError;
@@ -418,7 +415,7 @@ export default function AccountManagement() {
 
     try {
       setLoading(true);
-  
+
       const emailExists = await checkEmailExists(formData.email, editingUser?.email);
       if (emailExists) {
         newErrors.email = "Email is already in use. Please use a different email.";
@@ -463,7 +460,7 @@ export default function AccountManagement() {
 
       if (error.response) {
         message.error(error.response.data.message || "Failed to update user.");
-        
+
       } else {
         message.error("Failed to update user. Please try again.");
       }
@@ -557,40 +554,38 @@ export default function AccountManagement() {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <Title level={2} style={{ margin: 0, color: "#262626" }}>
+              <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
                 Account Management
               </Title>
-              <Text type="secondary" style={{ fontSize: 16 }}>
+              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins' }}>
                 Manage users and priests
               </Text>
             </div>
             <Space>
-              <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/admin")}>
+              <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/admin")} className="border-btn">
                 Back to Dashboard
               </Button>
               <Button
-                type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => {
                   resetForm();
                   setShowAddModal(true);
                 }}
-                style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+                className="border-btn"
               >
                 Add User/Priest
               </Button>
               <Button
-                type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => {
                   navigate("/admin/create");
                 }}
-                style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+                className="border-btn"
               >
                 Add Admin
               </Button>
@@ -604,18 +599,30 @@ export default function AccountManagement() {
             <Col xs={24} sm={12} md={12}>
               <Input
                 placeholder="Search by name, email, or contact number..."
-                prefix={<SearchOutlined />}
+                prefix={<SearchOutlined style={{ marginRight: 8 }} />}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 allowClear
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '10px 12px',
+                  height: '42px',
+                }}
               />
             </Col>
             <Col xs={24} sm={12} md={12}>
               <Select
-                style={{ width: "100%" }}
                 value={filterType}
                 onChange={setFilterType}
                 placeholder="Filter by type"
+                style={{
+                  width: '100%',
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500,
+                  padding: '8px 12px',
+                  height: '42px',
+                }}
               >
                 <Option value="all">All</Option>
                 <Option value="users">Users</Option>
@@ -755,14 +762,14 @@ export default function AccountManagement() {
                         }
                         return;
                       }
-                      
+
                       const formatted = formatDateInput(inputValue);
                       setBirthdayDisplay(formatted);
 
                       if (/^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
                         const parsed = parseDateInput(formatted);
                         setFormData({ ...formData, birthday: parsed });
-                        
+
                         const error = validateBirthday(parsed);
                         setErrors((prev) => ({ ...prev, birthday: error }));
 
@@ -781,7 +788,7 @@ export default function AccountManagement() {
                         } else {
                           setErrors((prev) => ({ ...prev, birthday: "Please enter a complete date (MM/DD/YYYY)" }));
                         }
-                        
+
                       } else if (formData.birthday) {
                         const error = validateBirthday(formData.birthday);
                         setErrors((prev) => ({ ...prev, birthday: error }));
@@ -957,14 +964,14 @@ export default function AccountManagement() {
                         }
                         return;
                       }
-                      
+
                       const formatted = formatDateInput(inputValue);
                       setBirthdayDisplay(formatted);
 
                       if (/^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
                         const parsed = parseDateInput(formatted);
                         setFormData({ ...formData, birthday: parsed });
-                        
+
                         const error = validateBirthday(parsed);
                         setErrors((prev) => ({ ...prev, birthday: error }));
 
@@ -983,7 +990,7 @@ export default function AccountManagement() {
                         } else {
                           setErrors((prev) => ({ ...prev, birthday: "Please enter a complete date (MM/DD/YYYY)" }));
                         }
-                        
+
                       } else if (formData.birthday) {
                         const error = validateBirthday(formData.birthday);
                         setErrors((prev) => ({ ...prev, birthday: error }));
