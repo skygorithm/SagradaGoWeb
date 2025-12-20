@@ -153,7 +153,7 @@
 }
 
 .dashboard-quick-action-card-bookings:hover {
-  border-color: #FFC942;
+  border-color: #1890ff;
   box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
 }
 
@@ -173,4 +173,28 @@
 .dashboard-quick-action-card-volunteers:hover {
   border-color: #f5222d;
   box-shadow: 0 4px 12px rgba(245, 34, 45, 0.3);
+}
+
+.report-template-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+}
+
+.border-btn {
+  border: 1px solid #424242;
+  background: transparent;
+  color: #FFC942;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+  padding: 20px 18px;
+}
+
+.border-btn:hover,
+.border-btn:focus {
+  background: rgb(255, 201, 66) !important;
+  color: #FFC942 !important;
+  border-color: #FFC942 !important;
 }

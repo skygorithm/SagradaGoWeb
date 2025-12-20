@@ -165,7 +165,7 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
     const statusData = {};
     formattedData.forEach((booking) => {
       const status = booking.status || "Unknown";
-      
+
       if (!statusData[status]) {
         statusData[status] = { name: status, value: 0 };
       }
@@ -381,10 +381,10 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
                             entry.name.toLowerCase() === "confirmed"
                               ? "#52c41a"
                               : entry.name.toLowerCase() === "pending"
-                              ? "#fa8c16"
-                              : entry.name.toLowerCase() === "cancelled"
-                              ? "#f5222d"
-                              : COLORS[index % COLORS.length]
+                                ? "#fa8c16"
+                                : entry.name.toLowerCase() === "cancelled"
+                                  ? "#f5222d"
+                                  : COLORS[index % COLORS.length]
                           }
                         />
                       ))}
@@ -457,12 +457,12 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
           <Title level={3} style={{ margin: 0 }}>
             {title}
           </Title>
-          <Text type="secondary">
+          <Text style={{ fontFamily: 'Poppins' }} type="secondary">
             {formattedData.length} {formattedData.length === 1 ? "record" : "records"} • Generated on{" "}
             {dayjs().format("MMMM DD, YYYY")}
           </Text>
         </div>
-        <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport} size="large">
+        <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport} size="large" className="border-btn">
           Export Report
         </Button>
       </div>

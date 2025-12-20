@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                 Here's what's happening today.
               </Text>
             </div>
-            <Button icon={<ReloadOutlined />} onClick={fetchDashboardData} loading={loading}>
+            <Button icon={<ReloadOutlined />} onClick={fetchDashboardData} loading={loading} className="border-btn">
               Refresh
             </Button>
           </div>
@@ -485,7 +485,7 @@ export default function AdminDashboard() {
 
       {/* Donation Report */}
       <ReportTemplate
-        title="Donation Report"
+        title={<span className="report-template-title">Donation Report</span>}
         columns={donationColumns}
         data={donationReportData}
         reportType="donation"
@@ -493,7 +493,7 @@ export default function AdminDashboard() {
 
       {/* Booking Report */}
       <ReportTemplate
-        title="Booking Report"
+        title={<span className="report-template-title">Booking Report</span>}
         columns={bookingColumns}
         data={bookingReportData}
         reportType="booking"
@@ -501,11 +501,12 @@ export default function AdminDashboard() {
 
       {/* System Overview Report */}
       <ReportTemplate
-        title="System Overview Report"
+        title={<span className="report-template-title">System Overview Report</span>}
         columns={systemOverviewColumns}
         data={systemReportData}
         reportType="system"
       />
+
     </div>
   );
 }
