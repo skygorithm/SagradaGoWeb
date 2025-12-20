@@ -1,3 +1,7 @@
+* {
+  font-family: 'Poppins';
+}
+
 .custom-admin-menu.ant-menu-dark {
   background: transparent !important;
 }
@@ -40,4 +44,3 @@
 .custom-admin-menu.ant-menu-dark .ant-menu-item-selected .ant-menu-item-icon {
   color: #b87d3e !important;
 }
-
