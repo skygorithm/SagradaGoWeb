@@ -9,7 +9,6 @@ import {
   UserAddOutlined,
   BookOutlined,
   HeartOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -329,9 +328,6 @@ export default function AdminDashboard() {
                 Here's what's happening today.
               </Text>
             </div>
-            <Button icon={<ReloadOutlined />} onClick={fetchDashboardData} loading={loading} className="border-btn">
-              Refresh
-            </Button>
           </div>
         </div>
 

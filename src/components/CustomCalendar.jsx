@@ -21,7 +21,14 @@ const CustomCalendar = ({ events = [], onEventClick }) => {
         {dayEvents.map((item, index) => {
           let badgeStatus;
 
-          if ((item.status || "").toLowerCase() === "confirmed") {
+          const eventDate = dayjs(item.date);
+          const today = dayjs().startOf('day');
+          const isPastEvent = eventDate.isBefore(today);
+
+          if (isPastEvent) {
+            badgeStatus = "error";
+            
+          } else if ((item.status || "").toLowerCase() === "confirmed") {
             badgeStatus = "success";
 
           } else {
