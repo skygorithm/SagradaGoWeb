@@ -977,9 +977,20 @@ export default function BookingPendingRequests() {
 
   const handleStatusUpdate = async (bookingId, bookingType, newStatus) => {
     try {
-      if (newStatus === "confirmed" && !selectedPriestId) {
-        message.warning("Please select a priest before confirming the booking.");
-        return;
+      if (newStatus === "confirmed") {
+        const bookingToUpdate = bookings.find(
+          (b) => b.transaction_id === bookingId && b.bookingType === bookingType
+        );
+
+        if (bookingToUpdate && isBookingDatePast(bookingToUpdate)) {
+          message.error("Cannot confirm booking that is past its scheduled date.");
+          return;
+        }
+
+        if (!selectedPriestId) {
+          message.warning("Please select a priest before confirming the booking.");
+          return;
+        }
       }
 
       setUpdateLoading(true);
@@ -1100,7 +1111,7 @@ export default function BookingPendingRequests() {
     if (!booking.date) return false;
     const bookingDate = new Date(booking.date);
     if (isNaN(bookingDate.getTime())) return false;
-
+    
     if (booking.time) {
       const timeStr = String(booking.time).trim();
       const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/);
@@ -1247,14 +1258,26 @@ export default function BookingPendingRequests() {
           </Tooltip>
           {record.status === "pending" && (
             <>
-              <Button
-                type="link"
-                style={{ color: "#52c41a" }}
-                onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "confirmed")}
-                loading={updateLoading}
-              >
-                Confirm
-              </Button>
+              {isBookingDatePast(record) ? (
+                <Tooltip title="Cannot confirm booking that is past its scheduled date">
+                  <Button
+                    type="link"
+                    style={{ color: "#d9d9d9" }}
+                    disabled
+                  >
+                    Confirm
+                  </Button>
+                </Tooltip>
+              ) : (
+                <Button
+                  type="link"
+                  style={{ color: "#52c41a" }}
+                  onClick={() => handleStatusUpdate(record.transaction_id, record.bookingType, "confirmed")}
+                  loading={updateLoading}
+                >
+                  Confirm
+                </Button>
+              )}
               <Button
                 type="link"
                 danger
@@ -1909,15 +1932,27 @@ export default function BookingPendingRequests() {
               Close
             </Button>,
             selectedBooking?.status === "pending" && (
-              <Button
-                key="confirm"
-                type="primary"
-                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
-                onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "confirmed")}
-                loading={updateLoading}
-              >
-                Confirm Booking
-              </Button>
+              isBookingDatePast(selectedBooking) ? (
+                <Tooltip key="confirm-disabled" title="Cannot confirm booking that is past its scheduled date">
+                  <Button
+                    type="primary"
+                    style={{ backgroundColor: "#d9d9d9", borderColor: "#d9d9d9" }}
+                    disabled
+                  >
+                    Confirm Booking
+                  </Button>
+                </Tooltip>
+              ) : (
+                <Button
+                  key="confirm"
+                  type="primary"
+                  style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                  onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "confirmed")}
+                  loading={updateLoading}
+                >
+                  Confirm Booking
+                </Button>
+              )
             ),
             selectedBooking?.status === "pending" && (
               <Button
