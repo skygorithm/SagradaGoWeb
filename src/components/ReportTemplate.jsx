@@ -52,9 +52,34 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
   }, [data]);
 
   const handleExport = () => {
+    let titleText = 'Report';
+    
+    if (typeof title === 'string') {
+      titleText = title;
+
+    } else if (typeof title === 'object' && title !== null) {
+      if (title.props) {
+        const children = title.props.children;
+
+        if (typeof children === 'string') {
+          titleText = children;
+
+        } else if (Array.isArray(children)) {
+          titleText = children
+            .filter(child => typeof child === 'string')
+            .join(' ') || 'Report';
+            
+        } else if (children && typeof children === 'object' && children.props) {
+          titleText = typeof children.props.children === 'string' 
+            ? children.props.children 
+            : 'Report';
+        }
+      }
+    }
+    
     generateReport({
       type: exportType,
-      title,
+      title: titleText,
       columns,
       data: formattedData,
     });
