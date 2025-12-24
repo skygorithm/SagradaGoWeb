@@ -32,15 +32,20 @@ export default function Notifications() {
   const fetchNotifications = async () => {
     try {
       if (!user?.uid) {
+        console.warn("Notifications: No user UID found in localStorage");
         setLoading(false);
         return;
       }
+
+      console.log("Notifications: Fetching for admin UID:", user.uid);
 
       const response = await axios.post(`${API_URL}/getNotifications`, {
         recipient_id: user.uid,
         recipient_type: "admin",
         limit: 100,
       });
+
+      console.log("Notifications: Response received:", response.data);
 
       if (response.data) {
         const transformedNotifications = (response.data.notifications || []).map((notification) => ({
@@ -53,12 +58,19 @@ export default function Notifications() {
           action: notification.action || null,
         }));
 
+        console.log("Notifications: Transformed notifications:", transformedNotifications);
+        console.log("Notifications: Unread count:", response.data.unreadCount || 0);
+
         setNotifications(transformedNotifications);
         setUnreadCount(response.data.unreadCount || 0);
       }
 
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+      }
 
     } finally {
       setLoading(false);
