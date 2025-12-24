@@ -20,6 +20,7 @@ import {
   DatePicker,
   TimePicker,
   Checkbox,
+  Tabs,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -808,6 +809,7 @@ export default function BookingPendingRequests() {
   const [selectedImageTitle, setSelectedImageTitle] = useState('');
   const [createBookingModalVisible, setCreateBookingModalVisible] = useState(false);
   const [selectedBookingType, setSelectedBookingType] = useState(null);
+  const [dateFilterTab, setDateFilterTab] = useState("all");
 
   useEffect(() => {
     fetchAllBookings();
@@ -831,7 +833,7 @@ export default function BookingPendingRequests() {
 
   useEffect(() => {
     filterBookings();
-  }, [searchTerm, bookings, typeFilter, monthFilter]);
+  }, [searchTerm, bookings, typeFilter, monthFilter, dateFilterTab]);
 
   const fetchAllBookings = async () => {
     try {
@@ -905,6 +907,13 @@ export default function BookingPendingRequests() {
 
   const filterBookings = () => {
     let filtered = bookings;
+
+    if (dateFilterTab === "past") {
+      filtered = filtered.filter((b) => isBookingDatePast(b));
+
+    } else if (dateFilterTab === "active") {
+      filtered = filtered.filter((b) => !isBookingDatePast(b));
+    }
 
     if (typeFilter !== "all") {
       filtered = filtered.filter((b) => b.bookingType === typeFilter);
@@ -1087,6 +1096,27 @@ export default function BookingPendingRequests() {
     return booking.user?.email || booking.email || "N/A";
   };
 
+  const isBookingDatePast = (booking) => {
+    if (!booking.date) return false;
+    const bookingDate = new Date(booking.date);
+    if (isNaN(bookingDate.getTime())) return false;
+
+    if (booking.time) {
+      const timeStr = String(booking.time).trim();
+      const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/);
+      
+      if (timeMatch) {
+        const hours = parseInt(timeMatch[1], 10);
+        const minutes = parseInt(timeMatch[2], 10);
+        bookingDate.setHours(hours, minutes, 0, 0);
+      }
+    }
+    
+    const now = new Date();
+    now.setSeconds(0, 0);
+    return bookingDate < now;
+  };
+
   const formatTimeOnly = (timeValue) => {
     if (timeValue === null || timeValue === undefined || timeValue === '') {
       return "N/A";
@@ -1152,14 +1182,25 @@ export default function BookingPendingRequests() {
       title: "Date",
       dataIndex: "date",
       key: "date",
-      render: (date) => {
+      render: (date, record) => {
         if (!date) return "N/A";
         const d = new Date(date);
-        return d.toLocaleDateString("en-US", {
+        const dateStr = d.toLocaleDateString("en-US", {
           year: "numeric",
           month: "short",
           day: "numeric",
         });
+        const isPast = isBookingDatePast(record);
+        return (
+          <Space>
+            <span>{dateStr}</span>
+            {isPast && (
+              <Tag color="red" style={{ margin: 0 }}>
+                Past Date
+              </Tag>
+            )}
+          </Space>
+        );
       },
     },
     {
@@ -1816,8 +1857,27 @@ export default function BookingPendingRequests() {
           </Row>
         </Card>
 
-        {/* Bookings Table */}
+        {/* Bookings Table with Date Filter Tabs */}
         <Card>
+          <Tabs
+            activeKey={dateFilterTab}
+            onChange={setDateFilterTab}
+            style={{ marginBottom: 16 }}
+            items={[
+              {
+                key: "all",
+                label: `All Bookings (${bookings.length})`,
+              },
+              {
+                key: "active",
+                label: `Active (Upcoming) (${bookings.filter((b) => !isBookingDatePast(b)).length})`,
+              },
+              {
+                key: "past",
+                label: `Past Date (${bookings.filter((b) => isBookingDatePast(b)).length})`,
+              },
+            ]}
+          />
           <Table
             columns={columns}
             dataSource={filteredBookings}

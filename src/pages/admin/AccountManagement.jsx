@@ -566,9 +566,9 @@ export default function AccountManagement() {
               </Text>
             </div>
             <Space>
-              <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/admin")} className="border-btn">
+              {/* <Button icon={<ArrowLeftOutlined />} onClick={() => navigate("/admin")} className="border-btn">
                 Back to Dashboard
-              </Button>
+              </Button> */}
               <Button
                 icon={<PlusOutlined />}
                 onClick={() => {
