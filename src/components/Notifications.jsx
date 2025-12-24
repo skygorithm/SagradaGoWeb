@@ -124,7 +124,11 @@ export default function Notifications() {
         return <BookOutlined style={{ fontSize: 20 }} />;
 
       case "donation":
+      case "donation_status":
         return <DollarOutlined style={{ fontSize: 20 }} />;
+
+      case "volunteer":
+        return <UserOutlined style={{ fontSize: 20 }} />;
 
       case "event":
         return <CalendarOutlined style={{ fontSize: 20 }} />;
@@ -143,7 +147,11 @@ export default function Notifications() {
         return "#1890ff";
 
       case "donation":
+      case "donation_status":
         return "#52c41a";
+
+      case "volunteer":
+        return "#fa8c16";
 
       case "event":
         return "#722ed1";
