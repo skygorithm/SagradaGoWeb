@@ -370,7 +370,6 @@ export default function Wedding() {
           "marriage_docu"
         );
 
-      // Save to DB using returned URLs (NOT state)
       await axios.post(`${API_URL}/createWeddingBooking`, {
         uid: "123123123",
         email,
