@@ -199,6 +199,45 @@
   border-color: #FFC942 !important;
 }
 
+.border-btn2 {
+  border: 1px solid #424242;
+  background: transparent;
+  color: #424242;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+  padding: 20px 18px;
+}
+
+.border-btn2:hover,
+.border-btn2:focus {
+  background: #424242 !important;
+  border-color: #424242 !important;
+}
+
+.border-btn2:hover,
+.border-btn2:hover span {
+  color: #fff !important;
+}
+
+.filled-btn {
+  border: none;
+  background-color: #FFC942;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+  padding: 20px 18px;
+}
+
+.filled-btn:hover,
+.filled-btn:focus {
+  background: rgb(255, 201, 66) !important;
+  color: #FFC942 !important;
+  border-color: #FFC942 !important;
+}
+
 .ant-input,
 .ant-select-selector {
   font-family: 'Poppins', sans-serif;
