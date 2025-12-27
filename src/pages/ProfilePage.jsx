@@ -186,7 +186,34 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
 
   return (
     <div className="profileContainer">
-      <h2 className="pageTitle">Profile Information</h2>
+      <div style={{ display: "flex", justifyContent: "space-between", alignContent: "center", marginBottom: 40 }}>
+        <div>
+          <h2 className="pageTitle">Profile Information</h2>
+          <p style={{ marginTop: -20 }}>
+            Manage your personal information and ensure your account details are
+            accurate and current.
+          </p>
+        </div>
+
+        <div className="actionRow">
+          {!isEditing ? (
+            <Button className="border-btn" onClick={() => setIsEditing(true)}>
+              Edit Profile
+            </Button>
+          ) : (
+            <>
+              <Button className="border-btn2" onClick={() => setIsEditing(false)}>Cancel</Button>
+              <Button
+                className="filled-btn"
+                loading={isSaving}
+                onClick={handleSave}
+              >
+                Save Changes
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
 
       <div className="formGrid">
         {[
@@ -209,24 +236,7 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
         ))}
       </div>
 
-      <div className="actionRow">
-        {!isEditing ? (
-          <Button className="border-btn" onClick={() => setIsEditing(true)}>
-            Edit Profile
-          </Button>
-        ) : (
-          <>
-            <Button className="border-btn2" onClick={() => setIsEditing(false)}>Cancel</Button>
-            <Button
-              className="filled-btn"
-              loading={isSaving}
-              onClick={handleSave}
-            >
-              Save Changes
-            </Button>
-          </>
-        )}
-      </div>
+
 
       <Button
         danger
