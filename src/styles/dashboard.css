@@ -210,8 +210,7 @@
   padding: 20px 18px;
 }
 
-.border-btn2:hover,
-.border-btn2:focus {
+.border-btn2:hover {
   background: #424242 !important;
   border-color: #424242 !important;
 }
