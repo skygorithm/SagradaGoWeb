@@ -33,6 +33,7 @@ import {
   PhoneOutlined,
   FileImageOutlined,
   PlusOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -1931,6 +1932,18 @@ export default function BookingPendingRequests() {
             <Button key="close" onClick={() => setDetailModalVisible(false)}>
               Close
             </Button>,
+            selectedBooking?.status === "pending" && (
+              <Button
+                key="edit"
+                type="default"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  // Edit booking function to be implemented
+                }}
+              >
+                Edit Booking
+              </Button>
+            ),
             selectedBooking?.status === "pending" && (
               isBookingDatePast(selectedBooking) ? (
                 <Tooltip key="confirm-disabled" title="Cannot confirm booking that is past its scheduled date">
