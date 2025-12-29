@@ -17,6 +17,7 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -31,6 +32,7 @@ export default function AdminAnnouncements() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingData, setEditingData] = useState(null);
   const [priorityFilter, setPriorityFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [form] = Form.useForm();
 
@@ -119,9 +121,23 @@ export default function AdminAnnouncements() {
   };
 
   const filteredAnnouncements = announcements.filter((announcement) => {
-    if (priorityFilter === "all") return true;
-    const priority = announcement.priority || "normal";
-    return priority === priorityFilter;
+    if (priorityFilter !== "all") {
+      const priority = announcement.priority || "normal";
+      if (priority !== priorityFilter) return false;
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const titleMatch = announcement.title?.toLowerCase().includes(query);
+      const contentMatch = announcement.content?.toLowerCase().includes(query);
+      const authorMatch = announcement.author?.toLowerCase().includes(query);
+      
+      if (!titleMatch && !contentMatch && !authorMatch) {
+        return false;
+      }
+    }
+
+    return true;
   });
 
   const columns = [
@@ -202,24 +218,42 @@ export default function AdminAnnouncements() {
 
           {/* Filters */}
           <Card style={{ marginBottom: 16 }}>
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Text strong style={{ fontFamily: 'Poppins', fontSize: 14 }}>Filter by Priority:</Text>
-              <Select
-                value={priorityFilter}
-                onChange={setPriorityFilter}
-                style={{
-                  width: '100%',
-                  fontFamily: 'Poppins, sans-serif',
-                  fontWeight: 500,
-                  height: '42px',
-                }}
-                placeholder="Select priority"
-              >
-                <Option value="all">All Priorities</Option>
-                <Option value="normal">Normal</Option>
-                <Option value="important">Important</Option>
-                <Option value="urgent">Urgent</Option>
-              </Select>
+            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              <div>
+                <Text strong style={{ fontFamily: 'Poppins', fontSize: 14, display: 'block', marginBottom: 8 }}>Search Announcements:</Text>
+                <Input
+                  placeholder="Search by title, content, or author..."
+                  prefix={<SearchOutlined />}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  allowClear
+                  style={{
+                    width: '100%',
+                    fontFamily: 'Poppins, sans-serif',
+                    height: '42px',
+                  }}
+                />
+              </div>
+              
+              <div>
+                <Text strong style={{ fontFamily: 'Poppins', fontSize: 14, display: 'block', marginBottom: 8 }}>Filter by Priority:</Text>
+                <Select
+                  value={priorityFilter}
+                  onChange={setPriorityFilter}
+                  style={{
+                    width: '100%',
+                    fontFamily: 'Poppins, sans-serif',
+                    fontWeight: 500,
+                    height: '42px',
+                  }}
+                  placeholder="Select priority"
+                >
+                  <Option value="all">All Priorities</Option>
+                  <Option value="normal">Normal</Option>
+                  <Option value="important">Important</Option>
+                  <Option value="urgent">Urgent</Option>
+                </Select>
+              </div>
             </Space>
           </Card>
 
