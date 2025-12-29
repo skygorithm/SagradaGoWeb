@@ -32,7 +32,6 @@ const imageToBase64 = (imagePath) => {
       canvas.height = img.height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0);
-
       try {
         const dataURL = canvas.toDataURL('image/png');
         resolve(dataURL);
@@ -40,7 +39,6 @@ const imageToBase64 = (imagePath) => {
         reject(e);
       }
     };
-
     img.onerror = reject;
     const imageSrc = typeof imagePath === 'string' ? imagePath : (imagePath?.default || imagePath);
     img.src = imageSrc;
@@ -106,7 +104,6 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
     let logoBase64 = null;
     try {
       logoBase64 = await imageToBase64(Logo);
-      
     } catch (error) {
       console.warn('Could not convert logo to base64:', error);
     }
@@ -356,13 +353,13 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       outerRadius={80}
                       fill="#8884d8"
-                      dataKey="value"
+                      dataKey="count"
                     >
                       {donationCharts.paymentMethodChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => `₱${Number(value).toLocaleString()}`} />
+                    <Tooltip formatter={(value, name, props) => `${props.payload.count} donation${props.payload.count !== 1 ? 's' : ''} (₱${Number(props.payload.value).toLocaleString()})`} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
