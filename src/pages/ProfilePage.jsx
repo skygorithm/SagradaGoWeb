@@ -26,7 +26,8 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
     }
   };
 
-  const currentUser = contextUser || user || getStoredUser();
+  const storedUser = getStoredUser();
+  const currentUser = contextUser || user || storedUser;
 
   const [formData, setFormData] = useState({
     first_name: currentUser?.first_name || "",
@@ -42,9 +43,101 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (currentUser) {
+    const fetchUserData = async () => {
+      if (contextUser && contextUser.uid) {
+        setLoading(false);
+        return;
+      }
+
+      const stored = getStoredUser();
+      if (!stored || !stored.uid) {
+        setLoading(false);
+        return;
+      }
+
+      setCurrentUser(stored);
+      setFormData({
+        first_name: stored.first_name || "",
+        middle_name: stored.middle_name || "",
+        last_name: stored.last_name || "",
+        email: stored.email || "",
+        contact_number: stored.contact_number || "",
+        birthday: stored.birthday || "",
+      });
+
+      if (API_URL) {
+        try {
+          let userData = null;
+          let isAdmin = false;
+
+          try {
+            const adminResponse = await axios.post(`${API_URL}/findAdmin`, { 
+              uid: stored.uid 
+            }, {
+              validateStatus: function (status) {
+                return status < 500; 
+              }
+            });
+            
+            if (adminResponse.status === 200 && adminResponse.data && adminResponse.data.user) {
+              userData = adminResponse.data.user;
+              isAdmin = true;
+              userData.is_admin = true;
+            }
+
+          } catch (adminError) {
+            if (adminError.response?.status === 404) {
+              try {
+                const userResponse = await axios.post(`${API_URL}/findUser`, { 
+                  uid: stored.uid 
+                }, {
+                  validateStatus: function (status) {
+                    return status < 500; 
+                  }
+                });
+                
+                if (userResponse.status === 200 && userResponse.data && userResponse.data.user) {
+                  userData = userResponse.data.user;
+                  isAdmin = false;
+                }
+              } catch (userError) {
+                // Both failed, silently use stored data
+              }
+            }
+          }
+
+          if (userData) {
+            setCurrentUser(userData);
+            localStorage.setItem("currentUser", JSON.stringify(userData));
+            
+            setFormData({
+              first_name: userData.first_name || "",
+              middle_name: userData.middle_name || "",
+              last_name: userData.last_name || "",
+              email: userData.email || "",
+              contact_number: userData.contact_number || "",
+              birthday: userData.birthday || "",
+            });
+          }
+
+        } catch (error) {
+          if (error.response?.status !== 404 && error.code !== 'ERR_NETWORK') {
+            console.error("Error fetching fresh user data:", error);
+          }
+        }
+      }
+      
+      setLoading(false);
+    };
+
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    if (currentUser && currentUser.uid) {
       setFormData({
         first_name: currentUser.first_name || "",
         middle_name: currentUser.middle_name || "",
@@ -56,7 +149,7 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
     }
   }, [currentUser]);
 
-  if (!currentUser) {
+  if (loading || (!currentUser && !getStoredUser())) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
         <Spin size="large" tip="Loading profile..." />
@@ -125,7 +218,10 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
   const validateForm = () => {
     const newErrors = {};
     const newTouched = {};
+    let hasErrors = false;
 
+    const fields = ["first_name", "last_name", "contact_number", "email"];
+    
     fields.forEach((field) => {
       newTouched[field] = true;
       const error = validateField(field, formData[field]);
@@ -134,6 +230,14 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
         hasErrors = true;
       }
     });
+
+    if (formData.middle_name) {
+      const error = validateField("middle_name", formData.middle_name);
+      if (error) {
+        newErrors.middle_name = error;
+        hasErrors = true;
+      }
+    }
 
     setErrors(newErrors);
     setTouched(newTouched);
@@ -147,9 +251,24 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
       return;
     }
 
+    if (!currentUser || !currentUser.uid) {
+      message.error("User information not available. Please try logging in again.");
+      return;
+    }
+
     setIsSaving(true);
     try {
-      await axios.put(`${API_URL}/updateUser`, {
+      let formattedBirthday = formData.birthday;
+      if (formData.birthday) {
+        if (typeof formData.birthday === 'string') {
+          formattedBirthday = formData.birthday;
+
+        } else if (formData.birthday instanceof Date) {
+          formattedBirthday = dayjs(formData.birthday).format("YYYY-MM-DD");
+        }
+      }
+
+      const response = await axios.put(`${API_URL}/updateUser`, {
         uid: currentUser.uid,
         first_name: formData.first_name,
         middle_name: formData.middle_name,
@@ -159,9 +278,18 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
         email: formData.email,
       });
 
-      const updatedUser = { ...currentUser, ...formData };
+      const updatedUser = response.data?.user || { ...currentUser, ...formData };
       setCurrentUser(updatedUser);
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+      setFormData({
+        first_name: updatedUser.first_name || "",
+        middle_name: updatedUser.middle_name || "",
+        last_name: updatedUser.last_name || "",
+        email: updatedUser.email || "",
+        contact_number: updatedUser.contact_number || "",
+        birthday: updatedUser.birthday || "",
+      });
 
       message.success("Profile updated successfully!");
       setIsEditing(false);
@@ -258,7 +386,7 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
               <label>{label}</label>
               <input
                 value={formData[field]}
-                onChange={(e) => handleChange(field, e.target.value)}
+                onChange={(e) => handleInputChange(field, e.target.value)}
                 onBlur={() => handleBlur(field)}
                 disabled={!isEditing}
               />
