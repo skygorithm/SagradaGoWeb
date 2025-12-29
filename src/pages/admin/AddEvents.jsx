@@ -19,12 +19,12 @@ import {
 } from "antd";
 import {
   PlusOutlined,
-  UploadOutlined,
   DeleteOutlined,
   EditOutlined,
   CalendarOutlined,
   EnvironmentOutlined,
   PictureOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -44,10 +44,17 @@ export default function AddEvents() {
   const [locations, setLocations] = useState([]);
   const [dateFilter, setDateFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchEvents();
     fetchLocations();
+
+    const interval = setInterval(() => {
+      fetchEvents(true);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchLocations = async () => {
@@ -61,18 +68,24 @@ export default function AddEvents() {
     }
   };
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const response = await axios.get(`${API_URL}/getAllEvents`);
       setEvents(response.data.events || []);
 
     } catch (error) {
       console.error("Error fetching events:", error);
-      message.error("Failed to fetch events. Please try again.");
+      if (!silent) {
+        message.error("Failed to fetch events. Please try again.");
+      }
 
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -230,6 +243,17 @@ export default function AddEvents() {
     if (monthFilter !== "all") {
       const eventMonth = eventDate.month();
       if (eventMonth !== parseInt(monthFilter)) return false;
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const titleMatch = event.title?.toLowerCase().includes(query);
+      const locationMatch = event.location?.toLowerCase().includes(query);
+      const descriptionMatch = event.description?.toLowerCase().includes(query);
+      
+      if (!titleMatch && !locationMatch && !descriptionMatch) {
+        return false;
+      }
     }
 
     return true;
@@ -476,19 +500,17 @@ export default function AddEvents() {
                   <span>All Events ({filteredEvents.length})</span>
                 </Space>
               }
-              extra={
-                <Button
-                  icon={<UploadOutlined />}
-                  onClick={fetchEvents}
-                  loading={loading}
-                  className="border-btn"
-                  style={{ padding: 12 }}
-                >
-                  Refresh
-                </Button>
-              }
             >
               <Space style={{ marginBottom: 16, width: "100%", display: "flex", flexWrap: "wrap" }}>
+                <Input
+                  placeholder="Search events by title, location, or description..."
+                  prefix={<SearchOutlined />}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  allowClear
+                  style={{ width: 300, marginBottom: 8 }}
+                />
+                
                 <Text strong>Filter by Date:</Text>
                 <Select
                   value={dateFilter}
