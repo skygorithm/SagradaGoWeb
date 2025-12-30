@@ -234,18 +234,21 @@ export default function DonationsList() {
       title: "Donor Name",
       dataIndex: "user_name",
       key: "user_name",
+      width: 200,
       render: (_, record) => <Text strong>{record.name || record.user_name || "N/A"}</Text>,
     },
     {
       title: "Email",
       dataIndex: "user_email",
       key: "user_email",
+      width: 250,
       render: (_, record) => record.email || record.user_email || "N/A",
     },
     {
       title: "Amount",
       dataIndex: "amount",
       key: "amount",
+      width: 220,
       render: (amount) => (
         <Text strong style={{ color: "#52c41a", fontSize: "16px" }}>
           {formatCurrency(amount)}
@@ -254,15 +257,17 @@ export default function DonationsList() {
       sorter: (a, b) => a.amount - b.amount,
     },
     {
-      title: "Payment Method",
+      title: "Method",
       dataIndex: "paymentMethod",
       key: "paymentMethod",
+      width: 100,
       render: (method) => getPaymentMethodTag(method),
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      width: 130,
       render: (status) => getStatusTag(status),
       filters: [
         { text: "Pending", value: "pending" },
@@ -275,6 +280,7 @@ export default function DonationsList() {
       title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
+      width: 200,
       render: (date) => formatDate(date),
       sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
     },
@@ -457,7 +463,7 @@ export default function DonationsList() {
                 setPagination({ ...pagination, page, limit: pageSize });
               },
             }}
-            scroll={{ x: 1000 }}
+            scroll={{ y: 600 }}
           />
         </Card>
 
