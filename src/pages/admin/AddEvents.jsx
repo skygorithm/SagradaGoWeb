@@ -280,7 +280,7 @@ export default function AddEvents() {
       title: "Title",
       dataIndex: "title",
       key: "title",
-      width: 150,
+      width: 200,
       render: (text) => <Text strong>{text}</Text>,
     },
     {
@@ -320,7 +320,7 @@ export default function AddEvents() {
       title: "Location",
       dataIndex: "location",
       key: "location",
-      width: 130,
+      width: 160,
     },
     {
       title: "Created",
@@ -338,18 +338,17 @@ export default function AddEvents() {
             type="link"
             icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
-          >
-            Edit
-          </Button>
+            className="border-btn"
+            style={{ padding: '10px' }}
+          />
           <Popconfirm
             title="Are you sure you want to delete this event?"
             onConfirm={() => handleDelete(record._id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              Delete
-            </Button>
+            <Button type="link" danger icon={<DeleteOutlined />} className="dangerborder-btn"
+              style={{ padding: '10px' }} />
           </Popconfirm>
         </Space>
       ),
