@@ -1443,6 +1443,8 @@ export default function AccountManagement() {
             </Row>
             <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <Button
+                className="cancelborder-btn"
+                style={{ padding: '10px' }}
                 onClick={() => {
                   setShowAddModal(false);
                   resetForm();
@@ -1451,10 +1453,10 @@ export default function AccountManagement() {
                 Cancel
               </Button>
               <Button
-                type="primary"
+                className="filled-btn"
+                style={{ padding: '10px' }}
                 onClick={handleAddUser}
                 loading={loading}
-                style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
               >
                 Create User
               </Button>

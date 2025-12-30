@@ -199,6 +199,23 @@
   border-color: #FFC942 !important;
 }
 
+.cancelborder-btn {
+  border: 1px solid #9e9e9e;
+  background: transparent;
+  color: #dddddd !important;
+  font-family: 'Poppins', sans-serif;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+  padding: 20px 18px;
+}
+
+.cancelborder-btn:hover,
+.cancelborder-btn:focus {
+  background: rgb(165, 165, 165) !important;
+  color: #424242 !important;
+  border-color: rgb(165, 165, 165) !important;
+}
+
 .dangerborder-btn {
   border: 1px solid #c90000;
   background: transparent;
