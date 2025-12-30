@@ -1177,23 +1177,26 @@ export default function BookingPendingRequests() {
       dataIndex: "bookingType",
       key: "bookingType",
       render: (type) => getTypeTag(type),
-      width: 120,
+      width: 80,
     },
     {
       title: "Name",
       key: "name",
+      width: 120,
       render: (_, record) => <Text strong>{getName(record)}</Text>,
     },
     {
       title: "Transaction ID",
       dataIndex: "transaction_id",
       key: "transaction_id",
+      width: 130,
       render: (id) => <Text code>{id || "N/A"}</Text>,
     },
     {
       title: "Date",
       dataIndex: "date",
       key: "date",
+      width: 130,
       render: (date, record) => {
         if (!date) return "N/A";
         const d = new Date(date);
@@ -1219,6 +1222,7 @@ export default function BookingPendingRequests() {
       title: "Time",
       dataIndex: "time",
       key: "time",
+      width: 70,
       render: (_, record) => {
         if (process.env.NODE_ENV === 'development') {
           console.log('Time value for record:', record.transaction_id, 'time:', record.time, 'type:', typeof record.time);
@@ -1231,14 +1235,14 @@ export default function BookingPendingRequests() {
       dataIndex: "status",
       key: "status",
       render: (status) => getStatusTag(status),
-      width: 120,
+      width: 70,
     },
     {
       title: "Created",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date) => formatDate(date),
-      width: 180,
+      width: 130,
     },
     {
       title: "Actions",
@@ -1291,7 +1295,7 @@ export default function BookingPendingRequests() {
           )}
         </Space>
       ),
-      width: 200,
+      width: 180,
     },
   ];
 
@@ -1912,7 +1916,7 @@ export default function BookingPendingRequests() {
               showSizeChanger: true,
               showTotal: (total) => `Total ${total} bookings`,
             }}
-            scroll={{ x: 1200 }}
+            scroll={{ y: 600 }}
             locale={{
               emptyText: <Empty description="No bookings found" />,
             }}
