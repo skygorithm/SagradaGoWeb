@@ -271,7 +271,7 @@ export default function AccountManagement() {
     if (errors.contact_number) {
       setErrors((prev) => ({ ...prev, contact_number: "" }));
     }
-    
+
     if (limited.length === 11) {
       const error = validateContactNumber(limited);
 
@@ -414,7 +414,7 @@ export default function AccountManagement() {
     setViewingUser(user);
     setShowDetailsModal(true);
     setUserDonations([]);
-    
+
     if (!user.is_priest && user.uid) {
       try {
         setLoadingDonations(true);
@@ -609,19 +609,24 @@ export default function AccountManagement() {
       render: (_, record) => (
         <Space>
           <Button
+            type="default"
+            icon={<EyeOutlined />}
             onClick={() => handleViewDetails(record)}
-          >
-            View Details
-          </Button>
+            className="border-btn"
+            style={{ padding: '10px' }}
+          />
+
           <Button
             type={record.is_priest ? "default" : "primary"}
+            className={record.is_priest ? "dangerborder-btn" : "border-btn"}
+            style={{ padding: '15px 14px' }}
             onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
             loading={loading}
           >
             {record.is_priest ? "Remove Priest" : "Make Priest"}
           </Button>
         </Space>
-      ),
+      )
     },
   ];
 
