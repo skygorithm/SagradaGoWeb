@@ -815,18 +815,39 @@ export default function BookingPendingRequests() {
   const [dateFilterTab, setDateFilterTab] = useState("all");
   const [adminComment, setAdminComment] = useState("");
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null); 
+  const [pendingAction, setPendingAction] = useState(null);
   const [quickComment, setQuickComment] = useState("");
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editForm] = Form.useForm();
   const [editDate, setEditDate] = useState(null);
   const [editTime, setEditTime] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState(null);
 
   useEffect(() => {
-    fetchAllBookings();
     fetchPriests();
   }, [statusFilter]);
+
+  useEffect(() => {
+    if (detailModalVisible || createBookingModalVisible || editModalVisible || confirmModalVisible) {
+      setIsPolling(false);
+      return;
+    }
+
+    setIsPolling(true);
+
+    fetchAllBookings(true);
+
+    const pollInterval = setInterval(() => {
+      fetchAllBookings(false);
+    }, 5000);
+
+    return () => {
+      clearInterval(pollInterval);
+      setIsPolling(false);
+    };
+  }, [statusFilter, detailModalVisible, createBookingModalVisible, editModalVisible, confirmModalVisible]);
 
   const fetchPriests = async () => {
     try {
@@ -849,9 +870,12 @@ export default function BookingPendingRequests() {
     filterBookings();
   }, [searchTerm, bookings, typeFilter, monthFilter, dateFilterTab]);
 
-  const fetchAllBookings = async () => {
+  const fetchAllBookings = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
+      
       const [weddings, baptisms, burials, communions, confirmations, anointings, confessions] = await Promise.all([
         axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
         axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
@@ -909,13 +933,19 @@ export default function BookingPendingRequests() {
       const cancelled = allBookings.filter((b) => b.status === "cancelled").length;
 
       setStats({ total, pending, confirmed, cancelled });
+      setLastUpdateTime(new Date());
 
     } catch (error) {
       console.error("Error fetching bookings:", error);
-      message.error("Failed to fetch bookings. Please try again.");
+
+      if (showLoading) {
+        message.error("Failed to fetch bookings. Please try again.");
+      }
 
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -1888,16 +1918,54 @@ export default function BookingPendingRequests() {
 
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
+      <style>{`
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(82, 196, 26, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+          }
+        }
+      `}</style>
       <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
             <div>
-              <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
-                Booking Pending Requests
-              </Title>
-              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins' }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
+                  Booking Pending Requests
+                </Title>
+                {isPolling && (
+                  <Tag color="green" style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 6
+                  }}>
+                    <span style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor: "#52c41a",
+                      display: "inline-block",
+                      boxShadow: "0 0 0 0 rgba(82, 196, 26, 1)",
+                      animation: "pulse 2s infinite"
+                    }}></span>
+                    Live
+                  </Tag>
+                )}
+              </div>
+              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins', display: 'block', marginTop: 4 }}>
                 Manage and track all booking requests
+                {lastUpdateTime && (
+                  <span style={{ marginLeft: 8, fontSize: 12, color: '#999' }}>
+                    • Last updated: {lastUpdateTime.toLocaleTimeString()}
+                  </span>
+                )}
               </Text>
             </div>
             <Space>
@@ -2112,10 +2180,12 @@ export default function BookingPendingRequests() {
                 icon={<EditOutlined />}
                 onClick={() => {
                   setEditModalVisible(true);
+                  // Initialize form with current booking data
                   const bookingDate = selectedBooking.date ? dayjs(selectedBooking.date) : null;
                   const bookingTime = selectedBooking.time ? dayjs(selectedBooking.time, 'HH:mm') : null;
                   setEditDate(bookingDate);
                   setEditTime(bookingTime);
+                  // Only initialize date and time fields
                   editForm.setFieldsValue({});
                 }}
               >
