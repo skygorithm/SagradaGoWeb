@@ -112,7 +112,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       console.log('Creating booking for user UID:', selectedUserId);
       console.log('Booking type:', bookingType);
       
-      formData.append('uid', selectedUserId); // Use selected user's UID
+      formData.append('uid', selectedUserId); 
       formData.append('full_name', values.full_name || '');
       formData.append('email', values.email || '');
       formData.append('date', combinedDateTime.toISOString());
@@ -229,7 +229,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
       } else if (bookingType === 'Confession') {
         const payload = {
-          uid: selectedUserId, 
+          uid: selectedUserId,
           full_name: values.full_name || '',
           email: values.email || '',
           date: combinedDateTime.toISOString(),
@@ -2423,13 +2423,13 @@ export default function BookingPendingRequests() {
               value={selectedBookingType}
               onChange={setSelectedBookingType}
             >
-              <Option value="Wedding">Wedding</Option>
+              <Option value="Anointing">Anointing</Option>
               <Option value="Baptism">Baptism</Option>
               <Option value="Burial">Burial</Option>
               <Option value="Communion">Communion</Option>
-              <Option value="Confirmation">Confirmation</Option>
-              <Option value="Anointing">Anointing</Option>
               <Option value="Confession">Confession</Option>
+              <Option value="Confirmation">Confirmation</Option>
+              <Option value="Wedding">Wedding</Option>
             </Select>
           </div>
 
