@@ -771,7 +771,6 @@ export default function AccountManagement() {
                     setShowAddModal(true);
                   }}
                   className="border-btn"
-                  style={{ backgroundColor: "#1772FF", borderColor: "#1772FF", color: "white" }}
                 >
                   Add User
                 </Button>
@@ -784,7 +783,6 @@ export default function AccountManagement() {
                     setShowAddModal(true);
                   }}
                   className="border-btn"
-                  style={{ backgroundColor: "#722ed1", borderColor: "#722ed1", color: "white" }}
                 >
                   Add Priest
                 </Button>
@@ -798,7 +796,6 @@ export default function AccountManagement() {
                       setShowAddModal(true);
                     }}
                     className="border-btn"
-                    style={{ backgroundColor: "#1772FF", borderColor: "#1772FF", color: "white" }}
                   >
                     Add User
                   </Button>
@@ -809,7 +806,6 @@ export default function AccountManagement() {
                       setShowAddModal(true);
                     }}
                     className="border-btn"
-                    style={{ backgroundColor: "#722ed1", borderColor: "#722ed1", color: "white" }}
                   >
                     Add Priest
                   </Button>
