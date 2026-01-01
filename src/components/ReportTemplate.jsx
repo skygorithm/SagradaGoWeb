@@ -51,7 +51,7 @@ const { Title, Text } = Typography;
 
 const COLORS = ["#1890ff", "#52c41a", "#fa8c16", "#f5222d", "#722ed1", "#13c2c2", "#eb2f96"];
 
-export default function ReportTemplate({ title, columns, data, exportType = "pdf", reportType = "general" }) {
+export default function ReportTemplate({ title, columns, data, exportType = "pdf", reportType = "general", monthFilter = null }) {
   const formattedData = useMemo(() => {
     return data.map((row, index) => {
       const newRow = { ...row };
@@ -226,8 +226,22 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
       };
     }
 
+    let dataForTypeChart = formattedData;
+    if (monthFilter) {
+      dataForTypeChart = formattedData.filter((booking) => {
+        const dateStr = booking.date || booking.createdAt || "";
+
+        if (!dateStr) return false;
+        const parsedDate = dayjs(dateStr);
+        
+        if (!parsedDate.isValid()) return false;
+        const bookingMonth = parsedDate.format("YYYY-MM");
+        return bookingMonth === monthFilter;
+      });
+    }
+
     const typeData = {};
-    formattedData.forEach((booking) => {
+    dataForTypeChart.forEach((booking) => {
       const type = booking.bookingType || "Unknown";
 
       if (!typeData[type]) {
@@ -417,7 +431,19 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
     return (
       <>
         {/* Bookings by Type */}
-        <Card title="Bookings by Type" style={{ marginBottom: 24 }}>
+        <Card 
+          title={
+            <div>
+              Bookings by Type
+              {monthFilter && (
+                <Text type="secondary" style={{ fontSize: "12px", fontWeight: "normal", marginLeft: 8 }}>
+                  ({dayjs(monthFilter).format("MMMM YYYY")})
+                </Text>
+              )}
+            </div>
+          } 
+          style={{ marginBottom: 24 }}
+        >
           {bookingCharts.typeChartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={bookingCharts.typeChartData}>
