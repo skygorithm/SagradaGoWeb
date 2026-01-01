@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { Card, Typography, Button, Row, Col, Tag, Empty, Statistic, Divider } from "antd";
-import { DownloadOutlined } from "@ant-design/icons";
+import { Card, Typography, Button, Row, Col, Tag, Empty, Statistic, Divider, Dropdown } from "antd";
+import { DownloadOutlined, FilePdfOutlined, FileExcelOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { generateReport } from "../utils/reportGenerator";
 import Logo from "../assets/sagrada.png";
@@ -77,7 +77,7 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
     });
   }, [data]);
 
-  const handleExport = async () => {
+  const handleExport = async (type = "pdf") => {
     let titleText = 'Report';
     
     if (typeof title === 'string') {
@@ -104,21 +104,38 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
     }
     
     let logoBase64 = null;
-    try {
-      logoBase64 = await imageToBase64(Logo);
-      
-    } catch (error) {
-      console.warn('Could not convert logo to base64:', error);
+    if (type === "pdf") {
+      try {
+        logoBase64 = await imageToBase64(Logo);
+        
+      } catch (error) {
+        console.warn('Could not convert logo to base64:', error);
+      }
     }
     
     await generateReport({
-      type: exportType,
+      type: type,
       title: titleText,
       columns,
       data: formattedData,
       logoBase64,
     });
   };
+
+  const exportMenuItems = [
+    {
+      key: 'pdf',
+      label: 'Export as PDF',
+      icon: <FilePdfOutlined />,
+      onClick: () => handleExport('pdf'),
+    },
+    {
+      key: 'excel',
+      label: 'Export as Excel',
+      icon: <FileExcelOutlined />,
+      onClick: () => handleExport('excel'),
+    },
+  ];
 
   const donationCharts = useMemo(() => {
     if (reportType !== "donation") return null;
@@ -521,9 +538,11 @@ export default function ReportTemplate({ title, columns, data, exportType = "pdf
             {formattedData.length} {formattedData.length === 1 ? "record" : "records"}
           </Text>
         </div>
-        <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport} size="large" className="border-btn">
-          Export Report
-        </Button>
+        <Dropdown menu={{ items: exportMenuItems }} placement="bottomRight">
+          <Button type="primary" icon={<DownloadOutlined />} size="large" className="border-btn">
+            Export Report
+          </Button>
+        </Dropdown>
       </div>
 
       {formattedData.length === 0 ? (

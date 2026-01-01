@@ -77,7 +77,7 @@ export const generatePDFReport = async ({ title, columns, data, logoBase64 }) =>
   }
 };
 
-export const generateExcelReport = ({ fileName, data }) => {
+export const generateExcelReport = ({ fileName, data, columns }) => {
   try {
     const fileNameStr = typeof fileName === 'string' ? fileName : 'Report';
     const currentDate = dayjs().format("MMMM DD, YYYY");
@@ -87,17 +87,48 @@ export const generateExcelReport = ({ fileName, data }) => {
       return;
     }
 
-    const headers = data.length > 0 ? Object.keys(data[0]) : [];
+    let headers = [];
+    let dataArray = [];
+
+    if (columns && Array.isArray(columns) && columns.length > 0) {
+      headers = columns.map(col => {
+        if (typeof col === 'string') return col;
+        return col.title || col.dataIndex || 'Column';
+      });
+
+      dataArray = data.map(row => {
+        return columns.map(col => {
+          if (typeof col === 'string') {
+            const value = row[col];
+            if (value === null || value === undefined) return '';
+            if (typeof value === 'object') return JSON.stringify(value);
+            return value;
+          }
+
+          const value = row[col.dataIndex];
+          if (value === null || value === undefined) return '';
+
+          if (col.render && typeof col.render === 'function') {
+            return col.render(value, row);
+          }
+
+          if (typeof value === 'object') return JSON.stringify(value);
+          return value;
+        });
+      });
+
+    } else {
+      headers = data.length > 0 ? Object.keys(data[0]) : [];
+      dataArray = data.map(row => {
+        return headers.map(key => row[key] ?? '');
+      });
+    }
     
     const headerData = [
       ['Sagrada Familia', ...Array(headers.length - 1).fill('')],
       ['', ...Array(headers.length - 1).fill('')],
       headers, 
     ];
-
-    const dataArray = data.map(row => {
-      return headers.map(key => row[key] ?? '');
-    });
 
     const worksheetData = [...headerData, ...dataArray];
 
@@ -130,7 +161,7 @@ export const generateReport = async ({ type = "pdf", title, columns, data, logoB
       await generatePDFReport({ title, columns, data, logoBase64 });
 
     } else if (type === "excel") {
-      generateExcelReport({ fileName: title, data });
+      generateExcelReport({ fileName: title, data, columns });
 
     } else {
       console.error("Unsupported report type:", type);
