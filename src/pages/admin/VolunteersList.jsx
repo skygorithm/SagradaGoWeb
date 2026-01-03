@@ -37,14 +37,12 @@ export default function VolunteersList() {
 
     if (tab === "registrations") {
       filtered = filtered.filter((volunteer) => {
-        const eventType = volunteer.eventType || (volunteer.event?.type);
-        return eventType === "event";
+        return volunteer.registration_type === "participant";
       });
 
     } else if (tab === "volunteers") {
       filtered = filtered.filter((volunteer) => {
-        const eventType = volunteer.eventType || (volunteer.event?.type);
-        return eventType === "activity";
+        return !volunteer.registration_type || volunteer.registration_type === "volunteer";
       });
     }
 
@@ -180,11 +178,13 @@ export default function VolunteersList() {
         title: "Type",
         key: "type",
         render: (_, record) => {
-          const eventType = record.eventType || record.event?.type;
-          const isRegistration = eventType === "event";
+          const registrationType = record.registration_type;
+  
+          const isParticipant = registrationType === "participant";
+          
           return (
-            <Tag color={isRegistration ? "blue" : "green"}>
-              {isRegistration ? "Registration" : "Volunteer"}
+            <Tag color={isParticipant ? "blue" : "green"}>
+              {isParticipant ? "Participant" : "Volunteer"}
             </Tag>
           );
         },
@@ -258,10 +258,10 @@ export default function VolunteersList() {
         title: "Actions",
         key: "actions",
         render: (_, record) => {
-          const eventType = record.eventType || record.event?.type;
-          const isRegistration = eventType === "event";
+          const registrationType = record.registration_type;
+          const isParticipant = registrationType === "participant";
           
-          if (isRegistration) {
+          if (isParticipant) {
             return <span style={{ color: "#999" }}>N/A</span>;
           }
 
@@ -314,7 +314,7 @@ export default function VolunteersList() {
       <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Title level={2} style={{ fontFamily: 'Poppins' }}>Registrations & Volunteers</Title>
+            <Title level={2} style={{ fontFamily: 'Poppins' }}>Participants & Volunteers</Title>
           </div>
 
           {loading ? (
@@ -333,16 +333,15 @@ export default function VolunteersList() {
                   },
                   {
                     key: "registrations",
-                    label: `Registrations (${volunteers.filter(v => {
-                      const eventType = v.eventType || v.event?.type;
-                      return eventType === "event";
+                    label: `Participants (${volunteers.filter(v => {
+                      return v.registration_type === "participant";
                     }).length})`,
                   },
                   {
                     key: "volunteers",
                     label: `Volunteers (${volunteers.filter(v => {
-                      const eventType = v.eventType || v.event?.type;
-                      return eventType === "activity";
+                      // Show if registration_type is "volunteer" OR if it doesn't exist (old records)
+                      return !v.registration_type || v.registration_type === "volunteer";
                     }).length})`,
                   },
                 ]}
@@ -356,7 +355,7 @@ export default function VolunteersList() {
                     {/* Search */}
                     <Col xs={24} sm={12} md={12}>
                       <Input
-                        placeholder={`Search ${activeTab === "registrations" ? "registrations" : activeTab === "volunteers" ? "volunteers" : "registrations & volunteers"}...`}
+                        placeholder={`Search ${activeTab === "registrations" ? "participants" : activeTab === "volunteers" ? "volunteers" : "participants & volunteers"}...`}
                         prefix={<SearchOutlined style={{ marginRight: 8 }} />}
                         value={searchText}
                         onChange={(e) => handleSearch(e.target.value)}
