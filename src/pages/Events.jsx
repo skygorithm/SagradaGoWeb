@@ -6,6 +6,8 @@ import { API_URL } from "../Constants";
 import LoadingAnimation from "../components/LoadingAnimation";
 import "../styles/events.css";
 
+import Footer from '../components/Footer';
+
 import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
 import banner2 from "../assets/christmas.jpg";
 import banner3 from "../assets/dyd.jpg";
@@ -96,6 +98,7 @@ export default function Events() {
         <div className="eventsheader-overlay" />
 
         <div className="eventsheader-content">
+          <span className="hero-eyebrow">Be part of us!</span>
           <h1 className="eventsheader-title">Discover Our Events</h1>
           <p className="eventsheader-subtitle">
             Stay updated with the latest happenings, programs, and activities.
@@ -203,6 +206,8 @@ export default function Events() {
       )}
 
       {showSignin && <SignInPage />}
+
+      <Footer />
     </>
   );
 }
