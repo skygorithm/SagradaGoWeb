@@ -209,20 +209,45 @@ export default function Anointing() {
       console.error("UPLOAD ERROR:", err);
       alert("Failed to submit confession booking");
       setIsLoading(false);
-      
+
     }
   }
 
-  return (
-    <>
-      <div className="main-holder">
-        <div className="form-container">
-          {inputText.map((elem) => (
-            <div className="flex flex-col" key={elem.key}>
-              <h1>{elem.title}</h1>
+  const patientInputs = inputText.filter(i => ["first_name", "middle_name", "last_name", "email", "contact_number", "medical_condition"].includes(i.key));
+  const scheduleInputs = inputText.filter(i => ["date", "time", "attendees"].includes(i.key));
 
-              {elem.type === "date" ? (
-                <>
+  return (
+    <div className="main-holder">
+      <div className="form-wrapper">
+
+        {/* SECTION 1: PATIENT & REQUESTER INFORMATION */}
+        <div className="form-section">
+          <h2 className="section-title">1. Patient Information</h2>
+          <div className="grid-layout">
+            {patientInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                <input
+                  type={elem.type}
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
+                  maxLength={elem.maxLength}
+                  placeholder={`Enter ${elem.title.toLowerCase()}`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 2: SCHEDULE DETAILS */}
+        <div className="form-section">
+          <h2 className="section-title">2. Appointment Schedule</h2>
+          <div className="grid-layout">
+            {scheduleInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
                     onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
@@ -230,94 +255,82 @@ export default function Anointing() {
                     dateFormat="yyyy-MM-dd"
                     excludeDates={occupiedDates}
                     showYearDropdown
-                    showMonthDropdown
                     dropdownMode="select"
-                    minDate={new Date(1900, 0, 1)}
+                    placeholderText="Select preferred date"
                   />
-                </>
-              ) : elem.type === "time" ? (
-                <div className="time-container">
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <MobileTimePicker
-                      value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                      onChange={(v) => {
-                        setTime(v ? dayjs(v).format("HH:mm") : "");
-                      }}
-                      slotProps={{
-                        textField: {
-                          className: "time-slot-props",
-                          InputProps: {
-                            sx: {
-                              padding: 0,
-                              height: "100%",
-                              "& fieldset": { border: "none" },
-                            },
+                ) : elem.type === "time" ? (
+                  <div className="time-container" style={{ border: '1.5px solid #e0e0e0', borderRadius: '6px', height: '45px', overflow: 'hidden' }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <MobileTimePicker
+                        value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                        onChange={(v) => setTime(v ? dayjs(v).format("HH:mm") : "")}
+                        slotProps={{
+                          textField: {
+                            variant: "standard",
+                            fullWidth: true,
+                            InputProps: {
+                              disableUnderline: true,
+                              sx: { px: 2, height: '45px', fontSize: '0.9rem' }
+                            }
                           },
-                          sx: {
-                            padding: 0,
-                            margin: 0,
-                            height: "100%",
-                            "& .MuiInputBase-root": {
-                              height: "100%",
-                              padding: 0,
-                            },
-                            "& .MuiInputBase-input": {
-                              height: "100%",
-                              padding: 0,
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </LocalizationProvider>
-                </div>
-              ) : (
-                <>
+                        }}
+                      />
+                    </LocalizationProvider>
+                  </div>
+                ) : (
                   <input
-                    name={elem.key}
                     type={elem.type}
                     className="input-text"
                     onChange={(e) => elem.onChange(e.target.value)}
                     value={elem.value}
-                    maxLength={elem.maxLength}
                   />
-                </>
-              )}
-            </div>
-          ))}
-          {uploadFiles.map((elem) => (
-            <div key={elem.key} className="per-grid-container">
-              <div>
-                <h1>{elem.title}</h1>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
 
+        {/* SECTION 3: MEDICAL DOCUMENTATION */}
+        <div className="form-section">
+          <h2 className="section-title">3. Medical Verification</h2>
+          <div className="upload-grid">
+            {uploadFiles.map((elem) => (
+              <div key={elem.key} className="per-grid-container" style={{ padding: '15px', border: '1px solid #eee', borderRadius: '8px' }}>
+                <h1 style={{ fontSize: '0.85rem', marginBottom: '10px', color: '#424242', fontWeight: 'bold' }}>
+                  {elem.title}
+                </h1>
                 <input
-                  ref={fileInputRef}
                   type="file"
-                  accept="*/*"
+                  accept="image/*,application/pdf"
                   className="inputFile-properties"
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
-
                     elem.fileSetter(file);
-                    elem.previewSetter({
-                      url: URL.createObjectURL(file),
-                      type: file.type,
-                      name: file.name,
-                    });
+                    elem.previewSetter(URL.createObjectURL(file));
                   }}
                 />
+                {elem.preview && (
+                  <img src={elem.preview} className="image-preview" alt="preview" />
+                )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <div>
-          <button className="submit-button" onClick={handleSubmit}>
-            {isLoading ? `Submitting...` : `Submit Booking`}
+        {/* SUBMIT BUTTON WITH LOADING STATE */}
+        <div className="submit-btn-container">
+          <button
+            className="submit-button"
+            onClick={handleSubmit}
+            disabled={isLoading}
+            style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+          >
+            {isLoading ? "Processing Request..." : "Confirm Anointing Booking"}
           </button>
         </div>
+
       </div>
-    </>
+    </div>
   );
 }
