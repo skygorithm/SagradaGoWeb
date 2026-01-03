@@ -9,7 +9,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Logo from "../assets/sagrada.png";
 
 export default function Header() {
-  const { setSelectedNavbar, setShowSignin, setShowSignup, currentUser, setActiveDropdown } =
+  const { setSelectedNavbar, setShowSignin, setShowSignup, currentUser, setActiveDropdown, setBookingSelected } =
     useContext(NavbarContext);
   const navigate = useNavigate();
   const email = Cookies.get("email");
@@ -17,7 +17,7 @@ export default function Header() {
 
   const navbar = [
     { id: "home", text: "Home", path: "/" },
-    { id: "book", text: "Book A Service", path: "/book" },
+    { id: "book", text: "Book A Service", path: "/book-service" },
     { id: "event", text: "Events", path: "/events" },
     { id: "volunteer", text: "Be a Volunteer", path: "/be-volunteer" },
     { id: "donate", text: "Donate", path: "/donate" },
@@ -59,8 +59,9 @@ export default function Header() {
             text={elem.text}
             onClick={() => {
               setSelectedNavbar(elem.id);
-              if (elem.id !== "book") navigate(elem.path);
-              setShowSignin(false)
+              navigate(elem.path);
+              setShowSignin(false);
+              if (elem.id === "book") setBookingSelected(null);
             }}
             onMouseEnter={() => handleMouseEnter(elem.id)}
             onMouseLeave={() => handleMouseLeave(elem.id)}
