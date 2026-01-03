@@ -5,35 +5,34 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  color: black;
 }
 
 body {
-  @apply overflow-x-hidden font-[Poppins] flex flex-col w-full;
+  color: #2c3e50;
+  @apply overflow-x-hidden font-[Poppins] flex flex-col w-full bg-white;
 }
 
+.main-container {
+  @apply w-svw h-svh flex flex-col overflow-y-auto overflow-x-hidden;
 
-.main-container{
-  @apply w-svw h-svh bg-white flex flex-col overflow-y-auto overflow-x-hidden ;
-    scrollbar-width: thin;
-  scrollbar-color: black transparent;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .main-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.main-container::-webkit-scrollbar-thumb {
-  background: black;
-  border-radius: 8px;
+  width: 5px;
 }
 
 .main-container::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.body-container{
-  @apply w-svw h-auto bg-blue-300;
+.main-container::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 20px;
+  border: transparent;
 }
 
-
+.main-container::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
