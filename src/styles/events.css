@@ -32,6 +32,29 @@ body {
     z-index: 2;
 }
 
+.events-filter-section {
+    padding: 40px 20px;
+    background-color: #f7f7f7;
+}
+
+.events-filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+}
+
+.events-filter-container input[type="text"],
+.events-filter-container input[type="date"],
+.events-filter-container select {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    min-width: 800px;
+}
+
 .eventsheader-content {
     position: relative;
     z-index: 3;

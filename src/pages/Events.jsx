@@ -14,8 +14,13 @@ export default function Events() {
   const { showSignin } = useContext(NavbarContext);
 
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [current, setCurrent] = useState(0);
+
+  const [searchText, setSearchText] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState(""); // YYYY-MM-DD
 
   const banners = [banner1, banner2, banner3];
 
@@ -24,6 +29,7 @@ export default function Events() {
     try {
       const { data } = await axios.get(`${API_URL}/getAllEvents`);
       setEvents(data.events);
+      setFilteredEvents(data.events);
     } catch (err) {
       console.error("Error fetching events:", err);
     } finally {
@@ -35,6 +41,7 @@ export default function Events() {
     fetchEvents();
   }, []);
 
+  // Banner slider
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % banners.length);
@@ -43,6 +50,40 @@ export default function Events() {
     return () => clearInterval(interval);
   }, [banners.length]);
 
+  // Filtering logic
+  useEffect(() => {
+    let filtered = [...events];
+
+    // Search filter
+    if (searchText) {
+      filtered = filtered.filter(
+        (e) =>
+          e.title.toLowerCase().includes(searchText.toLowerCase()) ||
+          e.description.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
+
+    // Location filter
+    if (locationFilter) {
+      filtered = filtered.filter(
+        (e) => e.location.toLowerCase() === locationFilter.toLowerCase()
+      );
+    }
+
+    // Date filter
+    if (dateFilter) {
+      filtered = filtered.filter(
+        (e) =>
+          new Date(e.date).toISOString().split("T")[0] === dateFilter
+      );
+    }
+
+    setFilteredEvents(filtered);
+  }, [searchText, locationFilter, dateFilter, events]);
+
+  // Extract unique locations for dropdown
+  const locations = [...new Set(events.map((e) => e.location))];
+
   return (
     <>
       {/* EVENTS HEADER */}
@@ -50,8 +91,7 @@ export default function Events() {
         {banners.map((img, index) => (
           <div
             key={index}
-            className={`eventsheader-bg ${index === current ? "active" : ""
-              }`}
+            className={`eventsheader-bg ${index === current ? "active" : ""}`}
             style={{ backgroundImage: `url(${img})` }}
           />
         ))}
@@ -71,15 +111,47 @@ export default function Events() {
         <div className="section-header">
           <h2>Upcoming Events</h2>
           <span className="divider" />
+
+          {/* FILTER & SEARCH */}
+          <section className="events-filter-section">
+            <div className="events-filter-container">
+              <input
+                type="text"
+                placeholder="Search events..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+
+              {/* <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+              /> */}
+
+              {/* <button
+                className="filled-btn"
+                style={{ padding: '10px 16px' }}
+                onClick={() => {
+                  setSearchText("");
+                  setLocationFilter("");
+                  setDateFilter("");
+                }}
+              >
+                Reset
+              </button> */}
+            </div>
+          </section>
         </div>
 
         {isLoading ? (
           <div className="loading-wrapper">
             <LoadingAnimation />
           </div>
+        ) : filteredEvents.length === 0 ? (
+          <p style={{ textAlign: "center" }}>No events found.</p>
         ) : (
           <div className="events-grid">
-            {events.map((event, index) => (
+            {filteredEvents.map((event, index) => (
               <div
                 key={event._id}
                 className="event-card"
