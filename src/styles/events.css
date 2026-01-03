@@ -3,15 +3,45 @@ body {
 }
 
 .events-eventsheader {
+    position: relative;
     height: 60vh;
-    background: linear-gradient(rgba(0, 0, 0, 0.45),
-            rgba(0, 0, 0, 0.45)),
-        url("/images/events-eventsheader.jpg");
+    overflow: hidden;
+}
+
+.eventsheader-bg {
+    position: absolute;
+    inset: 0;
     background-size: cover;
     background-position: center;
+    opacity: 0;
+    transform: scale(1.1);
+    transition: opacity 1.2s ease, transform 6s ease;
+}
+
+.eventsheader-bg.active {
+    opacity: 1;
+    transform: scale(1);
+    z-index: 1;
+}
+
+.eventsheader-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.445),
+            rgba(0, 0, 0, 0.466));
+    z-index: 2;
+}
+
+.eventsheader-content {
+    position: relative;
+    z-index: 3;
+    height: 100%;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
+    color: white;
 }
 
 .eventsheader-content {
@@ -23,12 +53,16 @@ body {
 .eventsheader-title {
     font-size: 3.2rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    color: #f2f2f2;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .eventsheader-subtitle {
     font-size: 1.1rem;
     opacity: 0.9;
+    color: #f2f2f2;
+    font-weight: 500;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .events-section {
@@ -100,13 +134,14 @@ body {
     font-size: 1.2rem;
     margin-bottom: 0.6rem;
     color: #1f2937;
+    font-weight: 600;
 }
 
 .event-description {
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     color: #4b5563;
     line-height: 1.5;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 
 .event-meta {
