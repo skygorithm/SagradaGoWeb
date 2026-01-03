@@ -415,283 +415,153 @@ export default function Wedding() {
       setBrideFname("");
       setBrideMname("");
       setBrideLname("");
-      
+
     } catch (err) {
       console.error(err);
       alert("Something went wrong during upload.");
     }
   }
 
+  const groomNames = inputText.filter(i => i.key.includes("groom"));
+  const brideNames = inputText.filter(i => i.key.includes("bride"));
+  const scheduleInputs = inputText.filter(i => ["date", "time", "email", "contact_number", "attendees"].includes(i.key));
+
   return (
     <div className="main-holder">
-      <div className="form-container">
-        {inputText.map((elem) => (
-          <div className="flex flex-col" key={elem.key}>
-            <h1>{elem.title}</h1>
+      <div className="form-wrapper">
 
-            {elem.type === "date" ? (
-              <>
-                <DatePicker
-                  selected={elem.value ? new Date(elem.value) : null}
-                  onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
-                  className="input-text"
-                  dateFormat="yyyy-MM-dd"
-                  excludeDates={occupiedDates}
-                  showYearDropdown
-                  showMonthDropdown
-                  dropdownMode="select"
-                  minDate={new Date(1900, 0, 1)}
-                />
-              </>
-            ) : elem.type === "time" ? (
-              <div className="time-container">
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <MobileTimePicker
-                    value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                    onChange={(v) => {
-                      setTime(v ? dayjs(v).format("HH:mm") : "");
-                    }}
-                    slotProps={{
-                      textField: {
-                        className: "time-slot-props",
-                        InputProps: {
-                          sx: {
-                            padding: 0,
-                            height: "100%",
-                            "& fieldset": { border: "none" },
-                          },
-                        },
-                        sx: {
-                          padding: 0,
-                          margin: 0,
-                          height: "100%",
-                          "& .MuiInputBase-root": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                          "& .MuiInputBase-input": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                        },
-                      },
-                    }}
+        {/* SECTION 1: SCHEDULE */}
+        <div className="form-section">
+          <h2 className="section-title">1. Schedule & Logistics</h2>
+          <div className="grid-layout">
+            {scheduleInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                {elem.type === "date" ? (
+                  <DatePicker
+                    selected={elem.value ? new Date(elem.value) : null}
+                    onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
+                    className="input-text"
+                    dateFormat="yyyy-MM-dd"
+                    excludeDates={occupiedDates}
+                    showYearDropdown
+                    dropdownMode="select"
                   />
-                </LocalizationProvider>
-              </div>
-            ) : (
-              <>
-                <input
-                  name={elem.key}
-                  type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
-                  value={elem.value}
-                />
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-      <div className="upload-container">
-        {uploadProfileImage.map((elem) => (
-          <div key={elem.key} className="per-grid-container">
-            <div>
-              <h1 className="text-center">{elem.title}</h1>
-
-              <input
-                type="file"
-                accept="*/*"
-                className="inputFile-properties"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  elem.fileSetter(file);
-
-                  if (file) {
-                    elem.previewSetter(URL.createObjectURL(file));
-                  }
-                }}
-              />
-            </div>
-
-            <div className="image-container">
-              <img
-                src={elem.preview ? elem.preview : no_image}
-                alt="Preview"
-                className="image-preview"
-              />
-            </div>
-          </div>
-        ))}
-
-        {uploadBaptismal.map((elem) => (
-          <div key={elem.key} className="per-grid-container">
-            <div>
-              <h1>{elem.title}</h1>
-
-              <input
-                type="file"
-                accept="*/*"
-                className="inputFile-properties"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-
-                  elem.fileSetter(file);
-                  elem.previewSetter({
-                    url: URL.createObjectURL(file),
-                    type: file.type,
-                    name: file.name,
-                  });
-                }}
-              />
-            </div>
-          </div>
-        ))}
-
-        {uploadConfirmation.map((elem) => (
-          <div key={elem.key} className="per-grid-container">
-            <div>
-              <h1>{elem.title}</h1>
-
-              <input
-                type="file"
-                accept="*/*"
-                className="inputFile-properties"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-
-                  elem.fileSetter(file);
-                  elem.previewSetter({
-                    url: URL.createObjectURL(file),
-                    type: file.type,
-                    name: file.name,
-                  });
-                }}
-              />
-            </div>
-          </div>
-        ))}
-
-        {uploadCenomar.map((elem) => (
-          <div key={elem.key} className="per-grid-container">
-            <div>
-              <h1>{elem.title}</h1>
-
-              <input
-                type="file"
-                accept="*/*"
-                className="inputFile-properties"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  elem.fileSetter(file);
-
-                  if (file) {
-                    elem.previewSetter(URL.createObjectURL(file));
-                  }
-                }}
-              />
-            </div>
-          </div>
-        ))}
-
-        {uploadPermission.map((elem) => (
-          <div key={elem.key} className="per-grid-container">
-            <div>
-              <h1>{elem.title}</h1>
-
-              <input
-                type="file"
-                accept="*/*"
-                className="inputFile-properties"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  elem.fileSetter(file);
-
-                  if (file) {
-                    elem.previewSetter(URL.createObjectURL(file));
-                  }
-                }}
-              />
-            </div>
-          </div>
-        ))}
-
-        <div className="flex flex-col gap-2">
-          <p>Are you civilly married?</p>
-
-          <div className="flex w-auto gap-10">
-            {civil_choices.map((elem) => (
-              <div className="flex gap-1">
-                <input
-                  type="radio"
-                  name="civil"
-                  value={elem.value}
-                  onChange={() => setIsCivil(elem.text)}
-                />
-                <span>{elem.text}</span>
+                ) : elem.type === "time" ? (
+                  <div className="time-container">
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <MobileTimePicker
+                        value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                        onChange={(v) => setTime(v ? dayjs(v).format("HH:mm") : "")}
+                        slotProps={{ textField: { variant: "standard", fullWidth: true, InputProps: { disableUnderline: true } } }}
+                      />
+                    </LocalizationProvider>
+                  </div>
+                ) : (
+                  <input
+                    type={elem.type}
+                    className="input-text"
+                    onChange={(e) => elem.onChange(e.target.value)}
+                    value={elem.value}
+                  />
+                )}
               </div>
             ))}
           </div>
+        </div>
 
-          {isCivil === "" ? (
-            <></>
-          ) : isCivil === "Yes" ? (
-            uploadMarriageDocu.map((elem) => (
-              <div key={elem.key} className="per-grid-container">
-                <div>
-                  <h1>Upload Marriage Contract</h1>
-
-                  <input
-                    type="file"
-                    accept="*/*"
-                    className="inputFile-properties"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      elem.fileSetter(file);
-
-                      if (file) {
-                        elem.previewSetter(URL.createObjectURL(file));
-                      }
-                    }}
-                  />
-                </div>
+        {/* SECTION 2: GROOM */}
+        <div className="form-section">
+          <h2 className="section-title">2. Groom's Information</h2>
+          <div className="grid-layout" style={{ marginBottom: '25px' }}>
+            {groomNames.map(elem => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                <input type="text" className="input-text" value={elem.value} onChange={(e) => elem.onChange(e.target.value)} />
               </div>
-            ))
-          ) : (
-            uploadMarriageDocu.map((elem) => (
+            ))}
+          </div>
+          <div className="upload-grid">
+            {[uploadProfileImage[0], uploadBaptismal[0], uploadConfirmation[0], uploadCenomar[0], uploadPermission[0]].map(elem => (
               <div key={elem.key} className="per-grid-container">
-                <div>
-                  <h1>Upload Marriage License</h1>
-
-                  <input
-                    type="file"
-                    accept="*/*"
-                    className="inputFile-properties"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      elem.fileSetter(file);
-
-                      if (file) {
-                        elem.previewSetter(URL.createObjectURL(file));
-                      }
-                    }}
-                  />
-                </div>
+                <h1>{elem.title}</h1>
+                <input type="file" accept="image/*,application/pdf" className="inputFile-properties" onChange={(e) => {
+                  const file = e.target.files[0];
+                  elem.fileSetter(file);
+                  if (file) elem.previewSetter(URL.createObjectURL(file));
+                }} />
+                {elem.preview && <img src={elem.preview.url || elem.preview} className="image-preview" alt="preview" />}
               </div>
-            ))
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 3: BRIDE */}
+        <div className="form-section">
+          <h2 className="section-title">3. Bride's Information</h2>
+          <div className="grid-layout" style={{ marginBottom: '25px' }}>
+            {brideNames.map(elem => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                <input type="text" className="input-text" value={elem.value} onChange={(e) => elem.onChange(e.target.value)} />
+              </div>
+            ))}
+          </div>
+          <div className="upload-grid">
+            {[uploadProfileImage[1], uploadBaptismal[1], uploadConfirmation[1], uploadCenomar[1], uploadPermission[1]].map(elem => (
+              <div key={elem.key} className="per-grid-container">
+                <h1>{elem.title}</h1>
+                <input type="file" accept="image/*,application/pdf" className="inputFile-properties" onChange={(e) => {
+                  const file = e.target.files[0];
+                  elem.fileSetter(file);
+                  if (file) elem.previewSetter(URL.createObjectURL(file));
+                }} />
+                {elem.preview && <img src={elem.preview.url || elem.preview} className="image-preview" alt="preview" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 4: MARRIAGE STATUS */}
+        <div className="form-section">
+          <h2 className="section-title">4. Legal Status</h2>
+          <div className="choice-box">
+            <p style={{ margin: 0, fontWeight: 'bold' }}>Are you civilly married?</p>
+            <div className="radio-group">
+              {civil_choices.map((elem) => (
+                <label className="radio-item" key={elem.value}>
+                  <input type="radio" name="civil" value={elem.value} onChange={() => setIsCivil(elem.text)} />
+                  <span>{elem.text}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {isCivil && (
+            <div className="per-grid-container" style={{ marginTop: '20px' }}>
+              <h1 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>
+                Upload {isCivil === "Yes" ? "Marriage Contract" : "Marriage License"}
+              </h1>
+              <input type="file" accept="image/*,application/pdf" className="inputFile-properties" onChange={(e) => {
+                const file = e.target.files[0];
+                uploadMarriageDocu[0].fileSetter(file);
+                if (file) uploadMarriageDocu[0].previewSetter(URL.createObjectURL(file));
+              }} />
+            </div>
           )}
         </div>
-      </div>
 
-      <input
-        type="submit"
-        value={`${isLoading ? "Submitting..." : "Submit Booking"}`}
-        className="submit-button"
-        onClick={handleUpload}
-        disabled={isLoading}
-      />
+        <div className="submit-btn-container">
+          <button
+            className="submit-button"
+            onClick={handleUpload}
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : "Confirm & Book Wedding"}
+          </button>
+        </div>
+      </div>
     </div>
   );
+
 }
