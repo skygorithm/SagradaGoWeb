@@ -44,6 +44,7 @@ export default function AddEvents() {
   const [locations, setLocations] = useState([]);
   const [dateFilter, setDateFilter] = useState("all");
   const [monthFilter, setMonthFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -245,6 +246,10 @@ export default function AddEvents() {
     if (monthFilter !== "all") {
       const eventMonth = eventDate.month();
       if (eventMonth !== parseInt(monthFilter)) return false;
+    }
+
+    if (typeFilter !== "all") {
+      if (event.type !== typeFilter) return false;
     }
 
     if (searchQuery.trim()) {
@@ -570,6 +575,17 @@ export default function AddEvents() {
                       {month.label}
                     </Option>
                   ))}
+                </Select>
+
+                <Text strong style={{ marginLeft: 16 }}>Filter by Type:</Text>
+                <Select
+                  value={typeFilter}
+                  onChange={setTypeFilter}
+                  style={{ width: 150 }}
+                >
+                  <Option value="all">All Types</Option>
+                  <Option value="event">Events</Option>
+                  <Option value="activity">Activities</Option>
                 </Select>
               </Space>
 
