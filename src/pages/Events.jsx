@@ -113,7 +113,6 @@ export default function Events() {
           <span className="divider" />
 
           {/* FILTER & SEARCH */}
-          <section className="events-filter-section">
             <div className="events-filter-container">
               <input
                 type="text"
@@ -140,7 +139,6 @@ export default function Events() {
                 Reset
               </button> */}
             </div>
-          </section>
         </div>
 
         {isLoading ? (
