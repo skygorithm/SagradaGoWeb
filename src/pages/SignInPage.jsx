@@ -201,78 +201,36 @@ export default function SignInPage() {
     setError("");
     setLoading(true);
 
-    if (inputEmail === "berlenebernabe12@gmail.com" && inputPassword === "1234") {
-      try {
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          inputEmail,
-          inputPassword
-        );
-        const uid = userCredential.user.uid;
-
-        const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
-        if (adminResponse.data.user) {
-          const adminUser = adminResponse.data.user;
-
-          if (adminUser.is_active === false) {
-            setError("Your account has been disabled. Please contact the administrator for assistance.");
-            setLoading(false);
-            return;
-          }
-          
-          setCurrentUser(adminUser);
-          localStorage.setItem("currentUser", JSON.stringify(adminUser));
-          Cookies.set("email", inputEmail, { expires: 7 });
-          setShowSignin(false);
-          navigate("/admin/dashboard");
-          setLoading(false);
-          return;
-
-        } else {
-          setError("Admin account not found in database.");
-          setLoading(false);
-          return;
-        }
-
-      } catch (firebaseError) {
-        console.error("Firebase login error:", firebaseError);
-        setError("Failed to sign in. Please try again.");
-        setLoading(false);
-        return;
-      }
-    }
-
+    let firebaseUserCredential = null;
+    let firebaseAuthSucceeded = false;
+    
     try {
-      const userCredential = await signInWithEmailAndPassword(
+      firebaseUserCredential = await signInWithEmailAndPassword(
         auth,
         inputEmail,
         inputPassword
       );
+      firebaseAuthSucceeded = true;
 
-      const user = userCredential.user;
-      const uid = user.uid;
-
-      const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
-      if (adminResponse.data.user) {
-        const adminUser = adminResponse.data.user;
-
-        if (adminUser.is_active === false) {
-          setError("Your account has been disabled. Please contact the administrator for assistance.");
-          setLoading(false);
-          return;
-        }
-        
-        setCurrentUser(adminUser);
-        localStorage.setItem("currentUser", JSON.stringify(adminUser));
-        Cookies.set("email", inputEmail, { expires: 7 });
-        setShowSignin(false);
-        navigate("/admin/dashboard");
+      if (!firebaseUserCredential.user.emailVerified) {
+        setError("Please verify your email address before logging in. Check your inbox for the verification link.");
+        setLoading(false);
         return;
       }
 
-      const userResponse = await axios.post(`${API_URL}/findUser`, { uid });
-      if (userResponse.data.user) {
-        const regularUser = userResponse.data.user;
+    } catch (firebaseError) {
+      firebaseAuthSucceeded = false;
+      console.log("Firebase auth failed, will try backend login...");
+    }
+
+    try {
+      const loginResponse = await axios.post(`${API_URL}/login`, {
+        email: inputEmail,
+        password: inputPassword
+      });
+
+      if (loginResponse.data.user) {
+        const regularUser = loginResponse.data.user;
 
         if (regularUser.is_active === false) {
           setError("Your account has been disabled. Please contact the administrator for assistance.");
@@ -285,26 +243,91 @@ export default function SignInPage() {
         Cookies.set("email", inputEmail, { expires: 7 });
         setShowSignin(false);
         navigate("/");
+        setLoading(false);
         return;
       }
 
-      setError("No account found with this email.");
+    } catch (loginError) {
+      if (loginError.response && (loginError.response.status === 401 || loginError.response.status === 404)) {
+        let adminUserCredential = firebaseUserCredential;
+        
+        if (!adminUserCredential) {
+          try {
+            adminUserCredential = await signInWithEmailAndPassword(
+              auth,
+              inputEmail,
+              inputPassword
+            );
+            
+          } catch (adminFirebaseError) {
+            if (loginError.response.status === 401) {
+              setError("Invalid email or password.");
 
-    } catch (err) {
-      console.error(err);
+            } else if (loginError.response.status === 404) {
+              setError("No account found with this email.");
+              
+            } else {
+              setError("Failed to sign in. Please try again.");
+            }
 
-      if (err.code === "auth/user-not-found") {
-        setError("No user found with this email.");
+            setLoading(false);
+            return;
+          }
+        }
 
-      } else if (err.code === "auth/wrong-password") {
-        setError("Incorrect password.");
+        const uid = adminUserCredential.user.uid;
+          try {
+            const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
+            if (adminResponse.data.user) {
+              const adminUser = adminResponse.data.user;
+
+              if (adminUser.is_active === false) {
+                setError("Your account has been disabled. Please contact the administrator for assistance.");
+                setLoading(false);
+                return;
+              }
+              
+              setCurrentUser(adminUser);
+              localStorage.setItem("currentUser", JSON.stringify(adminUser));
+              Cookies.set("email", inputEmail, { expires: 7 });
+              setShowSignin(false);
+              navigate("/admin/dashboard");
+              setLoading(false);
+              return;
+            }
+
+          } catch (adminError) {
+            if (loginError.response.status === 401) {
+              setError("Invalid email or password.");
+
+            } else if (loginError.response.status === 404) {
+              setError("No account found with this email.");
+              
+            } else {
+              setError("Failed to sign in. Please try again.");
+            }
+
+            setLoading(false);
+            return;
+          }
 
       } else {
-        setError("Failed to sign in. Please try again.");
+        console.error("Login error:", loginError);
+        
+        if (loginError.response) {
+          if (loginError.response.status === 403) {
+            setError(loginError.response.data?.message || "Your account has been disabled. Please contact the administrator for assistance.");
+          
+          } else {
+            setError(loginError.response.data?.message || "Failed to sign in. Please try again.");
+          }
+        
+        } else {
+          setError("Failed to sign in. Please check your connection and try again.");
+        }
+        setLoading(false);
+        return;
       }
-
-    } finally {
-      setLoading(false);
     }
   }
 
