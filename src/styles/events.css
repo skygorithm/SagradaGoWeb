@@ -161,6 +161,12 @@ body {
     color: #4b5563;
     line-height: 1.5;
     margin-bottom: 2rem;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    display: block;
+    text-align: justify;
 }
 
 .event-meta {

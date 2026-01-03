@@ -113,21 +113,21 @@ export default function Events() {
           <span className="divider" />
 
           {/* FILTER & SEARCH */}
-            <div className="events-filter-container">
-              <input
-                type="text"
-                placeholder="Search events..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-              />
+          <div className="events-filter-container">
+            <input
+              type="text"
+              placeholder="Search events..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+            />
 
-              {/* <input
+            {/* <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               /> */}
 
-              {/* <button
+            {/* <button
                 className="filled-btn"
                 style={{ padding: '10px 16px' }}
                 onClick={() => {
@@ -138,7 +138,7 @@ export default function Events() {
               >
                 Reset
               </button> */}
-            </div>
+          </div>
         </div>
 
         {isLoading ? (
@@ -161,8 +161,11 @@ export default function Events() {
 
                 <div className="event-content">
                   <h3>{event.title}</h3>
-                  <p className="event-description">{event.description}</p>
-
+                  <p className="event-description">
+                    {event.description.length > 50
+                      ? event.description.substring(0, 80) + ".."
+                      : event.description}
+                  </p>
                   <div className="event-meta">
                     <span>{event.location}</span>
                     <span>
