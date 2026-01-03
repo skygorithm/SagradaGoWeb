@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Card, Typography, Table, message, Button, Spin, Popconfirm, Input, Select, Row, Col, Space, Tag, Tabs } from "antd";
-import { SearchOutlined, FilterOutlined, CloseOutlined, CheckOutlined } from "@ant-design/icons";
+import { SearchOutlined, FilterOutlined, CloseOutlined, CheckOutlined, FilePdfOutlined, FileExcelOutlined } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
 import { API_URL } from "../../Constants";
+import { generatePDFReport, generateExcelReport } from "../../utils/reportGenerator";
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -153,7 +154,7 @@ export default function VolunteersList() {
   const handleStatusUpdate = async (volunteer_id, newStatus) => {
     setUpdating(true);
     try {
-      await axios.post(`${API_URL}/updateVolunteerStatus`, { volunteer_id, status: newStatus });
+      await axios.put(`${API_URL}/updateVolunteerStatus`, { volunteer_id, status: newStatus });
       message.success(`Status updated to ${newStatus} successfully.`);
       fetchVolunteers();
 
@@ -179,7 +180,7 @@ export default function VolunteersList() {
         key: "type",
         render: (_, record) => {
           const registrationType = record.registration_type;
-  
+          
           const isParticipant = registrationType === "participant";
           
           return (
@@ -309,12 +310,150 @@ export default function VolunteersList() {
 
   const columns = getColumns();
 
+  const handleExportPDF = async () => {
+    try {
+      const exportColumns = [
+        "Name",
+        "Contact",
+        "Type",
+        "Status",
+        "Event/Activity",
+        "Time",
+        "Signed Up"
+      ];
+
+      const exportData = filteredVolunteers.map((record) => {
+        const registrationType = record.registration_type;
+        const isParticipant = registrationType === "participant";
+        const typeText = isParticipant ? "Participant" : "Volunteer";
+
+        const status = record.status || "N/A";
+        const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+        const event = record.event || {};
+        let timeText = "N/A";
+        if (event.time_start && event.time_end) {
+          timeText = `${event.time_start} - ${event.time_end}`;
+
+        } else if (event.time_start) {
+          timeText = `${event.time_start} -`;
+
+        } else if (event.time_end) {
+          timeText = `- ${event.time_end}`;
+        }
+
+        return {
+          Name: record.name || "N/A",
+          Contact: record.contact || "N/A",
+          Type: typeText,
+          Status: displayStatus,
+          "Event/Activity": record.eventTitle || "N/A",
+          Time: timeText,
+          "Signed Up": record.createdAtFormatted || "N/A"
+        };
+      });
+
+      await generatePDFReport({
+        title: `Participants & Volunteers Report - ${activeTab === "all" ? "All" : activeTab === "registrations" ? "Participants" : "Volunteers"}`,
+        columns: exportColumns,
+        data: exportData
+      });
+
+      message.success("PDF report generated successfully!");
+
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      message.error("Failed to generate PDF report.");
+    }
+  };
+
+  const handleExportExcel = () => {
+    try {
+      const exportColumns = [
+        { title: "Name", dataIndex: "name" },
+        { title: "Contact", dataIndex: "contact" },
+        { title: "Type", dataIndex: "type" },
+        { title: "Status", dataIndex: "status" },
+        { title: "Event/Activity", dataIndex: "eventTitle" },
+        { title: "Time", dataIndex: "time" },
+        { title: "Signed Up", dataIndex: "createdAtFormatted" }
+      ];
+
+      const exportData = filteredVolunteers.map((record) => {
+        const registrationType = record.registration_type;
+        const isParticipant = registrationType === "participant";
+        const typeText = isParticipant ? "Participant" : "Volunteer";
+
+        const status = record.status || "N/A";
+        const displayStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+        const event = record.event || {};
+        let timeText = "N/A";
+        if (event.time_start && event.time_end) {
+          timeText = `${event.time_start} - ${event.time_end}`;
+
+        } else if (event.time_start) {
+          timeText = `${event.time_start} -`;
+
+        } else if (event.time_end) {
+          timeText = `- ${event.time_end}`;
+        }
+
+        return {
+          name: record.name || "N/A",
+          contact: record.contact || "N/A",
+          type: typeText,
+          status: displayStatus,
+          eventTitle: record.eventTitle || "N/A",
+          time: timeText,
+          createdAtFormatted: record.createdAtFormatted || "N/A"
+        };
+      });
+
+      generateExcelReport({
+        fileName: `Participants_Volunteers_${activeTab === "all" ? "All" : activeTab === "registrations" ? "Participants" : "Volunteers"}_${dayjs().format("YYYY-MM-DD")}`,
+        columns: exportColumns,
+        data: exportData
+      });
+
+      message.success("Excel report generated successfully!");
+      
+    } catch (error) {
+      console.error("Error generating Excel:", error);
+      message.error("Failed to generate Excel report.");
+    }
+  };
+
   return (
     <div style={{ padding: "24px", background: "#f0f2f5", minHeight: "100vh" }}>
       <div style={{ maxWidth: "1550px", margin: "0 auto", marginTop: 20 }}>
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <Title level={2} style={{ fontFamily: 'Poppins' }}>Participants & Volunteers</Title>
+            <Space>
+              <Button
+                icon={<FilePdfOutlined />}
+                onClick={handleExportPDF}
+                disabled={filteredVolunteers.length === 0}
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500
+                }}
+              >
+                Export PDF
+              </Button>
+              <Button
+                icon={<FileExcelOutlined />}
+                onClick={handleExportExcel}
+                disabled={filteredVolunteers.length === 0}
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 500
+                }}
+              >
+                Export Excel
+              </Button>
+            </Space>
           </div>
 
           {loading ? (
