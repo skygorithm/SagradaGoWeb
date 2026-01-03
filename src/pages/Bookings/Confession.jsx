@@ -13,7 +13,7 @@ import { API_URL } from "../../Constants";
 
 
 export default function Confession() {
-     // TO BE DELETE
+  // TO BE DELETE
   const occupiedDates = [
     new Date("2025-11-27"),
     new Date("2025-11-28"),
@@ -52,7 +52,7 @@ export default function Confession() {
       onChange: setLname,
       value: lname,
     },
-        {
+    {
       key: "email",
       title: "Email",
       type: "email",
@@ -91,46 +91,70 @@ export default function Confession() {
     console.log(fname);
     console.log(mname);
     console.log(lname);
-    
-    try{
-        const payload = {
+
+    try {
+      const payload = {
         uid: "123123123",
         full_name: `${fname} ${mname} ${lname}`,
         email: email,
         date: date,
         time: time,
         attendees: attendees,
-        }
+      }
 
-        const res = await axios.post(`${API_URL}/createConfession`, payload);
-        alert("Confession booking submitted successfully!");
-        console.log("Saved:", res.data);
+      const res = await axios.post(`${API_URL}/createConfession`, payload);
+      alert("Confession booking submitted successfully!");
+      console.log("Saved:", res.data);
 
-        setFname("");
-        setMname("");
-        setLname("");
-        setEmail("");
-        setDate("");
-        setTime("");
-        setAttendees(0);
+      setFname("");
+      setMname("");
+      setLname("");
+      setEmail("");
+      setDate("");
+      setTime("");
+      setAttendees(0);
     }
-    catch(err){
-        console.error("UPLOAD ERROR:", err);
-        alert("Failed to submit confession booking");  
+    catch (err) {
+      console.error("UPLOAD ERROR:", err);
+      alert("Failed to submit confession booking");
     }
 
   }
 
-  return (
-    <>
-      <div className="main-holder">
-        <div className="form-container">
-          {inputText.map((elem) => (
-            <div className="flex flex-col" key={elem.key}>
-              <h1>{elem.title}</h1>
+  const penitentInputs = inputText.filter(i => ["first_name", "middle_name", "last_name", "email"].includes(i.key));
+  const scheduleInputs = inputText.filter(i => ["date", "time", "attendees"].includes(i.key));
 
-              {elem.type === "date" ? (
-                <>
+  return (
+    <div className="main-holder">
+      <div className="form-wrapper">
+
+        {/* SECTION 1: PENITENT INFORMATION */}
+        <div className="form-section">
+          <h2 className="section-title">1. Penitent Information</h2>
+          <div className="grid-layout">
+            {penitentInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                <input
+                  type={elem.type}
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
+                  placeholder={`Enter ${elem.title.toLowerCase()}`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 2: APPOINTMENT SCHEDULE */}
+        <div className="form-section">
+          <h2 className="section-title">2. Appointment Schedule</h2>
+          <div className="grid-layout">
+            {scheduleInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
                     onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
@@ -138,70 +162,52 @@ export default function Confession() {
                     dateFormat="yyyy-MM-dd"
                     excludeDates={occupiedDates}
                     showYearDropdown
-                    showMonthDropdown
                     dropdownMode="select"
-                    minDate={new Date(1900, 0, 1)}
+                    placeholderText="Select date"
                   />
-                </>
-              ) : elem.type === "time" ? (
-                <div className="time-container">
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <MobileTimePicker
-                      value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                      onChange={(v) => {
-                        setTime(v ? dayjs(v).format("HH:mm") : "");
-                      }}
-                      slotProps={{
-                        textField: {
-                          className: "time-slot-props",
-                          InputProps: {
-                            sx: {
-                              padding: 0,
-                              height: "100%",
-                              "& fieldset": { border: "none" },
-                            },
+                ) : elem.type === "time" ? (
+                  <div className="time-container" style={{ border: '1.5px solid #e0e0e0', borderRadius: '6px', height: '45px', overflow: 'hidden' }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <MobileTimePicker
+                        value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                        onChange={(v) => setTime(v ? dayjs(v).format("HH:mm") : "")}
+                        slotProps={{
+                          textField: {
+                            variant: "standard",
+                            fullWidth: true,
+                            InputProps: {
+                              disableUnderline: true,
+                              sx: { px: 2, height: '45px', fontSize: '0.9rem' }
+                            }
                           },
-                          sx: {
-                            padding: 0,
-                            margin: 0,
-                            height: "100%",
-                            "& .MuiInputBase-root": {
-                              height: "100%",
-                              padding: 0,
-                            },
-                            "& .MuiInputBase-input": {
-                              height: "100%",
-                              padding: 0,
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </LocalizationProvider>
-                </div>
-              ) : (
-                <>
+                        }}
+                      />
+                    </LocalizationProvider>
+                  </div>
+                ) : (
                   <input
-                    name={elem.key}
                     type={elem.type}
                     className="input-text"
                     onChange={(e) => elem.onChange(e.target.value)}
                     value={elem.value}
                   />
-                </>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        <div>
-            <button 
-                className="submit-button"
-                onClick={handleSubmit}
-            >
-                Submit
-            </button>
+
+        {/* SUBMIT BUTTON */}
+        <div className="submit-btn-container" style={{ marginTop: '30px' }}>
+          <button
+            className="submit-button"
+            onClick={handleSubmit}
+          >
+            Confirm Confession Schedule
+          </button>
         </div>
+
       </div>
-    </>
+    </div>
   );
 }
