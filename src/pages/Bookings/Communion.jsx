@@ -128,23 +128,23 @@ export default function Communion() {
     },
   ];
   async function uploadImage(file, namePrefix) {
-      const ext = file.name.split(".").pop();
-      const fileName = `${namePrefix}_${Date.now()}.${ext}`;
-      const filePath = `communion/${fileName}`;
-  
-      const { error } = await supabase.storage
-        .from("communion")
-        .upload(filePath, file, { upsert: true });
-  
-      if (error) {
-        console.error("Upload Error:", error);
-        throw error;
-      }
-  
-      const { data } = supabase.storage.from("communion").getPublicUrl(filePath);
-      return data.publicUrl;
+    const ext = file.name.split(".").pop();
+    const fileName = `${namePrefix}_${Date.now()}.${ext}`;
+    const filePath = `communion/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from("communion")
+      .upload(filePath, file, { upsert: true });
+
+    if (error) {
+      console.error("Upload Error:", error);
+      throw error;
     }
-    function generateTransactionID() {
+
+    const { data } = supabase.storage.from("communion").getPublicUrl(filePath);
+    return data.publicUrl;
+  }
+  function generateTransactionID() {
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     const timestamp = Date.now().toString().slice(-6);
     return `COM-${timestamp}-${random}`;
@@ -159,7 +159,7 @@ export default function Communion() {
           baptismalCertificateFile,
           "baptismal_cert"
         );
-        if(communionPreparationFile){
+        if (communionPreparationFile) {
           uploaded.communionPrep = await uploadImage(
             communionPreparationFile,
             "communion_prep"
@@ -205,16 +205,40 @@ export default function Communion() {
     }
   }
 
-  return (
-    <>
-      <div className="main-holder">
-        <div className="form-container">
-          {inputText.map((elem) => (
-            <div className="flex flex-col" key={elem.key}>
-              <h1>{elem.title}</h1>
+  const personalInputs = inputText.filter(i => ["first_name", "middle_name", "last_name", "email", "contact_number"].includes(i.key));
+  const scheduleInputs = inputText.filter(i => ["date", "time", "attendees"].includes(i.key));
 
-              {elem.type === "date" ? (
-                <>
+  return (
+    <div className="main-holder">
+      <div className="form-wrapper">
+
+        {/* SECTION 1: PERSONAL INFORMATION */}
+        <div className="form-section">
+          <h2 className="section-title">1. Communicant Information</h2>
+          <div className="grid-layout">
+            {personalInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                <input
+                  type={elem.type}
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
+                  placeholder={`Enter ${elem.title.toLowerCase()}`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 2: SCHEDULE & ATTENDANCE */}
+        <div className="form-section">
+          <h2 className="section-title">2. Schedule & Attendance</h2>
+          <div className="grid-layout">
+            {scheduleInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
                     onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
@@ -222,94 +246,77 @@ export default function Communion() {
                     dateFormat="yyyy-MM-dd"
                     excludeDates={occupiedDates}
                     showYearDropdown
-                    showMonthDropdown
                     dropdownMode="select"
-                    minDate={new Date(1900, 0, 1)}
+                    placeholderText="Select date"
                   />
-                </>
-              ) : elem.type === "time" ? (
-                <div className="time-container">
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <MobileTimePicker
-                      value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                      onChange={(v) => {
-                        setTime(v ? dayjs(v).format("HH:mm") : "");
-                      }}
-                      slotProps={{
-                        textField: {
-                          className: "time-slot-props",
-                          InputProps: {
-                            sx: {
-                              padding: 0,
-                              height: "100%",
-                              "& fieldset": { border: "none" },
-                            },
+                ) : elem.type === "time" ? (
+                  <div className="time-container" style={{ border: '1.5px solid #e0e0e0', borderRadius: '6px', height: '45px', overflow: 'hidden' }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <MobileTimePicker
+                        value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                        onChange={(v) => setTime(v ? dayjs(v).format("HH:mm") : "")}
+                        slotProps={{
+                          textField: {
+                            variant: "standard",
+                            fullWidth: true,
+                            InputProps: {
+                              disableUnderline: true,
+                              sx: { px: 2, height: '45px', fontSize: '0.9rem' }
+                            }
                           },
-                          sx: {
-                            padding: 0,
-                            margin: 0,
-                            height: "100%",
-                            "& .MuiInputBase-root": {
-                              height: "100%",
-                              padding: 0,
-                            },
-                            "& .MuiInputBase-input": {
-                              height: "100%",
-                              padding: 0,
-                            },
-                          },
-                        },
-                      }}
-                    />
-                  </LocalizationProvider>
-                </div>
-              ) : (
-                <>
+                        }}
+                      />
+                    </LocalizationProvider>
+                  </div>
+                ) : (
                   <input
-                    name={elem.key}
                     type={elem.type}
                     className="input-text"
                     onChange={(e) => elem.onChange(e.target.value)}
                     value={elem.value}
                   />
-                </>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="form-container">
-          {uploadFiles.map((elem) => (
-            <div key={elem.key} className="per-grid-container">
-              <div>
-                <h1>{elem.title}</h1>
-
+        {/* SECTION 3: DOCUMENTATION */}
+        <div className="form-section">
+          <h2 className="section-title">3. Required Certificates</h2>
+          <div className="upload-grid">
+            {uploadFiles.map((elem) => (
+              <div key={elem.key} className="per-grid-container" style={{ padding: '15px', border: '1px solid #eee', borderRadius: '8px' }}>
+                <h1 style={{ fontSize: '0.85rem', marginBottom: '10px', color: '#424242', fontWeight: 'bold' }}>
+                  {elem.title}
+                </h1>
                 <input
                   type="file"
-                  accept="*/*"
+                  accept="image/*,application/pdf"
                   className="inputFile-properties"
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
-
                     elem.fileSetter(file);
-                    elem.previewSetter({
-                      url: URL.createObjectURL(file),
-                      type: file.type,
-                      name: file.name,
-                    });
+                    elem.previewSetter(URL.createObjectURL(file));
                   }}
                 />
+                {elem.preview && (
+                  <img src={elem.preview} className="image-preview" alt="preview" />
+                )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-        <div>
+
+        {/* SUBMIT BUTTON */}
+        <div className="submit-btn-container">
           <button className="submit-button" onClick={handleSubmit}>
-            Submit
+            Confirm & Book Communion
           </button>
         </div>
+
       </div>
-    </>
+    </div>
   );
 }
