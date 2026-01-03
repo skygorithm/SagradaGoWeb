@@ -355,40 +355,40 @@ export default function Baptism() {
     setIsLoading(true)
     try {
 
-        if(
-          fullname.trim() === "" ||
-          email.trim() === "" ||
-          date.trim() === "" ||
-          time.trim() === "" ||
-          candidateFname.trim() === "" ||
-          candidateMname.trim() === "" ||
-          candidateLname.trim() === "" ||
-          candidateBday.trim() === "" ||
-          candidateBplace.trim() === "" ||
-          contact.trim() === "" ||
-          attendees <= 0 ||
-          address.trim() === "" ||
-          motherFname.trim() === "" ||
-          motherMname.trim() === "" ||
-          motherLname.trim() === "" ||
-          motherBirthPlace.trim() === "" ||
-          fatherFname.trim() === "" ||
-          fatherMname.trim() === "" ||
-          fatherLname.trim() === "" ||
-          fatherBirthPlace.trim() === "" ||
-          marriageType.trim() === "" ||
-          mainGodFatherFname.trim() === "" ||
-          mainGodFatherMname.trim() === "" ||
-          mainGodFatherLname.trim() === "" ||
-          mainGodMotherFname.trim() === "" ||
-          mainGodMotherMname.trim() === "" ||
-          mainGodMotherLname.trim() === "" ||
-          additionalGodParents.length === 0
-        ) {
-            alert("Please fill in all required fields.");
-            setIsLoading(false);
-          return;
-        }
+      if (
+        fullname.trim() === "" ||
+        email.trim() === "" ||
+        date.trim() === "" ||
+        time.trim() === "" ||
+        candidateFname.trim() === "" ||
+        candidateMname.trim() === "" ||
+        candidateLname.trim() === "" ||
+        candidateBday.trim() === "" ||
+        candidateBplace.trim() === "" ||
+        contact.trim() === "" ||
+        attendees <= 0 ||
+        address.trim() === "" ||
+        motherFname.trim() === "" ||
+        motherMname.trim() === "" ||
+        motherLname.trim() === "" ||
+        motherBirthPlace.trim() === "" ||
+        fatherFname.trim() === "" ||
+        fatherMname.trim() === "" ||
+        fatherLname.trim() === "" ||
+        fatherBirthPlace.trim() === "" ||
+        marriageType.trim() === "" ||
+        mainGodFatherFname.trim() === "" ||
+        mainGodFatherMname.trim() === "" ||
+        mainGodFatherLname.trim() === "" ||
+        mainGodMotherFname.trim() === "" ||
+        mainGodMotherMname.trim() === "" ||
+        mainGodMotherLname.trim() === "" ||
+        additionalGodParents.length === 0
+      ) {
+        alert("Please fill in all required fields.");
+        setIsLoading(false);
+        return;
+      }
 
 
 
@@ -400,7 +400,7 @@ export default function Baptism() {
           "birth_certificate"
         );
       }
-      else{
+      else {
         alert("Please upload files.");
         setIsLoading(false);
         return;
@@ -412,7 +412,7 @@ export default function Baptism() {
           "parents_marriage_certificate"
         );
       }
-            else{
+      else {
         alert("Please upload files.");
         setIsLoading(false);
         return;
@@ -424,7 +424,7 @@ export default function Baptism() {
           "godparent_confirmation"
         );
       }
-            else{
+      else {
         alert("Please upload files.");
         setIsLoading(false);
         return;
@@ -436,7 +436,7 @@ export default function Baptism() {
           "baptismal_seminar"
         );
       }
-            else{
+      else {
         alert("Please upload files.");
         setIsLoading(false);
         return;
@@ -538,272 +538,159 @@ export default function Baptism() {
 
   return (
     <div className="main-holder">
-      <div className="form-container">
-        {inputText.map((elem) => (
-          <div className="flex flex-col" key={elem.key}>
-            <h1>{elem.title}</h1>
+      <div className="form-wrapper">
 
-            {elem.type === "date" ? (
-              <DatePicker
-                selected={elem.value ? new Date(elem.value) : null}
-                onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
+        {/* SECTION 1: EVENT LOGISTICS */}
+        <div className="form-section">
+          <h2 className="section-title">1. Schedule Details</h2>
+          <div className="grid-layout">
+            {inputText.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                {elem.type === "date" ? (
+                  <DatePicker
+                    selected={elem.value ? new Date(elem.value) : null}
+                    onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
+                    className="input-text"
+                    dateFormat="yyyy-MM-dd"
+                    excludeDates={occupiedDates}
+                    showYearDropdown
+                    dropdownMode="select"
+                    minDate={new Date(1900, 0, 1)}
+                  />
+                ) : elem.type === "time" ? (
+                  <div className="time-container">
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <MobileTimePicker
+                        value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                        onChange={(v) => setTime(v ? dayjs(v).format("HH:mm") : "")}
+                        slotProps={{
+                          textField: {
+                            variant: "standard",
+                            fullWidth: true,
+                            InputProps: { disableUnderline: true }
+                          }
+                        }}
+                      />
+                    </LocalizationProvider>
+                  </div>
+                ) : (
+                  <input
+                    type={elem.type}
+                    className="input-text"
+                    onChange={(e) => elem.onChange(e.target.value)}
+                    value={elem.value}
+                    maxLength={elem.maxLength}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 2: PERSONAL & FAMILY DETAILS */}
+        <div className="form-section">
+          <h2 className="section-title">2. Family Information</h2>
+          <div className="grid-layout" style={{ marginBottom: '20px' }}>
+            {inputText2.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                <input
+                  type={elem.type}
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
+                />
+              </div>
+            ))}
+
+            <div className="input-group">
+              <h1>Parents Marriage Type</h1>
+              <select
+                value={marriageType}
+                onChange={(e) => setMarriageType(e.target.value)}
                 className="input-text"
-                dateFormat="yyyy-MM-dd"
-                excludeDates={occupiedDates}
-                showYearDropdown
-                showMonthDropdown
-                dropdownMode="select"
-                minDate={new Date(1900, 0, 1)}
-              />
-            ) : elem.type === "time" ? (
-              <div className="time-container">
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <MobileTimePicker
-                    value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                    onChange={(v) => {
-                      setTime(v ? dayjs(v).format("HH:mm") : "");
-                    }}
-                    slotProps={{
-                      textField: {
-                        className: "time-slot-props",
-                        InputProps: {
-                          sx: {
-                            padding: 0,
-                            height: "100%",
-                            "& fieldset": { border: "none" },
-                          },
-                        },
-                        sx: {
-                          padding: 0,
-                          margin: 0,
-                          height: "100%",
-                          "& .MuiInputBase-root": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                          "& .MuiInputBase-input": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-              </div>
-            ) : (
-              <>
-                <input
-                  name={elem.key}
-                  type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
-                  value={elem.value}
-                  maxLength={elem.maxLength}
-                />
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="form-container">
-        {inputText2.map((elem) => (
-          <div className="flex flex-col" key={elem.key}>
-            <h1>{elem.title}</h1>
-
-            {elem.type === "date" ? (
-              <>
-                <DatePicker
-                  selected={date ? new Date(date) : null}
-                  onChange={(v) => setDate(v ? v.toISOString() : "")}
-                  className="input-text"
-                  dateFormat="yyyy-MM-dd"
-                  excludeDates={occupiedDates}
-                />
-              </>
-            ) : elem.type === "time" ? (
-              <div className="time-container">
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <MobileTimePicker
-                    value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                    onChange={(v) => {
-                      setTime(v ? dayjs(v).format("HH:mm") : "");
-                    }}
-                    slotProps={{
-                      textField: {
-                        className: "time-slot-props",
-                        InputProps: {
-                          sx: {
-                            padding: 0,
-                            height: "100%",
-                            "& fieldset": { border: "none" },
-                          },
-                        },
-                        sx: {
-                          padding: 0,
-                          margin: 0,
-                          height: "100%",
-                          "& .MuiInputBase-root": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                          "& .MuiInputBase-input": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-              </div>
-            ) : (
-              <>
-                <input
-                  name={elem.key}
-                  type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
-                  value={elem.value}
-                />
-              </>
-            )}
-          </div>
-        ))}
-        <div className="flex flex-col gap-3">
-          <h1>Parents Marriage Type</h1>
-          <select
-            value={marriageType}
-            onChange={(e) => setMarriageType(e.target.value)}
-            className="border border-black"
-          >
-            <option value="" disabled hidden>
-              Select the type of marriage
-            </option>
-            <option value="Catholic">Catholic</option>
-            <option value="Civil">Civil</option>
-            <option value="Natural">Natural</option>
-            <option value="Not married">Not married</option>
-          </select>
-
-        </div>
-      </div>
-      <div className="form-container">
-        {inputGodParents.map((elem) => (
-          <div className="flex flex-col" key={elem.key}>
-            <h1>{elem.title}</h1>
-
-            {elem.type === "date" ? (
-              <>
-                <DatePicker
-                  selected={date ? new Date(date) : null}
-                  onChange={(v) => setDate(v ? v.toISOString() : "")}
-                  className="input-text"
-                  dateFormat="yyyy-MM-dd"
-                  excludeDates={occupiedDates}
-                />
-              </>
-            ) : elem.type === "time" ? (
-              <div className="time-container">
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <MobileTimePicker
-                    value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                    onChange={(v) => {
-                      setTime(v ? dayjs(v).format("HH:mm") : "");
-                    }}
-                    slotProps={{
-                      textField: {
-                        className: "time-slot-props",
-                        InputProps: {
-                          sx: {
-                            padding: 0,
-                            height: "100%",
-                            "& fieldset": { border: "none" },
-                          },
-                        },
-                        sx: {
-                          padding: 0,
-                          margin: 0,
-                          height: "100%",
-                          "& .MuiInputBase-root": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                          "& .MuiInputBase-input": {
-                            height: "100%",
-                            padding: 0,
-                          },
-                        },
-                      },
-                    }}
-                  />
-                </LocalizationProvider>
-              </div>
-            ) : (
-              <>
-                <input
-                  name={elem.key}
-                  type={elem.type}
-                  className="input-text"
-                  onChange={(e) => elem.onChange(e.target.value)}
-                  value={elem.value}
-                />
-              </>
-            )}
-          </div>
-        ))}
-
-        <div className="flex gap-2">
-          <input
-            type="text"
-            className="input-text"
-            value={godParentName}
-            onChange={(e) => setGodParentName(e.target.value)}
-            placeholder="Godparent name"
-          />
-
-          <button
-            type="button"
-            onClick={addGodParent}
-            className="px-4 py-2 bg-red-400"
-          >
-            Add Additional Godparent
-          </button>
-        </div>
-      </div>
-
-      <div className="form-container">
-        {uploadFiles.map((elem) => (
-          <div key={elem.key} className="per-grid-container">
-            <div>
-              <h1>{elem.title}</h1>
-
-              <input
-                ref={elem.ref}
-                type="file"
-                accept="*/*"
-                className="inputFile-properties"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-
-                  elem.fileSetter(file);
-                  elem.previewSetter({
-                    url: URL.createObjectURL(file),
-                    type: file.type,
-                    name: file.name,
-                  });
-                }}
-              />
+              >
+                <option value="" disabled hidden>Select marriage type</option>
+                <option value="Catholic">Catholic</option>
+                <option value="Civil">Civil</option>
+                <option value="Natural">Natural</option>
+                <option value="Not married">Not married</option>
+              </select>
             </div>
           </div>
-        ))}
-      </div>
-      <div className="w-full flex justify-center">
-        <button className="submit-button" onClick={handleUpload}>
-          {isLoading ? `Submitting...` : `Submit Booking`}
-        </button>
+        </div>
+
+        {/* SECTION 3: GODPARENTS */}
+        <div className="form-section">
+          <h2 className="section-title">3. Godparents</h2>
+          <div className="grid-layout">
+            {inputGodParents.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>{elem.title}</h1>
+                <input
+                  type="text"
+                  className="input-text"
+                  onChange={(e) => elem.onChange(e.target.value)}
+                  value={elem.value}
+                />
+              </div>
+            ))}
+
+            <div className="input-group">
+              <h1>Additional Godparent</h1>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <input
+                  type="text"
+                  className="input-text"
+                  value={godParentName}
+                  onChange={(e) => setGodParentName(e.target.value)}
+                  placeholder="Enter full name"
+                />
+                <button type="button" onClick={addGodParent} className="add-btn">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* <div className="godparent-list">
+        
+        </div> */}
+        </div>
+
+        {/* SECTION 4: DOCUMENT UPLOADS */}
+        <div className="form-section">
+          <h2 className="section-title">4. Required Documents</h2>
+          <div className="upload-grid">
+            {uploadFiles.map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <h1 style={{ fontSize: '0.85rem', marginBottom: '10px', color: '#424242' }}>{elem.title}</h1>
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="inputFile-properties"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    elem.fileSetter(file);
+                    elem.previewSetter(URL.createObjectURL(file));
+                  }}
+                />
+                {elem.preview && (
+                  <img src={elem.preview} className="image-preview" alt="preview" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SUBMIT SECTION */}
+        <div className="submit-btn-container">
+          <button className="submit-button" onClick={handleUpload} disabled={isLoading}>
+            {isLoading ? "Submitting..." : "Submit Booking"}
+          </button>
+        </div>
       </div>
     </div>
   );
