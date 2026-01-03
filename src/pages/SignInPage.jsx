@@ -212,6 +212,31 @@ export default function SignInPage() {
       );
       firebaseAuthSucceeded = true;
 
+      try {
+        const uid = firebaseUserCredential.user.uid;
+        const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
+        if (adminResponse.data.user) {
+          const adminUser = adminResponse.data.user;
+
+          if (adminUser.is_active === false) {
+            setError("Your account has been disabled. Please contact the administrator for assistance.");
+            setLoading(false);
+            return;
+          }
+
+          setCurrentUser(adminUser);
+          localStorage.setItem("currentUser", JSON.stringify(adminUser));
+          Cookies.set("email", inputEmail, { expires: 7 });
+          setShowSignin(false);
+          navigate("/admin/dashboard");
+          setLoading(false);
+          return;
+        }
+        
+      } catch (adminError) {
+        // Not an admin, continue to check email verification for regular users
+      }
+
       if (!firebaseUserCredential.user.emailVerified) {
         setError("Please verify your email address before logging in. Check your inbox for the verification link.");
         setLoading(false);
@@ -258,14 +283,15 @@ export default function SignInPage() {
               inputEmail,
               inputPassword
             );
-            
+
           } catch (adminFirebaseError) {
+            // Firebase auth failed for admin too, show error from original login attempt
             if (loginError.response.status === 401) {
               setError("Invalid email or password.");
 
             } else if (loginError.response.status === 404) {
               setError("No account found with this email.");
-              
+
             } else {
               setError("Failed to sign in. Please try again.");
             }
@@ -276,6 +302,7 @@ export default function SignInPage() {
         }
 
         const uid = adminUserCredential.user.uid;
+
           try {
             const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
             if (adminResponse.data.user) {
@@ -302,7 +329,7 @@ export default function SignInPage() {
 
             } else if (loginError.response.status === 404) {
               setError("No account found with this email.");
-              
+
             } else {
               setError("Failed to sign in. Please try again.");
             }
