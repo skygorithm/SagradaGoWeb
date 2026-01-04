@@ -5,10 +5,36 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { API_URL } from "../../Constants";
 import { generatePDFReport, generateExcelReport } from "../../utils/reportGenerator";
+import Logo from "../../assets/sagrada.png";
 
 const { Title } = Typography;
 const { Search } = Input;
 const { Option } = Select;
+
+const imageToBase64 = (imagePath) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      try {
+        const dataURL = canvas.toDataURL('image/png');
+        resolve(dataURL);
+
+      } catch (e) {
+        reject(e);
+      }
+    };
+    
+    img.onerror = reject;
+    const imageSrc = typeof imagePath === 'string' ? imagePath : (imagePath?.default || imagePath);
+    img.src = imageSrc;
+  });
+};
 
 export default function VolunteersList() {
   const [volunteers, setVolunteers] = useState([]);
@@ -353,10 +379,19 @@ export default function VolunteersList() {
         };
       });
 
+      let logoBase64 = null;
+      try {
+        logoBase64 = await imageToBase64(Logo);
+        
+      } catch (error) {
+        console.warn('Could not convert logo to base64:', error);
+      }
+
       await generatePDFReport({
         title: `Participants & Volunteers Report - ${activeTab === "all" ? "All" : activeTab === "registrations" ? "Participants" : "Volunteers"}`,
         columns: exportColumns,
-        data: exportData
+        data: exportData,
+        logoBase64
       });
 
       message.success("PDF report generated successfully!");
