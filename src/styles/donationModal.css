@@ -1,0 +1,136 @@
+.donation-modal .ant-modal-content {
+    border-radius: 20px;
+    padding: 24px !important;
+    background-color: #fcfcfc;
+}
+
+.donation-container {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.main-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: #333;
+}
+
+.sub-title {
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-line {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    right: 10px;
+    height: 5px;
+    background: #4caf50;
+    border-radius: 4px 4px 0 0;
+}
+
+.summary-card p {
+    color: #666;
+    margin: 8px 0;
+}
+
+.summary-card h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0;
+    color: #000;
+}
+
+.history-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.filter-select {
+    width: 100% !important;
+    margin-bottom: 20px;
+}
+
+.filter-select .ant-select-selector {
+    border-radius: 10px !important;
+    height: 45px !important;
+    display: flex;
+    align-items: center;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.history-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #eee;
+    border-left: 6px solid #ccc;
+}
+
+.history-card.orange-border {
+    border-left-color: #ffa500;
+}
+
+.history-card.green-border {
+    border-left-color: #4caf50;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.amount {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.type {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.date {
+    margin: 4px 0 0 0;
+    color: #999;
+    font-size: 12px;
+}
+
+.make-donation-btn {
+    width: 100%;
+    background: #333;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.make-donation-btn:hover {
+    background: #000;
+}
