@@ -14,7 +14,7 @@ import {
   UserAddOutlined,
   ReadOutlined,
   MedicineBoxOutlined,
-  RestOutlined,
+  EnvironmentOutlined,
   SafetyCertificateOutlined,
   ArrowLeftOutlined
 } from "@ant-design/icons";
@@ -30,7 +30,7 @@ export default function BookService() {
     confession: { title: "Sacrament of Reconciliation", desc: "Schedule private spiritual healing and confession with our parish priest.", icon: <SafetyCertificateOutlined /> },
     anointing: { title: "Anointing of the Sick", desc: "Request spiritual comfort and healing for the elderly or seriously ill.", icon: <MedicineBoxOutlined /> },
     communion: { title: "First Holy Communion", desc: "Register for the Eucharist. Completion of catechism is usually required.", icon: <ReadOutlined /> },
-    burial: { title: "Funeral & Burial Services", desc: "Arrange a respectful Catholic send-off for your loved ones.", icon: <RestOutlined /> },
+    burial: { title: "Funeral & Burial Services", desc: "Arrange a respectful Catholic send-off for your loved ones.", icon: <EnvironmentOutlined /> },
   };
 
   const currentService = serviceDetails[bookingSelected] || { title: "", desc: "" };
