@@ -234,12 +234,22 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       formData.append('physical_requirements', JSON.stringify(physicalRequirements));
 
       if (bookingType === 'Wedding') {
-        formData.append('groom_first_name', values.groom_first_name || '');
-        formData.append('groom_middle_name', values.groom_middle_name || '');
-        formData.append('groom_last_name', values.groom_last_name || '');
-        formData.append('bride_first_name', values.bride_first_name || '');
-        formData.append('bride_middle_name', values.bride_middle_name || '');
-        formData.append('bride_last_name', values.bride_last_name || '');
+        const groomNameParts = [
+          values.groom_first_name,
+          values.groom_middle_name,
+          values.groom_last_name
+        ].filter(part => part && part.trim());
+        const brideNameParts = [
+          values.bride_first_name,
+          values.bride_middle_name,
+          values.bride_last_name
+        ].filter(part => part && part.trim());
+        
+        const groomFullname = groomNameParts.join(' ').trim();
+        const brideFullname = brideNameParts.join(' ').trim();
+        
+        formData.append('groom_fullname', groomFullname);
+        formData.append('bride_fullname', brideFullname);
         formData.append('is_civilly_married', isCivillyMarried);
 
         if (groomPic) formData.append('groom_1x1', groomPic);
@@ -247,6 +257,21 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
         Object.keys(uploadedFiles).forEach(key => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
+        });
+
+        const requiredDocFields = [
+          'marriage_license',
+          'marriage_contract',
+          'groom_baptismal_cert',
+          'bride_baptismal_cert',
+          'groom_confirmation_cert',
+          'bride_confirmation_cert'
+        ];
+
+        requiredDocFields.forEach(field => {
+          if (!uploadedFiles[field]) {
+            formData.append(field, '');
+          }
         });
 
         await axios.post(`${API_URL}/createWedding`, formData);
