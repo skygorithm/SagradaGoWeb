@@ -65,7 +65,7 @@
 
 .custom-admin-menu .ant-menu-item-selected {
   background: #FFC942 !important;
-  color: #FFC942 !important;
+  color: #424242 !important;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
