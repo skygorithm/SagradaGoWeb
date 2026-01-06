@@ -6,11 +6,13 @@ import { API_URL } from "../Constants";
 import LoadingAnimation from "../components/LoadingAnimation";
 import "../styles/events.css";
 
+
 import Footer from '../components/Footer';
 
 import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
 import banner2 from "../assets/christmas.jpg";
 import banner3 from "../assets/dyd.jpg";
+import noImage from "../assets/blank-image.jpg"
 
 import {
   SearchOutlined,
@@ -145,12 +147,12 @@ export default function Events() {
             {filteredEvents.map((event, index) => (
               <div
                 key={event._id}
-                className="event-card"
+                className="event-card p-4!"
                 style={{ animationDelay: `${index * 0.1}s`, cursor: 'pointer' }}
                 onClick={() => setSelectedEvent(event)}
               >
                 <div className="event-image">
-                  <span>Event Image</span>
+                  <img src={event.image ? event.image : noImage} alt={event.title} className="w-full h-full" />
                 </div>
 
                 <div className="event-content">
@@ -171,6 +173,9 @@ export default function Events() {
                     </span>
                   </div>
                 </div>
+                <div className="w-full h-10 flex justify-center">
+                  <button className="bg-blue-300 h-full px-7! cursor-pointer rounded-xl">Volunteer</button>
+                </div>
               </div>
             ))}
           </div>
@@ -183,7 +188,7 @@ export default function Events() {
             <button className="eventmodal-close" onClick={closeeventmodal}>&times;</button>
 
             <div className="eventmodal-image-placeholder">
-              <span>Event Image</span>
+              <img src={selectedEvent.image ? selectedEvent.image : noImage} alt={selectedEvent.title} className='h-full aspect-square'/>
             </div>
 
             <div className="eventmodal-body">
