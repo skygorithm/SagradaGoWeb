@@ -21,6 +21,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
+import Logger from "../../utils/logger";
 
 const { Text, Title } = Typography;
 const { Option } = Select;
@@ -89,10 +90,13 @@ export default function AdminAnnouncements() {
           `${API_URL}/admin/updateAnnouncement/${editingData._id}`,
           payload
         );
+        await Logger.logUpdateAnnouncement(editingData._id, values.title);
         message.success("Announcement updated successfully");
 
       } else {
-        await axios.post(`${API_URL}/admin/createAnnouncement`, payload);
+        const response = await axios.post(`${API_URL}/admin/createAnnouncement`, payload);
+        const newAnnouncement = response.data?.announcement || response.data;
+        await Logger.logCreateAnnouncement(newAnnouncement?._id || newAnnouncement?.id, values.title);
         message.success("Announcement created successfully");
       }
 
@@ -110,7 +114,9 @@ export default function AdminAnnouncements() {
 
   const deleteAnnouncement = async (id) => {
     try {
+      const announcement = announcements.find(a => a._id === id);
       await axios.delete(`${API_URL}/admin/deleteAnnouncement/${id}`);
+      await Logger.logDeleteAnnouncement(id, announcement?.title || "Unknown");
       message.success("Announcement deleted");
       fetchAnnouncements();
 

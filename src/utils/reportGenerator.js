@@ -2,6 +2,7 @@ import jsPDF from "jspdf/dist/jspdf.umd.js";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import dayjs from "dayjs";
+import Logger from "./logger";
 
 export const generatePDFReport = async ({ title, columns, data, logoBase64 }) => {
   try {
@@ -95,13 +96,18 @@ export const generatePDFReport = async ({ title, columns, data, logoBase64 }) =>
 
     doc.save(`${titleStr.replace(/\s+/g, "_")}.pdf`);
 
+    await Logger.logGenerateReport("PDF", titleStr, {
+      columns_count: columns.length,
+      data_count: data.length,
+    });
+
   } catch (error) {
     console.error('Error generating PDF report:', error);
     alert('Failed to generate PDF report. Please check the console for details.');
   }
 };
 
-export const generateExcelReport = ({ fileName, data, columns }) => {
+export const generateExcelReport = async ({ fileName, data, columns }) => {
   try {
     const fileNameStr = typeof fileName === 'string' ? fileName : 'Report';
     const currentDate = dayjs().format("MMMM DD, YYYY");
@@ -169,6 +175,11 @@ export const generateExcelReport = ({ fileName, data, columns }) => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
     XLSX.writeFile(workbook, `${fileNameStr.replace(/\s+/g, "_")}.xlsx`);
 
+    await Logger.logGenerateReport("Excel", fileNameStr, {
+      columns_count: headers.length,
+      data_count: data.length,
+    });
+
   } catch (error) {
     console.error('Error generating Excel report:', error);
     alert('Failed to generate Excel report. Please check the console for details.');
@@ -186,7 +197,7 @@ export const generateReport = async ({ type = "pdf", title, columns, data, logoB
       await generatePDFReport({ title, columns, data, logoBase64 });
 
     } else if (type === "excel") {
-      generateExcelReport({ fileName: title, data, columns });
+      await generateExcelReport({ fileName: title, data, columns });
 
     } else {
       console.error("Unsupported report type:", type);

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../../Constants";
 import { auth } from "../../config/firebase";
+import Logger from "../../utils/logger";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -438,7 +439,11 @@ export default function AccountManagement() {
         }
       }
 
-      await axios.post(`${API_URL}/createUser`, createPayload);
+      const response = await axios.post(`${API_URL}/createUser`, createPayload);
+      const newUser = response.data.newUser;
+
+      const userName = `${formData.first_name} ${formData.last_name}`.trim();
+      await Logger.logCreateUser(newUser?.uid || uid, userName);
 
       message.success("User created successfully!");
       setShowAddModal(false);
@@ -486,7 +491,7 @@ export default function AccountManagement() {
 
       await sendEmailVerification(user);
 
-      await axios.post(`${API_URL}/createAdmin`, {
+      const response = await axios.post(`${API_URL}/createAdmin`, {
         first_name: adminFormData.first_name,
         middle_name: adminFormData.middle_name,
         last_name: adminFormData.last_name,
@@ -497,6 +502,10 @@ export default function AccountManagement() {
         password: adminFormData.password,
         uid: uid,
       });
+      const newAdmin = response.data?.admin || response.data?.newAdmin;
+
+      const adminName = `${adminFormData.first_name} ${adminFormData.last_name}`.trim();
+      await Logger.logCreateAdmin(newAdmin?._id || newAdmin?.id || uid, adminName);
 
       message.success("Admin account created successfully!");
       setShowAddAdminModal(false);
@@ -515,13 +524,17 @@ export default function AccountManagement() {
 
     } catch (error) {
       console.error("Error creating admin:", error);
+
       if (error.response) {
         message.error(error.response.data.message || "Failed to create admin.");
+
       } else if (error.code === "auth/email-already-in-use") {
         message.error("Email is already in use.");
+
       } else {
         message.error("Failed to create admin. Please try again.");
       }
+
     } finally {
       setLoading(false);
     }
@@ -538,6 +551,10 @@ export default function AccountManagement() {
             uid: uid,
             is_priest: newRole,
           });
+
+          const user = users.find(u => u.uid === uid);
+          const userName = user ? `${user.first_name} ${user.last_name}`.trim() : "Unknown User";
+          await Logger.logUpdateUser(uid, userName, { role_change: newRole ? "made_priest" : "removed_priest" });
 
           message.success("User role updated successfully!");
           fetchUsers();
@@ -575,6 +592,13 @@ export default function AccountManagement() {
             uid: uid,
             is_active: willEnable ? true : false,
           });
+
+          if (willEnable) {
+            await Logger.logEnableUser(uid, userName);
+
+          } else {
+            await Logger.logDisableUser(uid, userName);
+          }
 
           message.success(`Account ${willEnable ? 'enabled' : 'disabled'} successfully!`);
           fetchUsers();
@@ -731,6 +755,11 @@ export default function AccountManagement() {
       }
 
       await axios.put(`${API_URL}/updateUser`, updatePayload);
+
+      const userName = `${formData.first_name} ${formData.last_name}`.trim();
+      await Logger.logUpdateUser(editingUser.uid, userName, {
+        updated_fields: Object.keys(updatePayload).filter(key => key !== 'uid')
+      });
 
       message.success("User updated successfully!");
       setShowEditModal(false);

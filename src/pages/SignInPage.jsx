@@ -228,7 +228,9 @@ export default function SignInPage() {
         const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
 
         if (adminResponse.data?.user) {
-          setCurrentUser(adminResponse.data.user);
+          const adminUser = adminResponse.data.user;
+          setCurrentUser(adminUser);
+          localStorage.setItem("currentUser", JSON.stringify(adminUser));
           Cookies.set("email", inputEmail, { expires: 7 });
           navigate("/admin/dashboard");
           setShowSignin(false);

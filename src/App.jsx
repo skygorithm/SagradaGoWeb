@@ -22,6 +22,7 @@ import AddEvents from "./pages/admin/AddEvents";
 import Header from "./components/Header";
 import AdminLayout from "./components/AdminLayout";
 import AdminAnnouncements from "./pages/admin/AdminAnnouncement";
+import AdminLogs from "./pages/admin/AdminLogs";
 import AdminChat from "./components/AdminChat";
 import Notifications from "./components/Notifications";
 import FloatingButton from "./components/FloatingButton";
@@ -52,6 +53,7 @@ function AppContent() {
           <Route path="events" element={<AddEvents />} />
           <Route path="create" element={<AddAdmin />} />
           <Route path="announcements" element={<AdminAnnouncements />} />
+          <Route path="logs" element={<AdminLogs />} />
           <Route path="chat" element={<AdminChat />} />
           <Route path="notifications" element={<Notifications />} />
         </Route>

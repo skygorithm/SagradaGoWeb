@@ -42,6 +42,7 @@ import { API_URL } from "../../Constants";
 import { supabase } from "../../config/supabase";
 import dayjs from "dayjs";
 import { sacramentRequirements } from "../../utils/sacramentRequirements";
+import Logger from "../../utils/logger";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -274,7 +275,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           }
         });
 
-        await axios.post(`${API_URL}/createWedding`, formData);
+        const weddingResponse = await axios.post(`${API_URL}/createWedding`, formData);
+        await Logger.logCreateBooking(
+          weddingResponse.data?.wedding?.transaction_id || weddingResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId }
+        );
 
       } else if (bookingType === 'Baptism') {
         formData.append('candidate_first_name', values.candidate_first_name || '');
@@ -306,7 +312,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        await axios.post(`${API_URL}/createBaptism`, formData);
+        const baptismResponse = await axios.post(`${API_URL}/createBaptism`, formData);
+        await Logger.logCreateBooking(
+          baptismResponse.data?.baptism?.transaction_id || baptismResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId }
+        );
 
       } else if (bookingType === 'Burial') {
         formData.append('deceased_name', values.deceased_name || '');
@@ -326,14 +337,24 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        await axios.post(`${API_URL}/createBurial`, formData);
+        const burialResponse = await axios.post(`${API_URL}/createBurial`, formData);
+        await Logger.logCreateBooking(
+          burialResponse.data?.burial?.transaction_id || burialResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId }
+        );
 
       } else if (bookingType === 'Communion') {
         Object.keys(uploadedFiles).forEach(key => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        await axios.post(`${API_URL}/createCommunion`, formData);
+        const communionResponse = await axios.post(`${API_URL}/createCommunion`, formData);
+        await Logger.logCreateBooking(
+          communionResponse.data?.communion?.transaction_id || communionResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId }
+        );
 
       } else if (bookingType === 'Confirmation') {
         formData.append('sponsor_name', values.sponsor_name || '');
@@ -342,7 +363,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        await axios.post(`${API_URL}/createConfirmation`, formData);
+        const confirmationResponse = await axios.post(`${API_URL}/createConfirmation`, formData);
+        await Logger.logCreateBooking(
+          confirmationResponse.data?.confirmation?.transaction_id || confirmationResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId }
+        );
 
       } else if (bookingType === 'Anointing') {
         const payload = {
@@ -359,7 +385,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           physical_requirements: physicalRequirements,
         };
 
-        await axios.post(`${API_URL}/createAnointing`, payload);
+        const anointingResponse = await axios.post(`${API_URL}/createAnointing`, payload);
+        await Logger.logCreateBooking(
+          anointingResponse.data?.anointing?.transaction_id || anointingResponse.data?.transaction_id || payload.transaction_id,
+          bookingType,
+          { user_id: selectedUserId }
+        );
 
       } else if (bookingType === 'Confession') {
         const payload = {
@@ -374,7 +405,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           physical_requirements: physicalRequirements,
         };
 
-        await axios.post(`${API_URL}/createConfession`, payload);
+        const response = await axios.post(`${API_URL}/createConfession`, payload);
+        await Logger.logCreateBooking(
+          response.data?.booking?.transaction_id || response.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId }
+        );
       }
 
       message.success(`${bookingType} booking created successfully!`);
@@ -1425,6 +1461,16 @@ export default function BookingPendingRequests() {
         admin_comment: commentToUse,
       });
 
+      if (newStatus === "confirmed") {
+        await Logger.logApproveBooking(bookingId, bookingType);
+
+      } else if (newStatus === "cancelled" || newStatus === "rejected") {
+        await Logger.logRejectBooking(bookingId, bookingType);
+
+      } else {
+        await Logger.logUpdateBooking(bookingId, bookingType, { status: newStatus });
+      }
+
       message.success(`Booking ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`);
       fetchAllBookings();
       setDetailModalVisible(false);
@@ -1517,6 +1563,11 @@ export default function BookingPendingRequests() {
       };
 
       await axios.put(`${API_URL}/${endpoint}`, updateData);
+
+      await Logger.logUpdateBooking(selectedBooking.transaction_id, selectedBooking.bookingType, {
+        date: dateISO,
+        time: timeString,
+      });
 
       message.success("Booking updated successfully!");
       setEditModalVisible(false);

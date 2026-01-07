@@ -30,6 +30,7 @@ import {
 import axios from "axios";
 import { API_URL } from "../../Constants";
 import dayjs from "dayjs";
+import Logger from "../../utils/logger";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -202,14 +203,17 @@ export default function AddEvents() {
             "Content-Type": "multipart/form-data",
           },
         });
+        await Logger.logUpdateEvent(editingEvent._id, values.title);
         message.success("Event updated successfully!");
 
       } else {
-        await axios.post(`${API_URL}/admin/createEvent`, formData, {
+        const response = await axios.post(`${API_URL}/admin/createEvent`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
+        const newEvent = response.data?.event || response.data;
+        await Logger.logCreateEvent(newEvent?._id || newEvent?.id, values.title);
         message.success("Event created successfully!");
       }
 
@@ -258,7 +262,9 @@ export default function AddEvents() {
   const handleDelete = async (eventId) => {
     try {
       setLoading(true);
+      const event = events.find(e => e._id === eventId);
       await axios.delete(`${API_URL}/admin/deleteEvent/${eventId}`);
+      await Logger.logDeleteEvent(eventId, event?.title || "Unknown");
       message.success("Event deleted successfully!");
       fetchEvents();
 
