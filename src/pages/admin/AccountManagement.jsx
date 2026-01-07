@@ -1522,7 +1522,7 @@ export default function AccountManagement() {
                         allowClear
                       >
                         <Option value="Permanent">Permanent</Option>
-                        <Option value="Temporary">Temporary</Option>
+                        <Option value="Floating">Floating</Option>
                       </Select>
                     </Form.Item>
                   </Col>
@@ -1837,7 +1837,7 @@ export default function AccountManagement() {
                         allowClear
                       >
                         <Option value="Permanent">Permanent</Option>
-                        <Option value="Temporary">Temporary</Option>
+                        <Option value="Floating">Floating</Option>
                       </Select>
                     </Form.Item>
                   </Col>
