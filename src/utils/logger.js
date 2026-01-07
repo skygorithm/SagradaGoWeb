@@ -33,7 +33,7 @@ class Logger {
 
       if (adminData) {
         admin = JSON.parse(adminData);
-
+        
       } else {
         adminData = localStorage.getItem("currentUser");
 
@@ -57,6 +57,7 @@ class Logger {
     } catch (error) {
       console.error("Error getting admin info:", error);
     }
+
     return { id: null, name: null, email: null };
   }
 
@@ -143,6 +144,24 @@ class Logger {
   static async logDeleteUser(userId, userName) {
     await this.log({
       action: "DELETE_USER",
+      entity_type: "USER",
+      entity_id: userId,
+      entity_name: userName,
+    });
+  }
+
+  static async logArchiveUser(userId, userName) {
+    await this.log({
+      action: "ARCHIVE_USER",
+      entity_type: "USER",
+      entity_id: userId,
+      entity_name: userName,
+    });
+  }
+
+  static async logUnarchiveUser(userId, userName) {
+    await this.log({
+      action: "UNARCHIVE_USER",
       entity_type: "USER",
       entity_id: userId,
       entity_name: userName,

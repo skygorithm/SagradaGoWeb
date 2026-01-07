@@ -42,6 +42,7 @@ import {
   StopOutlined,
   CheckCircleOutlined,
   CalendarOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
@@ -69,7 +70,8 @@ export default function AccountManagement() {
   const [showEventsModal, setShowEventsModal] = useState(false);
   const [eventsSearchTerm, setEventsSearchTerm] = useState("");
   const [eventsFilterType, setEventsFilterType] = useState("all"); 
-  const [eventsStatusFilter, setEventsStatusFilter] = useState("all"); 
+  const [eventsStatusFilter, setEventsStatusFilter] = useState("all");
+  const [showArchived, setShowArchived] = useState(false); 
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -109,7 +111,7 @@ export default function AccountManagement() {
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm, filterType, statusFilter]);
+  }, [users, searchTerm, filterType, statusFilter, showArchived]);
 
   const filteredEvents = userVolunteers.filter((volunteer) => {
     if (eventsSearchTerm) {
@@ -168,6 +170,13 @@ export default function AccountManagement() {
 
   const filterUsers = () => {
     let filtered = users;
+
+    // Filter by archived status
+    if (!showArchived) {
+      filtered = filtered.filter((user) => !user.is_archived);
+    } else {
+      filtered = filtered.filter((user) => user.is_archived === true);
+    }
 
     if (filterType === "priests") {
       filtered = filtered.filter((user) => user.is_priest === true);
@@ -503,7 +512,7 @@ export default function AccountManagement() {
         uid: uid,
       });
       const newAdmin = response.data?.admin || response.data?.newAdmin;
-
+  
       const adminName = `${adminFormData.first_name} ${adminFormData.last_name}`.trim();
       await Logger.logCreateAdmin(newAdmin?._id || newAdmin?.id || uid, adminName);
 
@@ -527,10 +536,10 @@ export default function AccountManagement() {
 
       if (error.response) {
         message.error(error.response.data.message || "Failed to create admin.");
-
+      
       } else if (error.code === "auth/email-already-in-use") {
         message.error("Email is already in use.");
-
+      
       } else {
         message.error("Failed to create admin. Please try again.");
       }
@@ -593,6 +602,7 @@ export default function AccountManagement() {
             is_active: willEnable ? true : false,
           });
 
+
           if (willEnable) {
             await Logger.logEnableUser(uid, userName);
 
@@ -606,6 +616,70 @@ export default function AccountManagement() {
         } catch (error) {
           console.error("Error updating account status:", error);
           message.error(error.response?.data?.message || "Failed to update account status.");
+
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleArchiveUser = async (uid, userName, userRecord = null) => {
+    Modal.confirm({
+      title: "Archive Account",
+      content: `Are you sure you want to archive the account for ${userName}? The account will be moved to the archive database and will not appear in the active users list.`,
+      okText: "Archive",
+      okButtonProps: {
+        danger: true,
+      },
+      onOk: async () => {
+        try {
+          setLoading(true);
+
+          await axios.put(`${API_URL}/archiveUser`, {
+            uid: uid,
+          });
+
+          await Logger.logArchiveUser(uid, userName);
+
+          message.success("Account archived successfully!");
+          fetchUsers();
+
+        } catch (error) {
+          console.error("Error archiving account:", error);
+          message.error(error.response?.data?.message || "Failed to archive account.");
+
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleUnarchiveUser = async (uid, userName, userRecord = null) => {
+    Modal.confirm({
+      title: "Unarchive Account",
+      content: `Are you sure you want to unarchive the account for ${userName}? The account will be restored to the active users list.`,
+      okText: "Unarchive",
+      okButtonProps: {
+        style: { backgroundColor: "#52c41a", borderColor: "#52c41a" },
+      },
+      onOk: async () => {
+        try {
+          setLoading(true);
+
+          await axios.put(`${API_URL}/unarchiveUser`, {
+            uid: uid,
+          });
+
+          await Logger.logUnarchiveUser(uid, userName);
+
+          message.success("Account unarchived successfully!");
+          fetchUsers();
+
+        } catch (error) {
+          console.error("Error unarchiving account:", error);
+          message.error(error.response?.data?.message || "Failed to unarchive account.");
 
         } finally {
           setLoading(false);
@@ -851,6 +925,13 @@ export default function AccountManagement() {
       dataIndex: "is_active",
       key: "status",
       render: (isActive, record) => {
+        if (record.is_archived) {
+          return (
+            <Tag color="default">
+              Archived
+            </Tag>
+          );
+        }
         const active = record.is_active === true;
         return (
           <Tag color={active ? "green" : "red"}>
@@ -864,6 +945,7 @@ export default function AccountManagement() {
       key: "actions",
       render: (_, record) => {
         const isActive = record.is_active === true;
+        const isArchived = record.is_archived === true;
         const userName = `${record.first_name} ${record.last_name}`.trim() || record.email;
 
         return (
@@ -877,28 +959,58 @@ export default function AccountManagement() {
               title="View Details"
             />
 
-            <Button
-              type={record.is_priest ? "default" : "primary"}
-              className={record.is_priest ? "dangerborder-btn" : "border-btn"}
-              style={{ padding: '15px 14px' }}
-              onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
-              loading={loading}
-            >
-              {record.is_priest ? "Remove Priest" : "Make Priest"}
-            </Button>
+            {!isArchived && (
+              <>
+                <Button
+                  type={record.is_priest ? "default" : "primary"}
+                  className={record.is_priest ? "dangerborder-btn" : "border-btn"}
+                  style={{ padding: '15px 14px' }}
+                  onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
+                  loading={loading}
+                >
+                  {record.is_priest ? "Remove Priest" : "Make Priest"}
+                </Button>
 
-            <Button
-              type={isActive ? "default" : "primary"}
-              danger={isActive}
-              icon={isActive ? <StopOutlined /> : <CheckCircleOutlined />}
-              onClick={() => handleToggleAccountStatus(record.uid, record.is_active, userName, record)}
-              loading={loading}
-              className={isActive ? "dangerborder-btn" : "border-btn"}
-              style={{ padding: '10px' }}
-              title={isActive ? "Disable Account" : "Enable Account"}
-            >
-              {isActive ? "Disable" : "Enable"}
-            </Button>
+                <Button
+                  type={isActive ? "default" : "primary"}
+                  danger={isActive}
+                  icon={isActive ? <StopOutlined /> : <CheckCircleOutlined />}
+                  onClick={() => handleToggleAccountStatus(record.uid, record.is_active, userName, record)}
+                  loading={loading}
+                  className={isActive ? "dangerborder-btn" : "border-btn"}
+                  style={{ padding: '10px' }}
+                  title={isActive ? "Disable Account" : "Enable Account"}
+                >
+                  {isActive ? "Disable" : "Enable"}
+                </Button>
+
+                <Button
+                  type="default"
+                  danger
+                  icon={<InboxOutlined />}
+                  onClick={() => handleArchiveUser(record.uid, userName, record)}
+                  loading={loading}
+                  className="dangerborder-btn"
+                  style={{ padding: '10px' }}
+                  title="Archive Account"
+                >
+                  Archive
+                </Button>
+              </>
+            )}
+
+            {isArchived && (
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                onClick={() => handleUnarchiveUser(record.uid, userName, record)}
+                loading={loading}
+                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a", padding: '10px' }}
+                title="Unarchive Account"
+              >
+                Unarchive
+              </Button>
+            )}
           </Space>
         );
       }
@@ -1031,6 +1143,15 @@ export default function AccountManagement() {
                   <Option value="disabled">Disabled</Option>
                 </Select>
               </div>
+              <div style={{ flex: '0 0 150px', display: 'flex', alignItems: 'flex-end' }}>
+                <Checkbox
+                  checked={showArchived}
+                  onChange={(e) => setShowArchived(e.target.checked)}
+                  style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 500 }}
+                >
+                  Show Archived
+                </Checkbox>
+              </div>
             </div>
           </div>
           <div style={{ padding: "16px 24px" }}>
@@ -1081,7 +1202,7 @@ export default function AccountManagement() {
             <Text strong style={{ fontSize: 16, fontFamily: 'Poppins' }}>
               {activeTab === "users" && `Users (${filteredUsers.length})`}
               {activeTab === "priests" && `Priests (${filteredUsers.length})`}
-              {activeTab === "all" && `All Accounts (${filteredUsers.length})`}
+              {activeTab === "all" && `${showArchived ? 'Archived' : 'All'} Accounts (${filteredUsers.length})`}
             </Text>
           </div>
           <Table
@@ -1191,13 +1312,26 @@ export default function AccountManagement() {
                     <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
                       Account Status
                     </Text>
-                    <Tag color={viewingUser.is_active === true ? "green" : "red"} style={{ fontSize: "14px", padding: "4px 12px" }}>
-                      {viewingUser.is_active === true ? "Active" : "Disabled"}
-                    </Tag>
-                    {viewingUser.is_active !== true && (
-                      <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: "12px" }}>
-                        This account is disabled and cannot log in
-                      </Text>
+                    {viewingUser.is_archived ? (
+                      <>
+                        <Tag color="default" style={{ fontSize: "14px", padding: "4px 12px" }}>
+                          Archived
+                        </Tag>
+                        <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: "12px" }}>
+                          This account has been archived
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Tag color={viewingUser.is_active === true ? "green" : "red"} style={{ fontSize: "14px", padding: "4px 12px" }}>
+                          {viewingUser.is_active === true ? "Active" : "Disabled"}
+                        </Tag>
+                        {viewingUser.is_active !== true && (
+                          <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: "12px" }}>
+                            This account is disabled and cannot log in
+                          </Text>
+                        )}
+                      </>
                     )}
                   </div>
                 </Col>
@@ -1320,28 +1454,60 @@ export default function AccountManagement() {
                 >
                   Close
                 </Button>
-                <Button
-                  type={viewingUser.is_active === true ? "default" : "primary"}
-                  danger={viewingUser.is_active === true}
-                  icon={viewingUser.is_active === true ? <StopOutlined /> : <CheckCircleOutlined />}
-                  onClick={() => handleToggleAccountStatus(
-                    viewingUser.uid,
-                    viewingUser.is_active,
-                    `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
-                    viewingUser
-                  )}
-                  loading={loading}
-                >
-                  {viewingUser.is_active === true ? "Disable Account" : "Enable Account"}
-                </Button>
-                <Button
-                  type="primary"
-                  icon={<EditOutlined />}
-                  onClick={() => handleEditUser(viewingUser)}
-                  style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
-                >
-                  Edit User
-                </Button>
+                {!viewingUser.is_archived && (
+                  <>
+                    <Button
+                      type={viewingUser.is_active === true ? "default" : "primary"}
+                      danger={viewingUser.is_active === true}
+                      icon={viewingUser.is_active === true ? <StopOutlined /> : <CheckCircleOutlined />}
+                      onClick={() => handleToggleAccountStatus(
+                        viewingUser.uid,
+                        viewingUser.is_active,
+                        `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
+                        viewingUser
+                      )}
+                      loading={loading}
+                    >
+                      {viewingUser.is_active === true ? "Disable Account" : "Enable Account"}
+                    </Button>
+                    <Button
+                      type="default"
+                      danger
+                      icon={<InboxOutlined />}
+                      onClick={() => handleArchiveUser(
+                        viewingUser.uid,
+                        `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
+                        viewingUser
+                      )}
+                      loading={loading}
+                    >
+                      Archive Account
+                    </Button>
+                    <Button
+                      type="primary"
+                      icon={<EditOutlined />}
+                      onClick={() => handleEditUser(viewingUser)}
+                      style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+                    >
+                      Edit User
+                    </Button>
+                  </>
+                )}
+                {viewingUser.is_archived && (
+                  <Button
+                    type="primary"
+                    icon={<CheckCircleOutlined />}
+                    onClick={() => handleUnarchiveUser(
+                      viewingUser.uid,
+                      `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
+                      viewingUser
+                    )}
+                    loading={loading}
+                    style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                  >
+                    Unarchive Account
+                  </Button>
+                )}
               </div>
             </div>
           )}
