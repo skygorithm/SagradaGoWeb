@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Table,
@@ -62,14 +62,10 @@ export default function DonationsList() {
   const [selectedImageTitle, setSelectedImageTitle] = useState("");
 
   useEffect(() => {
-    fetchDonations();
-  }, [statusFilter, pagination.page]);
-
-  useEffect(() => {
     filterDonations();
   }, [searchTerm, paymentMethodFilter, donations]);
 
-  const fetchDonations = async () => {
+  const fetchDonations = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -87,11 +83,11 @@ export default function DonationsList() {
 
       setDonations(response.data.donations || []);
       setStats(response.data.stats || stats);
-      setPagination({
-        ...pagination,
+      setPagination((prev) => ({
+        ...prev,
         total: response.data.pagination.total,
         pages: response.data.pagination.pages,
-      });
+      }));
 
     } catch (error) {
       console.error("Error fetching donations:", error);
@@ -100,7 +96,19 @@ export default function DonationsList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    fetchDonations();
+  }, [fetchDonations]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      fetchDonations();
+    }, 5000); 
+
+    return () => clearInterval(intervalId);
+  }, [fetchDonations]);
 
   const filterDonations = () => {
     let filtered = donations;
