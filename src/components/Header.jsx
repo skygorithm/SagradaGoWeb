@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Logo from "../assets/sagrada.png";
 import { Modal } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
+import VirtualTour from "./VirtualTour";
 
 export default function Header() {
   const { setSelectedNavbar, setShowSignin, setShowSignup, setActiveDropdown, setBookingSelected } =
@@ -18,6 +19,7 @@ export default function Header() {
   const location = useLocation();
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showVirtualTour, setShowVirtualTour] = useState(false);
   console.log("email", email);
   
   
@@ -91,6 +93,11 @@ export default function Header() {
             onMouseLeave={() => handleMouseLeave(elem.id)}
           />
         ))}
+        <NavButton
+          id="virtual-tour"
+          text="Virtual Tour"
+          onClick={() => setShowVirtualTour(true)}
+        />
       </div>
 
       <div className="signin-container">
@@ -186,6 +193,8 @@ export default function Header() {
           </div>
         </div>
       </Modal>
+
+      <VirtualTour isOpen={showVirtualTour} onClose={() => setShowVirtualTour(false)} />
     </div>
   );
 }

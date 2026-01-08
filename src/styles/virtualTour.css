@@ -1,0 +1,275 @@
+.virtual-tour-modal {
+  max-width: 100vw;
+}
+
+.virtual-tour-modal.fullscreen {
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.virtual-tour-modal .ant-modal-content {
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.virtual-tour-modal.fullscreen .ant-modal-content {
+  border-radius: 0 !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  display: flex;
+  flex-direction: column;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.virtual-tour-modal.fullscreen .ant-modal-body {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden;
+}
+
+.virtual-tour-container {
+  background-color: #000;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+}
+
+.virtual-tour-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.virtual-tour-title h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.virtual-tour-title p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.fullscreen-toggle-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: background-color 0.2s ease;
+}
+
+.fullscreen-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.virtual-tour-image-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  overflow: hidden;
+  background-color: #000;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.virtual-tour-image-container:active {
+  cursor: grabbing;
+}
+
+.virtual-tour-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.virtual-tour-loading p {
+  margin-top: 16px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.virtual-tour-panorama-wrapper {
+  width: 300%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+.virtual-tour-panorama-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.virtual-tour-instruction {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #fff;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.virtual-tour-description {
+  padding: 20px 24px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.virtual-tour-description p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #ddd;
+  text-align: justify;
+}
+
+.virtual-tour-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.virtual-tour-nav-btn {
+  background-color: #FFC942;
+  border: none;
+  color: #424242;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.virtual-tour-nav-btn:hover {
+  background-color: #ffd966;
+  transform: translateY(-1px);
+}
+
+.virtual-tour-nav-btn:active {
+  transform: translateY(0);
+}
+
+.virtual-tour-dots {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.virtual-tour-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background-color: #666;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.virtual-tour-dot:hover {
+  background-color: #999;
+  transform: scale(1.2);
+}
+
+.virtual-tour-dot.active {
+  background-color: #FFC942;
+  width: 12px;
+  height: 12px;
+}
+
+/* Fullscreen styles */
+.virtual-tour-modal.fullscreen .virtual-tour-image-container {
+  height: calc(100vh - 200px);
+  flex: 1;
+}
+
+.virtual-tour-modal.fullscreen .virtual-tour-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .virtual-tour-image-container {
+    height: 400px;
+  }
+
+  .virtual-tour-header {
+    padding: 16px;
+  }
+
+  .virtual-tour-title h2 {
+    font-size: 20px;
+  }
+
+  .virtual-tour-controls {
+    padding: 16px;
+  }
+
+  .virtual-tour-nav-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+}
+
