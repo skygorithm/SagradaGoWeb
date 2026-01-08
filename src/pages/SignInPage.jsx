@@ -183,6 +183,7 @@ import { auth } from "../config/firebase";
 import Button from "../components/Button";
 import { NavbarContext } from "../context/AllContext";
 import SignUpPage from "./SignUpPage";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -197,6 +198,7 @@ export default function SignInPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   async function SignIn() {
     setError("");
@@ -440,9 +442,22 @@ export default function SignInPage() {
               {loading ? "Signing in..." : "Sign In"}
             </button>
 
+            <button
+              onClick={() => setShowForgotPassword(true)}
+              className="modal-link"
+              disabled={loading}
+            >
+              Forgot Password?
+            </button>
+
             <button onClick={() => setShowSignup(true)} className="modal-link">
               No account yet? Sign up
             </button>
+
+            <ForgotPasswordModal
+              visible={showForgotPassword}
+              onClose={() => setShowForgotPassword(false)}
+            />
           </div>
         </div>
       )}
