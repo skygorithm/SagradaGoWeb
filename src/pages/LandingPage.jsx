@@ -17,6 +17,7 @@ import {
 
 import parishImg from '../assets/SAGRADA-FAMILIA-PARISH.jpg';
 import { useNavigate } from "react-router-dom";
+import VirtualTour from "../components/VirtualTour";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ export default function LandingPage() {
   const scrollToAbout = () => {
     aboutRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const [showVirtualTour, setShowVirtualTour] = useState(false);
+
 
   return (
     <ConfigProvider theme={{ token: { colorPrimary: '#FFC942' } }}>
@@ -140,20 +144,22 @@ export default function LandingPage() {
             <div className="tour-text">
               <CompassOutlined className="section-icon-top" />
               <span className="accent-label">Digital Sanctuary</span>
-              <p>Take a spiritual journey through our sacred halls with our interactive 360° virtual tour, designed for those who cannot join us in person.</p>
-              <button className="tour-cta">
+              <p>
+                Take a spiritual journey through our sacred halls with our
+                interactive 360° virtual tour, designed for those who cannot join us in person.
+              </p>
+              <button className="tour-cta" onClick={() => setShowVirtualTour(true)}>
                 <PlayCircleOutlined /> Enter Virtual Tour
               </button>
             </div>
             <div className="tour-visual">
-              <div className="visual-glass-card">
+              <div className="visual-glass-card" onClick={() => setShowVirtualTour(true)} style={{ cursor: 'pointer' }}>
                 <div className="pulse-point"></div>
                 <p>Interactive View Ready</p>
               </div>
             </div>
           </div>
         </section>
-
       </div>
 
       {/* Mass Schedule Modal */}
@@ -186,6 +192,9 @@ export default function LandingPage() {
       </Modal>
       {showSignin && <SignInPage />}
       <Footer />
+
+      <VirtualTour isOpen={showVirtualTour} onClose={() => setShowVirtualTour(false)} />
+
     </ConfigProvider>
   );
 }
