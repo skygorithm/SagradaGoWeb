@@ -21,6 +21,29 @@ export default function VirtualTour({ isOpen, onClose }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const isMouseDownRef = useRef(false);
 
+  const tourWrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    if (!document.fullscreenElement) {
+      try {
+        if (tourWrapperRef.current.requestFullscreen) {
+          await tourWrapperRef.current.requestFullscreen();
+        }
+      } catch (err) {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      }
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   const tourImages = [
     {
@@ -70,11 +93,14 @@ export default function VirtualTour({ isOpen, onClose }) {
       className={`virtual-tour-modal ${isFullscreen ? 'fullscreen-mode' : ''}`}
       styles={{
         body: { padding: 0 },
-        content: { borderRadius: isFullscreen ? 0 : '12px', overflow: 'hidden', backgroundColor: '#fff' }
+        content: {
+          borderRadius: isFullscreen ? 0 : '12px',
+          overflow: 'hidden',
+          backgroundColor: '#000'
+        }
       }}
     >
-      <div className="virtual-tour-wrapper">
-
+      <div className="virtual-tour-wrapper" ref={tourWrapperRef}>
         {!isFullscreen && (
           <div className="virtual-tour-header">
             <div className="virtual-tour-title">
@@ -82,7 +108,7 @@ export default function VirtualTour({ isOpen, onClose }) {
               <p>Virtual Tour - 360° Experience</p>
             </div>
             <div className="header-button-group">
-              <button className="header-icon-btn" onClick={() => setIsFullscreen(true)}>
+              <button className="header-icon-btn" onClick={toggleFullscreen}>
                 <ExpandOutlined />
               </button>
               <button className="header-icon-btn close-btn" onClick={onClose}>
@@ -101,9 +127,10 @@ export default function VirtualTour({ isOpen, onClose }) {
           onTouchStart={(e) => { setIsDragging(true); setDragStart(e.touches[0].clientX); }}
           onTouchMove={(e) => handleDrag(e.touches[0].clientX)}
           onTouchEnd={() => setIsDragging(false)}
+          style={{ height: isFullscreen ? '100vh' : '500px' }}
         >
           {isFullscreen && (
-            <button className="exit-fs-overlay" onClick={() => setIsFullscreen(false)}>
+            <button className="exit-fs-overlay" onClick={toggleFullscreen}>
               <FullscreenExitOutlined /> Exit Fullscreen
             </button>
           )}
