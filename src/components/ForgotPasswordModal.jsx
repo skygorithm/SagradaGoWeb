@@ -46,7 +46,7 @@ export default function ForgotPasswordModal({ visible, onClose }) {
 
       setSuccess(true);
       setEmail("");
-      
+
     } catch (error) {
       console.error("Forgot password error:", error);
 
@@ -129,31 +129,18 @@ export default function ForgotPasswordModal({ visible, onClose }) {
 
             {error && <p className="modal-error">{error}</p>}
 
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                marginTop: "10px",
-              }}
-            >
+            <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button
-                className="modal-link"
+                className="border-btn"
+                style={{ padding: '10px', width: '100%' }}
                 onClick={handleClose}
                 disabled={loading}
-                style={{
-                  flex: 1,
-                  textAlign: "center",
-                  padding: "8px",
-                  border: "1px solid #ccc",
-                  borderRadius: "6px",
-                  background: "#f5f5f5",
-                }}
               >
                 Cancel
               </button>
               <button
                 className="filled-btn"
-                style={{ padding: "8px", fontSize: "14px", flex: 1 }}
+                style={{ padding: '10px', width: '100%' }}
                 onClick={handleForgotPassword}
                 disabled={loading}
               >
