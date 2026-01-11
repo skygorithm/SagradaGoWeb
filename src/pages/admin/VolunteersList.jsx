@@ -107,8 +107,10 @@ export default function VolunteersList() {
     return filtered;
   }, []);
 
-  const fetchVolunteers = useCallback(async () => {
-    setLoading(true);
+  const fetchVolunteers = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
     try {
       const response = await axios.post(`${API_URL}/getAllVolunteers`, {});
       const fetchedVolunteers = response?.data?.volunteers || [];
@@ -146,10 +148,14 @@ export default function VolunteersList() {
 
     } catch (err) {
       console.error("Error fetching volunteers:", err);
-      message.error("Failed to fetch volunteers. Please try again.");
+      if (!silent) {
+        message.error("Failed to fetch volunteers. Please try again.");
+      }
 
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [searchText, statusFilter, monthFilter, activeTab, applyAllFilters]);
 
@@ -182,7 +188,7 @@ export default function VolunteersList() {
     try {
       await axios.put(`${API_URL}/updateVolunteerStatus`, { volunteer_id, status: newStatus });
       message.success(`Status updated to ${newStatus} successfully.`);
-      fetchVolunteers();
+      fetchVolunteers(true);
 
     } catch (err) {
       console.error("Error updating volunteer:", err);
@@ -194,12 +200,12 @@ export default function VolunteersList() {
   };
 
   useEffect(() => {
-    fetchVolunteers();
+    fetchVolunteers(true);
   }, [fetchVolunteers]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      fetchVolunteers();
+      fetchVolunteers(false);
     }, 5000); 
 
     return () => clearInterval(intervalId);
