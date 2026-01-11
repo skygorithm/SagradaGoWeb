@@ -536,7 +536,7 @@ export default function AdminDashboard() {
         <Row gutter={[16, 16]}>
           <Col span={24}>
             <Text strong>{isEvent ? "Type:" : "Booking Type:"}</Text>
-            <div>{isEvent ? (selectedBooking.title || selectedBooking.type) : (selectedBooking.bookingType || selectedBooking.type)}</div>
+            <div>{isEvent ? (selectedBooking.type || "Event") : (selectedBooking.bookingType || selectedBooking.type)}</div>
           </Col>
           {isEvent && selectedBooking.title && (
             <Col span={24}>
@@ -552,7 +552,7 @@ export default function AdminDashboard() {
           )}
           {details.map(({ key, value }) => {
             // Skip fields that are already displayed above
-            if (isEvent && ["title", "type"].includes(key)) return null;
+            if (isEvent && ["title", "type", "status"].includes(key)) return null;
             if (!isEvent && ["bookingType", "type", "status"].includes(key)) return null;
             
             // Format display names
