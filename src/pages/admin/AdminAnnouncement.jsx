@@ -37,28 +37,34 @@ export default function AdminAnnouncements() {
 
   const [form] = Form.useForm();
 
-  const fetchAnnouncements = useCallback(async () => {
+  const fetchAnnouncements = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       const res = await axios.get(`${API_URL}/getAnnouncements`);
       setAnnouncements(res.data || []);
 
     } catch (error) {
       console.error(error);
-      message.error("Failed to load announcements");
+      if (!silent) {
+        message.error("Failed to load announcements");
+      }
 
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    fetchAnnouncements();
+    fetchAnnouncements(true);
   }, [fetchAnnouncements]);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      fetchAnnouncements();
+      fetchAnnouncements(false);
     }, 5000); 
 
     return () => clearInterval(intervalId);
@@ -108,7 +114,7 @@ export default function AdminAnnouncements() {
         message.success("Announcement created successfully");
       }
 
-      fetchAnnouncements();
+      fetchAnnouncements(true);
       setIsModalOpen(false);
 
     } catch (error) {
@@ -126,7 +132,7 @@ export default function AdminAnnouncements() {
       await axios.delete(`${API_URL}/admin/deleteAnnouncement/${id}`);
       await Logger.logDeleteAnnouncement(id, announcement?.title || "Unknown");
       message.success("Announcement deleted");
-      fetchAnnouncements();
+      fetchAnnouncements(true);
 
     } catch (error) {
       console.error(error);
