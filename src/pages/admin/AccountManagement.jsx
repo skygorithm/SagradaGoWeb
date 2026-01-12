@@ -71,11 +71,11 @@ export default function AccountManagement() {
   const [loadingVolunteers, setLoadingVolunteers] = useState(false);
   const [showEventsModal, setShowEventsModal] = useState(false);
   const [eventsSearchTerm, setEventsSearchTerm] = useState("");
-  const [eventsFilterType, setEventsFilterType] = useState("all"); 
+  const [eventsFilterType, setEventsFilterType] = useState("all");
   const [eventsStatusFilter, setEventsStatusFilter] = useState("all");
   const [showArchived, setShowArchived] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
-  const [resettingPasswordUser, setResettingPasswordUser] = useState(null); 
+  const [resettingPasswordUser, setResettingPasswordUser] = useState(null);
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -516,7 +516,7 @@ export default function AccountManagement() {
         uid: uid,
       });
       const newAdmin = response.data?.admin || response.data?.newAdmin;
-  
+
       const adminName = `${adminFormData.first_name} ${adminFormData.last_name}`.trim();
       await Logger.logCreateAdmin(newAdmin?._id || newAdmin?.id || uid, adminName);
 
@@ -540,10 +540,10 @@ export default function AccountManagement() {
 
       if (error.response) {
         message.error(error.response.data.message || "Failed to create admin.");
-      
+
       } else if (error.code === "auth/email-already-in-use") {
         message.error("Email is already in use.");
-      
+
       } else {
         message.error("Failed to create admin. Please try again.");
       }
@@ -716,9 +716,9 @@ export default function AccountManagement() {
 
     } catch (error) {
       console.error("Error sending password reset email:", error);
-      
+
       let errorMessage = "Failed to send password reset email. Please try again.";
-      
+
       if (error.code === "auth/invalid-email") {
         errorMessage = "Invalid email address.";
 
@@ -771,7 +771,7 @@ export default function AccountManagement() {
 
       } catch (error) {
         console.error("Error fetching user volunteers:", error);
-        
+
       } finally {
         setLoadingVolunteers(false);
       }
@@ -1209,8 +1209,8 @@ export default function AccountManagement() {
                 <Button
                   type={showArchived ? "primary" : "default"}
                   onClick={() => setShowArchived(!showArchived)}
-                  style={{ 
-                    fontFamily: 'Poppins, sans-serif', 
+                  style={{
+                    fontFamily: 'Poppins, sans-serif',
                     fontWeight: 500,
                     width: '100%',
                     height: '42px'
@@ -1513,14 +1513,6 @@ export default function AccountManagement() {
                 )}
               </Row>
               <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
-                <Button
-                  onClick={() => {
-                    setShowDetailsModal(false);
-                    setViewingUser(null);
-                  }}
-                >
-                  Close
-                </Button>
                 {!viewingUser.is_archived && (
                   <>
                     <Button
