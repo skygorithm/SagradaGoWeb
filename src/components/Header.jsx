@@ -11,6 +11,14 @@ import { Modal } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import VirtualTour from "./VirtualTour";
 
+const navbar = [
+  { id: "home", text: "Home", path: "/" },
+  { id: "book", text: "Book A Service", path: "/book-service" },
+  { id: "event", text: "Events", path: "/events" },
+  { id: "volunteer", text: "Be a Volunteer", path: "/be-volunteer" },
+  // { id: "donate", text: "Donate", path: "/donate" },
+];
+
 export default function Header() {
   const { setSelectedNavbar, setShowSignin, setShowSignup, setActiveDropdown, setBookingSelected } =
     useContext(NavbarContext);
@@ -22,15 +30,12 @@ export default function Header() {
   const [showVirtualTour, setShowVirtualTour] = useState(false);
   console.log("email", email);
 
-
-
-  const navbar = [
-    { id: "home", text: "Home", path: "/" },
-    { id: "book", text: "Book A Service", path: "/book-service" },
-    { id: "event", text: "Events", path: "/events" },
-    { id: "volunteer", text: "Be a Volunteer", path: "/be-volunteer" },
-    // { id: "donate", text: "Donate", path: "/donate" },
-  ];
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [location.pathname]);
 
   useEffect(() => {
     const currentNavItem = navbar.find(
@@ -41,7 +46,7 @@ export default function Header() {
     if (currentNavItem) {
       setSelectedNavbar(currentNavItem.id);
     }
-  }, [location.pathname, setSelectedNavbar, navbar]);
+  }, [location.pathname, setSelectedNavbar]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
