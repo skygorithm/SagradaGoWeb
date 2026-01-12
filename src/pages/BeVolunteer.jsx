@@ -31,12 +31,12 @@ export default function BeVolunteer() {
 
   const [searchText, setSearchText] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState(""); 
+  const [dateFilter, setDateFilter] = useState("");
 
-  
+
 
   const banners = [banner1, banner2, banner3];
-  
+
 
   async function fetchEvents() {
     setIsLoading(true);
@@ -93,42 +93,42 @@ export default function BeVolunteer() {
   const fullName = Cookies.get("fullname");
   const contact = Cookies.get("contact");
 
-  
 
-  
 
-async function handleVolunteerEvent(eventId, eventTitle) {
-  if (!uid || !fullName || !contact) {
-    alert("Please sign in to register for this event.");
-    return;
+
+
+  async function handleVolunteerEvent(eventId, eventTitle) {
+    if (!uid || !fullName || !contact) {
+      alert("Please sign in to register for this event.");
+      return;
+    }
+
+    try {
+      const payload = {
+        user_id: uid,
+        name: fullName.trim(),
+        contact: contact.toString().trim(),
+        eventId: eventId || null,
+        eventTitle: eventTitle || "General Volunteer",
+        registration_type: "volunteer"
+      };
+
+      console.log("Register payload:", payload);
+
+      await axios.post(`${API_URL}/addVolunteerWeb`, payload);
+
+      alert("Successfully volunteered for the event!");
+
+    } catch (err) {
+      console.error("Registration error:", err);
+
+      const message =
+        err.response?.data?.message ||
+        "Failed to register. Please try again.";
+
+      alert(message);
+    }
   }
-
-  try {
-    const payload = {
-      user_id: uid,
-      name: fullName.trim(),
-      contact: contact.toString().trim(),
-      eventId: eventId || null,
-      eventTitle: eventTitle || "General Volunteer",
-      registration_type: "volunteer"
-    };
-
-    console.log("Register payload:", payload);
-
-    await axios.post(`${API_URL}/addVolunteerWeb`, payload);
-
-    alert("Successfully volunteered for the event!");
-
-  } catch (err) {
-    console.error("Registration error:", err);
-
-    const message =
-      err.response?.data?.message ||
-      "Failed to register. Please try again.";
-
-    alert(message);
-  }
-}
 
 
   return (
@@ -234,9 +234,9 @@ async function handleVolunteerEvent(eventId, eventTitle) {
                     </div>
                   </div>
                 </div>
-                <div className="w-full h-10 flex justify-center">
+                <div className="event-actions">
                   <button
-                    className="bg-blue-300 h-full px-7! cursor-pointer rounded-xl"
+                    className="register-btn"
                     onClick={() => handleVolunteerEvent(event._id, event.title)}
                   >
                     Volunteer
@@ -280,7 +280,7 @@ async function handleVolunteerEvent(eventId, eventTitle) {
               <hr className="eventmodal-divider" />
               <p className="eventmodal-description-full">
                 {selectedEvent.description &&
-                selectedEvent.description.trim() !== ""
+                  selectedEvent.description.trim() !== ""
                   ? selectedEvent.description
                   : "No description displayed."}
               </p>
