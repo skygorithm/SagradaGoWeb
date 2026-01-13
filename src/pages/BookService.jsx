@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { NavbarContext } from "../context/AllContext";
 import SignInPage from "./SignInPage";
 import Wedding from "./Bookings/Wedding";
@@ -9,6 +9,7 @@ import Communion from "./Bookings/Communion";
 import Burial from "./Bookings/Burial";
 import Footer from "../components/Footer";
 import Cookies from "js-cookie";
+import SignInAlert from "../components/SignInAlert";
 
 import {
   HeartOutlined,
@@ -26,6 +27,8 @@ export default function BookService() {
   const { showSignin, bookingSelected, setBookingSelected } =
     useContext(NavbarContext);
   const email = Cookies.get("email");
+
+  const [showSignInAlert, setShowSignInAlert] = useState(false);
 
   const serviceDetails = {
     wedding: {
@@ -97,7 +100,7 @@ export default function BookService() {
                     className="service-card"
                     onClick={() => {
                       if (!email) {
-                        alert("Please sign in to continue.");
+                        setShowSignInAlert(true);
                         return;
                       }
                       setBookingSelected(key);
@@ -230,7 +233,11 @@ export default function BookService() {
         </div>
       )}
 
-      {showSignin && <SignInPage />}
+      <SignInAlert 
+        open={showSignInAlert} 
+        onClose={() => setShowSignInAlert(false)} 
+      />
+
       <Footer />
     </div>
   );
