@@ -1,8 +1,9 @@
 import "../styles/navButton.css";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { NavbarContext } from "../context/AllContext";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
+import SignInAlert from "./SignInAlert";
 
 
 
@@ -25,6 +26,8 @@ export default function NavButton({
   const navigate = useNavigate();
 
   const email = Cookies.get("email");
+
+  const [showSignInAlert, setShowSignInAlert] = useState(false);
 
 
 
@@ -61,7 +64,7 @@ export default function NavButton({
               handleDropdownClick(service.path, service.id);
             }
             else{
-              alert("Please sign in to continue.");
+              setShowSignInAlert(true);
               e.preventDefault();
             }
             
@@ -87,6 +90,11 @@ export default function NavButton({
       </button>
 
       {shouldShowDropdown && dropdownMenu}
+
+      <SignInAlert 
+        open={showSignInAlert} 
+        onClose={() => setShowSignInAlert(false)} 
+      />
     </div>
   );
 }
