@@ -1,32 +1,18 @@
-import { useContext, useState } from "react";
-import { NavbarContext } from "../../context/AllContext";
+import { useEffect, useState } from "react";
 import "../../styles/booking/wedding.css";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import dayjs from "dayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-
+import { API_URL } from "../../Constants";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
-import { API_URL } from "../../Constants";
+
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
+import { addDays } from "date-fns";
+import dayjs from "dayjs";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 export default function Wedding() {
-  const { currentUser, bookingSelected, setBookingSelected } =
-    useContext(NavbarContext);
-
-  // TO BE DELETE
-  const occupiedDates = [
-    new Date("2025-11-27"),
-    new Date("2025-11-28"),
-    new Date("2025-11-29"),
-    new Date("2025-11-30"),
-    new Date("2025-12-04"),
-  ];
-
-  //-------------------
-
   const [groomFname, setGroomFname] = useState("");
   const [groomMname, setGroomMname] = useState("");
   const [groomLname, setGroomLname] = useState("");
@@ -62,7 +48,13 @@ export default function Wedding() {
       onChange: setGroomLname,
       value: groomLname,
     },
-    { key: "date", title: "Date", type: "date", onChange: setDate, value: date },
+    {
+      key: "date",
+      title: "Date",
+      type: "date",
+      onChange: setDate,
+      value: date,
+    },
 
     {
       key: "bride_first",
@@ -123,7 +115,6 @@ export default function Wedding() {
   const [groomPreview, setGroomPreview] = useState("");
   const [bridePreview, setBridePreview] = useState("");
 
-
   async function uploadImage(file, namePrefix) {
     const ext = file.name.split(".").pop();
     const fileName = `${namePrefix}_${Date.now()}.${ext}`;
@@ -165,7 +156,6 @@ export default function Wedding() {
   const [groomBapPreview, setGroomBapPreview] = useState("");
   const [brideBapPreview, setBrideBapPreview] = useState("");
 
-
   const uploadBaptismal = [
     {
       key: "groom_baptismal",
@@ -188,7 +178,6 @@ export default function Wedding() {
 
   const [groomConfPreview, setGroomConfPreview] = useState("");
   const [brideConfPreview, setBrideConfPreview] = useState("");
-
 
   const uploadConfirmation = [
     {
@@ -213,8 +202,6 @@ export default function Wedding() {
   const [groomCenomarPreview, setGroomCenomarPreview] = useState("");
   const [brideCenomarPreview, setBrideCenomarPreview] = useState("");
 
-
-
   const uploadCenomar = [
     {
       key: "groom_cenomar",
@@ -238,8 +225,6 @@ export default function Wedding() {
   const [groomPermPreview, setGroomPermPreview] = useState("");
   const [bridePermPreview, setBridePermPreview] = useState("");
 
-
-
   const uploadPermission = [
     {
       key: "groom_permission",
@@ -259,7 +244,6 @@ export default function Wedding() {
 
   const [marriageDocuFile, setMarriageDocuFile] = useState(null);
   const [marriagePreview, setMarriagePreview] = useState("");
-
 
   const uploadMarriageDocu = [
     {
@@ -284,7 +268,7 @@ export default function Wedding() {
   }
 
   async function handleUpload() {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       if (
         !date ||
@@ -297,6 +281,7 @@ export default function Wedding() {
         !brideLname.trim()
       ) {
         alert("Please fill all input fields.");
+        setIsLoading(false);
         return;
       }
 
@@ -406,21 +391,39 @@ export default function Wedding() {
       setBrideFname("");
       setBrideMname("");
       setBrideLname("");
-
     } catch (err) {
       console.error(err);
       alert("Something went wrong during upload.");
     }
   }
 
-  const groomNames = inputText.filter(i => i.key.includes("groom"));
-  const brideNames = inputText.filter(i => i.key.includes("bride"));
-  const scheduleInputs = inputText.filter(i => ["date", "time", "email", "contact_number", "attendees"].includes(i.key));
+  const groomNames = inputText.filter((i) => i.key.includes("groom"));
+  const brideNames = inputText.filter((i) => i.key.includes("bride"));
+  const scheduleInputs = inputText.filter((i) =>
+    ["date", "time", "email", "contact_number", "attendees"].includes(i.key)
+  );
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const firstAvailableDate = addDays(today, 61);
+  const [disabledDates, setDisabledDates] = useState([]);
+
+  useEffect(() => {
+    const baseDate = new Date();
+    baseDate.setHours(0, 0, 0, 0);
+
+    const dates = [];
+
+    for (let i = 0; i <= 60; i++) {
+      dates.push(addDays(baseDate, i));
+    }
+
+    setDisabledDates(dates);
+  }, []);
 
   return (
     <div className="main-holder">
       <div className="form-wrapper">
-
         {/* SECTION 1: SCHEDULE */}
         <div className="form-section">
           <h2 className="section-title">1. Schedule & Logistics</h2>
@@ -434,7 +437,9 @@ export default function Wedding() {
                     onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
                     className="input-text"
                     dateFormat="yyyy-MM-dd"
-                    excludeDates={occupiedDates}
+                    excludeDates={disabledDates}
+                    minDate={today}
+                    openToDate={firstAvailableDate}  
                     showYearDropdown
                     dropdownMode="select"
                   />
@@ -443,8 +448,16 @@ export default function Wedding() {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <MobileTimePicker
                         value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                        onChange={(v) => setTime(v ? dayjs(v).format("HH:mm") : "")}
-                        slotProps={{ textField: { variant: "standard", fullWidth: true, InputProps: { disableUnderline: true } } }}
+                        onChange={(v) =>
+                          setTime(v ? dayjs(v).format("HH:mm") : "")
+                        }
+                        slotProps={{
+                          textField: {
+                            variant: "standard",
+                            fullWidth: true,
+                            InputProps: { disableUnderline: true },
+                          },
+                        }}
                       />
                     </LocalizationProvider>
                   </div>
@@ -464,24 +477,46 @@ export default function Wedding() {
         {/* SECTION 2: GROOM */}
         <div className="form-section">
           <h2 className="section-title">2. Groom's Information</h2>
-          <div className="grid-layout" style={{ marginBottom: '25px' }}>
-            {groomNames.map(elem => (
+          <div className="grid-layout" style={{ marginBottom: "25px" }}>
+            {groomNames.map((elem) => (
               <div className="input-group" key={elem.key}>
                 <h1>{elem.title}</h1>
-                <input type="text" className="input-text" value={elem.value} onChange={(e) => elem.onChange(e.target.value)} />
+                <input
+                  type="text"
+                  className="input-text"
+                  value={elem.value}
+                  onChange={(e) => elem.onChange(e.target.value)}
+                />
               </div>
             ))}
           </div>
           <div className="upload-grid">
-            {[uploadProfileImage[0], uploadBaptismal[0], uploadConfirmation[0], uploadCenomar[0], uploadPermission[0]].map(elem => (
+            {[
+              uploadProfileImage[0],
+              uploadBaptismal[0],
+              uploadConfirmation[0],
+              uploadCenomar[0],
+              uploadPermission[0],
+            ].map((elem) => (
               <div key={elem.key} className="per-grid-container">
                 <h1>{elem.title}</h1>
-                <input type="file" accept="image/*,application/pdf" className="inputFile-properties" onChange={(e) => {
-                  const file = e.target.files[0];
-                  elem.fileSetter(file);
-                  if (file) elem.previewSetter(URL.createObjectURL(file));
-                }} />
-                {elem.preview && <img src={elem.preview.url || elem.preview} className="image-preview" alt="preview" />}
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="inputFile-properties"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    elem.fileSetter(file);
+                    if (file) elem.previewSetter(URL.createObjectURL(file));
+                  }}
+                />
+                {elem.preview && (
+                  <img
+                    src={elem.preview.url || elem.preview}
+                    className="image-preview"
+                    alt="preview"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -490,24 +525,46 @@ export default function Wedding() {
         {/* SECTION 3: BRIDE */}
         <div className="form-section">
           <h2 className="section-title">3. Bride's Information</h2>
-          <div className="grid-layout" style={{ marginBottom: '25px' }}>
-            {brideNames.map(elem => (
+          <div className="grid-layout" style={{ marginBottom: "25px" }}>
+            {brideNames.map((elem) => (
               <div className="input-group" key={elem.key}>
                 <h1>{elem.title}</h1>
-                <input type="text" className="input-text" value={elem.value} onChange={(e) => elem.onChange(e.target.value)} />
+                <input
+                  type="text"
+                  className="input-text"
+                  value={elem.value}
+                  onChange={(e) => elem.onChange(e.target.value)}
+                />
               </div>
             ))}
           </div>
           <div className="upload-grid">
-            {[uploadProfileImage[1], uploadBaptismal[1], uploadConfirmation[1], uploadCenomar[1], uploadPermission[1]].map(elem => (
+            {[
+              uploadProfileImage[1],
+              uploadBaptismal[1],
+              uploadConfirmation[1],
+              uploadCenomar[1],
+              uploadPermission[1],
+            ].map((elem) => (
               <div key={elem.key} className="per-grid-container">
                 <h1>{elem.title}</h1>
-                <input type="file" accept="image/*,application/pdf" className="inputFile-properties" onChange={(e) => {
-                  const file = e.target.files[0];
-                  elem.fileSetter(file);
-                  if (file) elem.previewSetter(URL.createObjectURL(file));
-                }} />
-                {elem.preview && <img src={elem.preview.url || elem.preview} className="image-preview" alt="preview" />}
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="inputFile-properties"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    elem.fileSetter(file);
+                    if (file) elem.previewSetter(URL.createObjectURL(file));
+                  }}
+                />
+                {elem.preview && (
+                  <img
+                    src={elem.preview.url || elem.preview}
+                    className="image-preview"
+                    alt="preview"
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -517,11 +574,18 @@ export default function Wedding() {
         <div className="form-section">
           <h2 className="section-title">4. Legal Status</h2>
           <div className="choice-box">
-            <p style={{ margin: 0, fontWeight: 'bold' }}>Are you civilly married?</p>
+            <p style={{ margin: 0, fontWeight: "bold" }}>
+              Are you civilly married?
+            </p>
             <div className="radio-group">
               {civil_choices.map((elem) => (
                 <label className="radio-item" key={elem.value}>
-                  <input type="radio" name="civil" value={elem.value} onChange={() => setIsCivil(elem.text)} />
+                  <input
+                    type="radio"
+                    name="civil"
+                    value={elem.value}
+                    onChange={() => setIsCivil(elem.text)}
+                  />
                   <span>{elem.text}</span>
                 </label>
               ))}
@@ -529,15 +593,24 @@ export default function Wedding() {
           </div>
 
           {isCivil && (
-            <div className="per-grid-container" style={{ marginTop: '20px' }}>
-              <h1 style={{ fontSize: '0.9rem', marginBottom: '10px' }}>
-                Upload {isCivil === "Yes" ? "Marriage Contract" : "Marriage License"}
+            <div className="per-grid-container" style={{ marginTop: "20px" }}>
+              <h1 style={{ fontSize: "0.9rem", marginBottom: "10px" }}>
+                Upload{" "}
+                {isCivil === "Yes" ? "Marriage Contract" : "Marriage License"}
               </h1>
-              <input type="file" accept="image/*,application/pdf" className="inputFile-properties" onChange={(e) => {
-                const file = e.target.files[0];
-                uploadMarriageDocu[0].fileSetter(file);
-                if (file) uploadMarriageDocu[0].previewSetter(URL.createObjectURL(file));
-              }} />
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                className="inputFile-properties"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  uploadMarriageDocu[0].fileSetter(file);
+                  if (file)
+                    uploadMarriageDocu[0].previewSetter(
+                      URL.createObjectURL(file)
+                    );
+                }}
+              />
             </div>
           )}
         </div>
@@ -554,5 +627,4 @@ export default function Wedding() {
       </div>
     </div>
   );
-
 }
