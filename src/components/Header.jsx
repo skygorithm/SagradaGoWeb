@@ -15,7 +15,7 @@ const navbar = [
   { id: "home", text: "Home", path: "/" },
   { id: "book", text: "Book A Service", path: "/book-service" },
   { id: "event", text: "Events", path: "/events" },
-  { id: "volunteer", text: "Be a Volunteer", path: "/be-volunteer" },
+  // { id: "volunteer", text: "Be a Volunteer", path: "/be-volunteer" },
   // { id: "donate", text: "Donate", path: "/donate" },
 ];
 
