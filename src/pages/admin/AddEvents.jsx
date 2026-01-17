@@ -827,50 +827,55 @@ export default function AddEvents() {
                 </Space>
               }
             >
-              <Space style={{ marginBottom: 16, width: "100%", display: "flex", flexWrap: "wrap" }}>
-                <Input
-                  placeholder="Search events by title, location, or description..."
-                  prefix={<SearchOutlined />}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  allowClear
-                  style={{ width: 250, marginBottom: 8 }}
-                />
 
-                <Text strong>Filter by Date:</Text>
-                <Select
-                  value={dateFilter}
-                  onChange={setDateFilter}
-                  style={{ width: 150 }}
-                >
-                  <Option value="all">All Events</Option>
-                  <Option value="upcoming">Upcoming</Option>
-                  <Option value="past">Past</Option>
-                </Select>
+              <Space direction="vertical" style={{ marginBottom: 16, width: "100%" }} size="middle">
+                <Space style={{ width: "100%", display: "flex", flexWrap: "wrap" }}>
+                  <Input
+                    placeholder="Search events by title, location, or description..."
+                    prefix={<SearchOutlined />}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    allowClear
+                    style={{ width: 250 }}
+                  />
 
-                <Text strong style={{ marginLeft: 16 }}>Filter by Month:</Text>
-                <Select
-                  value={monthFilter}
-                  onChange={setMonthFilter}
-                  style={{ width: 150 }}
-                >
-                  {getMonthOptions().map((month) => (
-                    <Option key={month.value} value={month.value}>
-                      {month.label}
-                    </Option>
-                  ))}
-                </Select>
+                  <Text strong style={{ marginLeft: 16 }}>Filter by Type:</Text>
+                  <Select
+                    value={typeFilter}
+                    onChange={setTypeFilter}
+                    style={{ width: 150 }}
+                  >
+                    <Option value="all">All Types</Option>
+                    <Option value="event">Events</Option>
+                    <Option value="activity">Activities</Option>
+                  </Select>
+                </Space>
 
-                <Text strong style={{ marginLeft: 16 }}>Filter by Type:</Text>
-                <Select
-                  value={typeFilter}
-                  onChange={setTypeFilter}
-                  style={{ width: 150 }}
-                >
-                  <Option value="all">All Types</Option>
-                  <Option value="event">Events</Option>
-                  <Option value="activity">Activities</Option>
-                </Select>
+                <Space style={{ width: "100%", display: "flex", flexWrap: "wrap" }}>
+                  <Text strong>Filter by Date:</Text>
+                  <Select
+                    value={dateFilter}
+                    onChange={setDateFilter}
+                    style={{ width: 150 }}
+                  >
+                    <Option value="all">All Events</Option>
+                    <Option value="upcoming">Upcoming</Option>
+                    <Option value="past">Past</Option>
+                  </Select>
+
+                  <Text strong style={{ marginLeft: 16 }}>Filter by Month:</Text>
+                  <Select
+                    value={monthFilter}
+                    onChange={setMonthFilter}
+                    style={{ width: 150 }}
+                  >
+                    {getMonthOptions().map((month) => (
+                      <Option key={month.value} value={month.value}>
+                        {month.label}
+                      </Option>
+                    ))}
+                  </Select>
+                </Space>
               </Space>
 
               <Table
