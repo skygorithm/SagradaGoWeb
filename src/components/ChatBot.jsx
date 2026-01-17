@@ -9,7 +9,23 @@ export default function ChatBot({ isOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
 
+  const chatbotContainerRef = useRef(null);
+
   const uid = Cookies.get("uid");
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isOpen && chatbotContainerRef.current && !chatbotContainerRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -17,7 +33,7 @@ export default function ChatBot({ isOpen, onClose }) {
     }
   }, [messages, loading]);
 
-  if (!isOpen) return null; // Don't render if closed
+  if (!isOpen) return null;
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -147,7 +163,8 @@ export default function ChatBot({ isOpen, onClose }) {
   };
 
   return (
-    <div style={styles.floatingWrapper}>
+    /* 3. Attach the ref to the wrapper */
+    <div ref={chatbotContainerRef} style={styles.floatingWrapper}>
       <div style={styles.header}>
         <div style={styles.headerInfo}>
           <div style={styles.statusDot}></div>
