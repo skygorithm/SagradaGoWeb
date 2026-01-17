@@ -406,3 +406,67 @@ body {
     cursor: pointer;
     font-weight: 600;
 }
+
+.choicesmodal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.choicesmodal-content {
+    background: #ffffff;
+    width: 90%;
+    max-width: 360px;
+    padding: 32px;
+    border: 1px solid #eee;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+    border-radius: 2px;
+}
+
+.choicesmodal-header {
+    margin-bottom: 24px;
+}
+
+.choicesmodal-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #a0a0a0;
+    margin-bottom: 8px;
+}
+
+.choicesmodal-title {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #1a1a1a;
+    margin: 0;
+}
+
+.choicesmodal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.choicesmodal-btn {
+    width: 100%;
+    padding: 14px;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    color: #444;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.choicesmodal-btn:hover {
+    background: #1a1a1a;
+    color: #ffffff;
+    border-color: #1a1a1a;
+}

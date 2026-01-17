@@ -14,6 +14,7 @@ import banner1 from "../assets/SAGRADA-FAMILIA-PARISH.jpg";
 import banner2 from "../assets/christmas.jpg";
 import banner3 from "../assets/dyd.jpg";
 import noImage from "../assets/blank-image.jpg";
+import { Modal } from 'antd';
 
 import {
   SearchOutlined,
@@ -71,34 +72,34 @@ export default function Events() {
   const [sortOrder, setSortOrder] = useState("asc");
 
   useEffect(() => {
-  let filtered = [...events];
+    let filtered = [...events];
 
-  // ✅ FILTER BY TYPE = "activity"
-  filtered = filtered.filter((e) => e.type === "event");
+    // ✅ FILTER BY TYPE = "activity"
+    filtered = filtered.filter((e) => e.type === "event");
 
-  if (searchText) {
-    filtered = filtered.filter(
-      (e) =>
-        e.title.toLowerCase().includes(searchText.toLowerCase()) ||
-        e.description.toLowerCase().includes(searchText.toLowerCase())
-    );
-  }
+    if (searchText) {
+      filtered = filtered.filter(
+        (e) =>
+          e.title.toLowerCase().includes(searchText.toLowerCase()) ||
+          e.description.toLowerCase().includes(searchText.toLowerCase())
+      );
+    }
 
-  filtered.sort((a, b) => {
-    const dateA = new Date(a.date);
-    const dateB = new Date(b.date);
-    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-  });
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+    });
 
-  setFilteredEvents(filtered);
-}, [searchText, sortOrder, events]);
+    setFilteredEvents(filtered);
+  }, [searchText, sortOrder, events]);
 
   const uid = Cookies.get("uid");
   const fullName = Cookies.get("fullname");
   const contact = Cookies.get("contact");
 
   async function handleRegisterEvent(eventId, eventTitle) {
-    
+
     if (!uid || !fullName || !contact) {
       setShowSignInAlert(true);
       return;
@@ -323,7 +324,7 @@ export default function Events() {
               <hr className="eventmodal-divider" />
               <p className="eventmodal-description-full">
                 {selectedEvent.description &&
-                selectedEvent.description.trim() !== ""
+                  selectedEvent.description.trim() !== ""
                   ? selectedEvent.description
                   : "No description displayed."}
               </p>
@@ -334,39 +335,52 @@ export default function Events() {
 
       {showSignin && <SignInPage />}
 
-      {showChoicesModal && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/30 z-[9999] flex items-center justify-center"
+      <Modal
+        open={!!showChoicesModal}
+        onCancel={() => setShowChoicesModal(null)}
+        footer={null} // Removes default OK/Cancel buttons
+        centered
+        width={400}
+        bodyStyle={{ padding: '20px' }}
+      >
+        <div className="choicesmodal-header" style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <span className="choicesmodal-label" style={{
+            display: 'block',
+            fontSize: '11px',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            color: '#a0a0a0',
+            marginBottom: '8px'
+          }}>
+            Selection
+          </span>
+          <h2 className="choicesmodal-title" style={{ fontSize: '1.25rem', fontWeight: '500', margin: 0 }}>
+            {showChoicesModal?.title}
+          </h2>
+        </div>
+
+        <div className="choicesmodal-actions" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <button
+            className="border-btn"
             onClick={() => {
+              handleRegisterEvent(showChoicesModal.id, showChoicesModal.title);
               setShowChoicesModal(null);
             }}
           >
-            <div
-              className="bg-green-400 flex justify-evenly gap-10 px-5! py-9!"
-              onClick={(e) => e.stopPropagation()} 
-            >
-              <button
-                className="register-btn-sm"
-                onClick={() =>
-                  handleRegisterEvent(showChoicesModal.id, showChoicesModal.title)
-                }
-              >
-                Participate
-              </button>
+            Participate
+          </button>
 
-              <button
-                className="register-btn-sm"
-                onClick={() =>
-                  handleVolunteerEvent(showChoicesModal.id, showChoicesModal.title)
-                }
-              >
-                Volunteer
-              </button>
-            </div>
-          </div>
-        </>
-      )}
+          <button
+            className="border-btn"
+            onClick={() => {
+              handleVolunteerEvent(showChoicesModal.id, showChoicesModal.title);
+              setShowChoicesModal(null);
+            }}
+          >
+            Volunteer
+          </button>
+        </div>
+      </Modal>
 
       <SignInAlert
         open={showSignInAlert}
