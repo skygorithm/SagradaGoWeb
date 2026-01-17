@@ -218,3 +218,76 @@
   font-size: 32px;
   opacity: 0.5;
 }
+
+@media (max-width: 768px) {
+  .profileContainer {
+    max-width: 95%;
+    margin: 20px auto;
+    height: auto;
+    min-height: 85vh;
+  }
+
+  .profileBanner img {
+    height: 250px;
+  }
+
+  .pageTitle {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .pageSubtitle {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  .profileHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .formGrid {
+    gap: 12px;
+  }
+
+  .logoutBtn {
+    margin-top: 24px;
+    padding: 16px;
+  }
+
+  .history-section {
+    margin-top: 32px;
+  }
+
+  .history-scroll-container {
+    max-height: 300px;
+  }
+
+  .history-list .ant-list-item {
+    padding: 16px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profileBanner img {
+    height: 200px;
+  }
+
+  .pageTitle {
+    font-size: 16px;
+  }
+
+  .formGroup input {
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .history-empty {
+    padding: 40px 0;
+  }
+
+  .history-empty-icon {
+    font-size: 24px;
+  }
+}

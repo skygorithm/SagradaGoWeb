@@ -338,6 +338,8 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
 
       <div style={{ padding: 32 }}>
         <div
+
+        className="profileHeader"
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -348,7 +350,7 @@ export default function ProfilePage({ user, onLogout, updateUser }) {
         >
           <div>
             <h2 className="pageTitle">Profile Information</h2>
-            <p style={{ marginTop: -20 }}>
+            <p className="pageSubtitle" style={{ marginTop: -20 }}>
               Manage your personal information and ensure your account details are
               accurate and current.
             </p>
