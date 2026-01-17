@@ -13,7 +13,6 @@ import Events from "./pages/Events";
 import BeVolunteer from "./pages/BeVolunteer";
 import Donate from "./pages/Donate";
 
-import AdminLogin from "./pages/admin/AdminLogin";
 import AddAdmin from "./pages/admin/AddAdmin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AccountManagement from "./pages/admin/AccountManagement";
@@ -44,7 +43,6 @@ function AppContent() {
       
       <Routes>
         {/* Admin */}
-        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="dashboard" element={<AdminDashboard />} />
