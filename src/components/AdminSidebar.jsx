@@ -123,6 +123,7 @@ export default function AdminSidebar() {
               count={notificationUnreadCount}
               style={{
                 backgroundColor: "#b87d3e",
+                marginRight: 5,
               }}
             />
           )}
@@ -140,6 +141,7 @@ export default function AdminSidebar() {
               count={chatUnreadCount}
               style={{
                 backgroundColor: "#b87d3e",
+                marginRight: 5
               }}
             />
           )}
