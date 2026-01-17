@@ -11,6 +11,9 @@ import dayjs from "dayjs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import Modal from "../../components/Modal";
+
+
 
 export default function Wedding() {
   const [groomFname, setGroomFname] = useState("");
@@ -25,6 +28,9 @@ export default function Wedding() {
   const [attendees, setAttendees] = useState(0);
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [showModalMessage, setShowModalMessage] = useState(false)
+  const [modalMessage, setModalMessage] = useState()
 
   const inputText = [
     {
@@ -280,7 +286,8 @@ export default function Wedding() {
         !brideFname.trim() ||
         !brideLname.trim()
       ) {
-        alert("Please fill all input fields.");
+        setShowModalMessage(true)
+        setModalMessage("Please fill all input fields.")
         setIsLoading(false);
         return;
       }
@@ -378,7 +385,9 @@ export default function Wedding() {
         bride_permission: uploaded.bridePermission,
       });
 
-      alert("Booking submitted successfully!");
+
+      setShowModalMessage(true)
+      setModalMessage("Booking submitted successfully!")
 
       setEmail("");
       setDate("");
@@ -393,7 +402,8 @@ export default function Wedding() {
       setBrideLname("");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong during upload.");
+      setShowModalMessage(true)
+      setModalMessage("Something went wrong during upload.")
     }
   }
 
@@ -625,6 +635,17 @@ export default function Wedding() {
           </button>
         </div>
       </div>
+
+      {
+        showModalMessage && 
+        <Modal 
+          message={modalMessage}
+          setShowModal={setShowModalMessage}
+        />
+      }
+      
     </div>
+
+    
   );
 }

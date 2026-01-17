@@ -155,8 +155,8 @@ export default function SignUpPage() {
 
 
 
-      await sendEmailVerification(user);
-      alert("Account created successfully! Please verify your email.");
+      // await sendEmailVerification(user);
+      // alert("Account created successfully! Please verify your email.");
 
       await axios.post(`${API_URL}/createUser`, {
         first_name: inputFname,
