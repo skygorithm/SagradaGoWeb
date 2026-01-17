@@ -19,6 +19,8 @@ import { API_URL } from "../Constants";
 import { NavbarContext } from "../context/AllContext";
 import SignInAlert from "./SignInAlert";
 
+import ChatBot from "./ChatBot";
+
 const { TextArea } = Input;
 
 const FloatingButton = () => {
@@ -43,6 +45,8 @@ const FloatingButton = () => {
 
   const [showSignInAlert, setShowSignInAlert] = useState(false);
 
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   async function createDonation() {
     if (!uid) {
       setShowSignInAlert(true);
@@ -64,7 +68,7 @@ const FloatingButton = () => {
       formData.append("intercession", description || "");
 
       if (receiptFile) {
-        formData.append("receipt", receiptFile); // 🔥 matches req.files["receipt"]
+        formData.append("receipt", receiptFile);
       }
 
       const res = await axios.post(`${API_URL}/createDonation`, formData, {
@@ -151,7 +155,7 @@ const FloatingButton = () => {
         <FloatButton
           icon={<CommentOutlined />}
           tooltip={<div>Chat</div>}
-          onClick={() => navigate("/chat")}
+          onClick={() => setIsChatOpen(true)}
         />
         <FloatButton
           icon={<HeartOutlined />}
@@ -225,10 +229,10 @@ const FloatingButton = () => {
             <div className="progress-line"></div>
             <p>You have donated a total of:</p>
             <h1>
-                PHP{" "}
-                {totalAmount.toLocaleString("en-US", {
-                    minimumFractionDigits: 2,
-                })}
+              PHP{" "}
+              {totalAmount.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+              })}
             </h1>
           </div>
 
@@ -388,10 +392,25 @@ const FloatingButton = () => {
         </div>
       </Modal>
 
-      <SignInAlert 
-        open={showSignInAlert} 
-        onClose={() => setShowSignInAlert(false)} 
-        message="Please sign in to donate." 
+      <Modal
+        open={isChatOpen}
+        onCancel={() => setIsChatOpen(false)}
+        footer={null}
+        centered
+        width={450}
+        bodyStyle={{ padding: 0 }}
+        closable={true}
+        destroyOnClose={true}
+      >
+        <div style={{ paddingTop: '20px' }}>
+          <ChatBot />
+        </div>
+      </Modal>
+
+      <SignInAlert
+        open={showSignInAlert}
+        onClose={() => setShowSignInAlert(false)}
+        message="Please sign in to donate."
       />
     </>
   );
