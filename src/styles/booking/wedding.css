@@ -705,6 +705,7 @@ select.input-text {
 
     .hero-subtitle {
         font-size: 1rem;
+        width: 80%;
     }
 
     .services-hero-wrapper {
