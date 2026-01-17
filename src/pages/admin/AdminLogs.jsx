@@ -33,6 +33,7 @@ export default function AdminLogs() {
   const [loading, setLoading] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [isPolling, setIsPolling] = useState(false);
   const [filters, setFilters] = useState({
     action: "all",
     entity_type: "all",
@@ -45,9 +46,11 @@ export default function AdminLogs() {
     total: 0,
   });
 
-  const fetchLogs = useCallback(async () => {
+  const fetchLogs = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       const params = {
         page: pagination.current,
         limit: pagination.pageSize,
@@ -79,25 +82,40 @@ export default function AdminLogs() {
         ...prev,
         total: response.data.total || 0,
       }));
+
     } catch (error) {
       console.error("Error fetching logs:", error);
-      message.error("Failed to load logs");
+      if (showLoading) {
+        message.error("Failed to load logs");
+      }
+
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   }, [filters, pagination.current, pagination.pageSize]);
 
   useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
+    if (showDetailsModal) {
+      setIsPolling(false);
+      return;
+    }
 
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      fetchLogs();
+    setIsPolling(true);
+
+    fetchLogs(true);
+
+
+    const pollInterval = setInterval(() => {
+      fetchLogs(false);
     }, 5000);
 
-    return () => clearInterval(intervalId);
-  }, [fetchLogs]);
+    return () => {
+      clearInterval(pollInterval);
+      setIsPolling(false);
+    };
+  }, [filters, pagination.current, pagination.pageSize, showDetailsModal, fetchLogs]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
