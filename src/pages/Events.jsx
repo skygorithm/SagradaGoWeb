@@ -41,6 +41,13 @@ export default function Events() {
 
   const banners = [banner1, banner2, banner3];
 
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [registrationData, setRegistrationData] = useState({
+    role: "",
+    eventId: "",
+    eventTitle: ""
+  });
+
   async function fetchEvents() {
     setIsLoading(true);
     try {
@@ -74,7 +81,6 @@ export default function Events() {
   useEffect(() => {
     let filtered = [...events];
 
-    // ✅ FILTER BY TYPE = "activity"
     filtered = filtered.filter((e) => e.type === "event");
 
     if (searchText) {
@@ -364,8 +370,13 @@ export default function Events() {
           <button
             className="border-btn"
             onClick={() => {
-              handleRegisterEvent(showChoicesModal.id, showChoicesModal.title);
+              setRegistrationData({
+                role: "participant",
+                eventId: showChoicesModal.id,
+                eventTitle: showChoicesModal.title
+              });
               setShowChoicesModal(null);
+              setShowDetailsModal(true);
             }}
           >
             Participate
@@ -374,12 +385,73 @@ export default function Events() {
           <button
             className="border-btn"
             onClick={() => {
-              handleVolunteerEvent(showChoicesModal.id, showChoicesModal.title);
+              setRegistrationData({
+                role: "volunteer",
+                eventId: showChoicesModal.id,
+                eventTitle: showChoicesModal.title
+              });
               setShowChoicesModal(null);
+              setShowDetailsModal(true);
             }}
           >
             Volunteer
           </button>
+        </div>
+      </Modal>
+
+      <Modal
+        title="Confirm Registration"
+        open={showDetailsModal}
+        onCancel={() => setShowDetailsModal(false)}
+        footer={null}
+        centered
+        width={450}
+      >
+        <div style={{ padding: '10px 0' }}>
+          <p style={{ fontSize: '12px', color: '#888', marginBottom: '20px' }}>
+            Please review your details before submitting for <strong>{registrationData.eventTitle}</strong>.
+          </p>
+
+          <div className="detail-item" style={{ marginBottom: '15px' }}>
+            <label style={{ fontWeight: '600', display: 'block', fontSize: '13px' }}>Full Name</label>
+            <div style={{ padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>{fullName || "N/A"}</div>
+          </div>
+
+          <div className="detail-item" style={{ marginBottom: '15px' }}>
+            <label style={{ fontWeight: '600', display: 'block', fontSize: '13px' }}>Contact Number</label>
+            <div style={{ padding: '8px', background: '#f5f5f5', borderRadius: '4px' }}>{contact || "N/A"}</div>
+          </div>
+
+          <div className="detail-item" style={{ marginBottom: '15px' }}>
+            <label style={{ fontWeight: '600', display: 'block', fontSize: '13px' }}>Selected Role</label>
+            <div style={{
+              padding: '8px',
+              background: '#ffc9422f',
+              border: '1px solid #FFC942',
+              borderRadius: '4px',
+              textTransform: 'capitalize',
+              color: '#d0a63b'
+            }}>
+              {registrationData.role}
+            </div>
+          </div>
+
+          <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <button
+              className="border-btn"
+              style={{ padding: '8px' }}
+              onClick={() => {
+                if (registrationData.role === "participant") {
+                  handleRegisterEvent(registrationData.eventId, registrationData.eventTitle);
+                } else {
+                  handleVolunteerEvent(registrationData.eventId, registrationData.eventTitle);
+                }
+                setShowDetailsModal(false);
+              }}
+            >
+              Confirm and Submit
+            </button>
+          </div>
         </div>
       </Modal>
 
