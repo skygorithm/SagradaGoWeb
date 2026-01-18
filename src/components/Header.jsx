@@ -41,6 +41,12 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setSelectedNavbar("home");
+    }
+  }, []);
+
   const handleLogout = () => {
     setShowProfileDropdown(false);
     setIsMenuOpen(false);
