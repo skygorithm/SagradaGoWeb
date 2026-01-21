@@ -74,10 +74,12 @@ export default function SignInPage() {
       }
 
       try {
+        const firebaseToken = await user.getIdToken();
 
         const loginResponse = await axios.post(`${API_URL}/login`, {
           email: inputEmail,
           password: inputPassword,
+          firebaseToken: firebaseToken, 
         });
         console.log("user", loginResponse);
 
@@ -98,7 +100,16 @@ export default function SignInPage() {
 
       } catch (err) {
         console.error("Backend login failed:", err);
-        setError("No account found with this email.");
+        
+        if (err.response?.status === 401) {
+          setError("Invalid email or password. If you recently changed your password, please try again in a few moments.");
+        
+        } else if (err.response?.status === 404) {
+          setError("No account found with this email.");
+        } else {
+          setError("Login failed. Please try again.");
+        }
+        
       }
 
     } catch (err) {
