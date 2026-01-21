@@ -149,9 +149,9 @@ const FloatingButton = () => {
     <>
       <FloatButton.Group
         trigger="click"
-        style={{ 
-          right: window.innerWidth <= 768 ? 16 : 24, 
-          bottom: window.innerWidth <= 768 ? 16 : 24 
+        style={{
+          right: window.innerWidth <= 768 ? 16 : 24,
+          bottom: window.innerWidth <= 768 ? 16 : 24
         }}
         icon={<PlusOutlined />}
       >
@@ -322,7 +322,11 @@ const FloatingButton = () => {
             placeholder="0.00"
             className="form-input"
             size="large"
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              const filteredValue = value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+              setAmount(filteredValue);
+            }}
             value={amount}
           />
 
