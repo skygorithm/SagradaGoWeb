@@ -3,6 +3,7 @@ import "../../styles/booking/wedding.css";
 import { API_URL } from "../../Constants";
 import { supabase } from "../../config/supabase";
 import axios from "axios";
+import pdf_image from "../../assets/pdfImage.svg";
 
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileTimePicker } from "@mui/x-date-pickers/MobileTimePicker";
@@ -35,6 +36,9 @@ export default function Wedding() {
   const fileInputRefs = useRef([]);
 
   const uid = Cookies.get("uid");
+
+  const [errors, setErrors] = useState({});
+  const inputClass = (key) => `input-text ${errors[key] ? "input-error" : ""}`;
 
   const inputText = [
     {
@@ -279,13 +283,10 @@ export default function Wedding() {
     return `WD-${timestamp}-${random}`;
   }
 
-
   function resetAllFiles() {
-
     Object.values(fileInputRefs.current).forEach((input) => {
       if (input) input.value = "";
     });
-
 
     setGroomFile(null);
     setBrideFile(null);
@@ -299,7 +300,6 @@ export default function Wedding() {
     setBridePermFile(null);
     setMarriageDocuFile(null);
 
-
     setGroomPreview("");
     setBridePreview("");
     setGroomBapPreview("");
@@ -312,9 +312,8 @@ export default function Wedding() {
     setBridePermPreview("");
     setMarriagePreview("");
 
-
     setIsCivil("");
-    
+
     setEmail("");
     setDate("");
     setTime("");
@@ -326,10 +325,37 @@ export default function Wedding() {
     setBrideFname("");
     setBrideMname("");
     setBrideLname("");
+
+    setErrors({});
   }
 
-
   async function handleUpload() {
+    const newErrors = {};
+
+    if (!date) newErrors.date = true;
+    if (!time) newErrors.time = true;
+    if (!email) newErrors.email = true;
+
+    if (!contact.trim() || !/^09\d{9}$/.test(contact))
+      newErrors.contact_number = true;
+
+    if (attendees <= 0) newErrors.attendees = true;
+
+    if (!groomFname.trim()) newErrors.groom_first = true;
+    if (!groomLname.trim()) newErrors.groom_last = true;
+
+    if (!brideFname.trim()) newErrors.bride_first = true;
+    if (!brideLname.trim()) newErrors.bride_last = true;
+
+    if (!isCivil) newErrors.civil = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShowModalMessage(true);
+      setModalMessage("Please correct the highlighted fields.");
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       const isValidPHNumber = /^09\d{9}$/.test(contact);
@@ -358,7 +384,6 @@ export default function Wedding() {
         setIsLoading(false);
         return;
       }
-
 
       const uploaded = {};
 
@@ -452,17 +477,18 @@ export default function Wedding() {
         bride_permission: uploaded.bridePermission,
       });
 
-      
-
       setShowModalMessage(true);
       setModalMessage("Booking submitted successfully!");
 
-      resetAllFiles(); 
-
+      resetAllFiles();
+      setIsLoading(false);
     } catch (err) {
       console.error(err);
       setShowModalMessage(true);
       setModalMessage("Something went wrong during upload.");
+      setIsLoading(false);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -493,7 +519,6 @@ export default function Wedding() {
   return (
     <div className="main-holder">
       <div className="form-wrapper">
-
         <div className="form-section">
           <h2 className="section-title">1. Schedule & Logistics</h2>
           <div className="grid-layout">
@@ -503,8 +528,11 @@ export default function Wedding() {
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
-                    onChange={(v) => elem.onChange(v ? v.toISOString() : "")}
-                    className="input-text"
+                    onChange={(v) => {
+                      elem.onChange(v ? v.toISOString() : "");
+                      setErrors((prev) => ({ ...prev, date: false }));
+                    }}
+                    className={inputClass("date")}
                     dateFormat="yyyy-MM-dd"
                     excludeDates={disabledDates}
                     minDate={today}
@@ -514,13 +542,18 @@ export default function Wedding() {
                     onKeyDown={(e) => e.preventDefault()}
                   />
                 ) : elem.type === "time" ? (
-                  <div className="time-container">
+                  <div
+                    className={`time-container ${
+                      errors.time ? "input-error" : ""
+                    }`}
+                  >
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <MobileTimePicker
                         value={time ? dayjs(`2000-01-01 ${time}`) : null}
-                        onChange={(v) =>
-                          setTime(v ? dayjs(v).format("HH:mm") : "")
-                        }
+                        onChange={(v) => {
+                          setTime(v ? dayjs(v).format("HH:mm") : "");
+                          setErrors((prev) => ({ ...prev, time: false }));
+                        }}
                         slotProps={{
                           textField: {
                             variant: "standard",
@@ -534,9 +567,23 @@ export default function Wedding() {
                 ) : (
                   <input
                     type={elem.type}
-                    className="input-text"
-                    onChange={(e) => elem.onChange(e.target.value)}
+                    className={inputClass(elem.key)}
                     value={elem.value}
+                    onChange={(e) => {
+                      if (elem.key === "contact_number") {
+                        const value = e.target.value.replace(/\D/g, "");
+                        elem.onChange(value);
+
+                        const isValid = /^09\d{9}$/.test(value);
+                        setErrors((prev) => ({
+                          ...prev,
+                          contact_number: !isValid,
+                        }));
+                      } else {
+                        elem.onChange(e.target.value);
+                        setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                      }
+                    }}
                     maxLength={elem.maxLength}
                     disabled={elem.disabled}
                   />
@@ -546,7 +593,6 @@ export default function Wedding() {
           </div>
         </div>
 
-
         <div className="form-section">
           <h2 className="section-title">2. Groom's Information</h2>
           <div className="grid-layout" style={{ marginBottom: "25px" }}>
@@ -554,10 +600,15 @@ export default function Wedding() {
               <div className="input-group" key={elem.key}>
                 <h1>{elem.title}</h1>
                 <input
-                  type="text"
-                  className="input-text"
+                  type={elem.type}
+                  className={inputClass(elem.key)}
                   value={elem.value}
-                  onChange={(e) => elem.onChange(e.target.value)}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                  }}
+                  maxLength={elem.maxLength}
+                  disabled={elem.disabled}
                 />
               </div>
             ))}
@@ -580,7 +631,15 @@ export default function Wedding() {
                   onChange={(e) => {
                     const file = e.target.files[0];
                     elem.fileSetter(file);
-                    if (file) elem.previewSetter(URL.createObjectURL(file));
+
+                    if (file) {
+                      // Check if the file is a PDF
+                      if (file.type === "application/pdf") {
+                        elem.previewSetter(pdf_image); // show default PDF image
+                      } else {
+                        elem.previewSetter(URL.createObjectURL(file)); // show image preview
+                      }
+                    }
                   }}
                 />
                 {elem.preview && (
@@ -595,7 +654,6 @@ export default function Wedding() {
           </div>
         </div>
 
-
         <div className="form-section">
           <h2 className="section-title">3. Bride's Information</h2>
           <div className="grid-layout" style={{ marginBottom: "25px" }}>
@@ -603,10 +661,15 @@ export default function Wedding() {
               <div className="input-group" key={elem.key}>
                 <h1>{elem.title}</h1>
                 <input
-                  type="text"
-                  className="input-text"
+                  type={elem.type}
+                  className={inputClass(elem.key)}
                   value={elem.value}
-                  onChange={(e) => elem.onChange(e.target.value)}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                  }}
+                  maxLength={elem.maxLength}
+                  disabled={elem.disabled}
                 />
               </div>
             ))}
@@ -629,7 +692,15 @@ export default function Wedding() {
                   onChange={(e) => {
                     const file = e.target.files[0];
                     elem.fileSetter(file);
-                    if (file) elem.previewSetter(URL.createObjectURL(file));
+
+                    if (file) {
+                      // Check if the file is a PDF
+                      if (file.type === "application/pdf") {
+                        elem.previewSetter(pdf_image); // show default PDF image
+                      } else {
+                        elem.previewSetter(URL.createObjectURL(file)); // show image preview
+                      }
+                    }
                   }}
                 />
                 {elem.preview && (
@@ -644,10 +715,9 @@ export default function Wedding() {
           </div>
         </div>
 
-
         <div className="form-section">
           <h2 className="section-title">4. Legal Status</h2>
-          <div className="choice-box">
+          <div className={`choice-box ${errors.civil ? "input-error" : ""}`}>
             <p style={{ margin: 0, fontWeight: "bold" }}>
               Are you civilly married?
             </p>
@@ -657,8 +727,12 @@ export default function Wedding() {
                   <input
                     type="radio"
                     name="civil"
-                    value={elem.value}
-                    onChange={() => setIsCivil(elem.text)}
+                    value={elem.text}
+                    checked={isCivil === elem.text}
+                    onChange={() => {
+                      setIsCivil(elem.text);
+                      setErrors((prev) => ({ ...prev, civil: false }));
+                    }}
                   />
                   <span>{elem.text}</span>
                 </label>
@@ -681,13 +755,27 @@ export default function Wedding() {
                 onChange={(e) => {
                   const file = e.target.files[0];
                   uploadMarriageDocu[0].fileSetter(file);
+
                   if (file) {
-                    uploadMarriageDocu[0].previewSetter(
-                      URL.createObjectURL(file),
-                    );
+                    if (file.type === "application/pdf") {
+                      uploadMarriageDocu[0].previewSetter(pdf_image);
+                    } else {
+                      uploadMarriageDocu[0].previewSetter(
+                        URL.createObjectURL(file),
+                      );
+                    }
                   }
                 }}
               />
+
+              {uploadMarriageDocu[0].preview && (
+                <img
+                  src={pdf_image}
+                  className="image-preview"
+                  alt="preview"
+                  style={{ marginTop: "10px", maxWidth: "200px" }}
+                />
+              )}
             </div>
           )}
         </div>

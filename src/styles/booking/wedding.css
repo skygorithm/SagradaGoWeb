@@ -1,3 +1,7 @@
+
+@import "tailwindcss";
+@plugin "daisyui";
+
 :root {
     --charcoal: #424242;
     --amber: #FFC942;
@@ -5,6 +9,10 @@
     --white: #ffffff;
     --border: #dddddd;
     --radius: 8px;
+}
+
+.input-error {
+  @apply focus:outline-none border border-red-600!;
 }
 
 .main-holder {

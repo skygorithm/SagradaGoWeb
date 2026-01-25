@@ -15,10 +15,26 @@ export default function ChatBot({ isOpen, onClose }) {
   const scrollRef = useRef(null);
   const [chatBotMode, setChatBotMode] = useState(true);
 
+  const [chatAdminHistory, setChatAdminHistory] = useState([]);
+
   const chatbotContainerRef = useRef(null);
 
   const uid = Cookies.get("uid");
-  const fullname = Cookies.get("fullname"); 
+  const fullname = Cookies.get("fullname");
+
+  async function fetchAdminChatHistory() {
+    try {
+      const res = await axios.get(`${API_URL}/chat/getChatByUserId/${uid}`);
+      console.log(res.data.chat.messages);
+      setChatAdminHistory(res.data.chat.messages);
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+    }
+  }
+
+  useEffect(() => {
+    fetchAdminChatHistory();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -46,6 +62,12 @@ export default function ChatBot({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  const getMessageRole = (msg) => {
+    if (msg.senderType === "admin") return "ai";
+    if (msg.senderType === "user") return "user";
+    return msg.role || "user";
+  };
+
   const sendMessage = async () => {
     if (!inputBot.trim() || loading) return;
     const userMessage = { role: "user", text: inputBot.trim() };
@@ -65,7 +87,8 @@ export default function ChatBot({ isOpen, onClose }) {
         ...prev,
         {
           role: "ai",
-          text: "I'm having trouble connecting. Please try again later." + error,
+          text:
+            "I'm having trouble connecting. Please try again later." + error,
         },
       ]);
     } finally {
@@ -73,52 +96,42 @@ export default function ChatBot({ isOpen, onClose }) {
     }
   };
 
-async function sendAdminMessage() { 
+  async function sendAdminMessage() {
+    if (!inputAdmin.trim() || loading) return;
 
-  if (!inputAdmin.trim() || loading) return;
+    if (!uid) {
+      message.error("Admin not authenticated");
+      return;
+    }
 
-
-  if (!uid) {
-    message.error("Admin not authenticated");
-    return;
-  }
-
-  const adminMessage = {
-    role: "user",
-    senderId: uid,
-    senderType: "user", 
-    senderName: fullname,
-    message: inputAdmin.trim(),
-    text: inputAdmin.trim(),
-  };
-
-
-  setAdminMessages(prev => [...prev, adminMessage]);
-
-
-  setInputAdmin("");
-
-  try {
-    const res = await axios.post(`${API_URL}/chat/addMessageWeb`, {
-      userId: uid, 
+    const adminMessage = {
+      role: "user",
       senderId: uid,
       senderType: "user",
       senderName: fullname,
       message: inputAdmin.trim(),
-    });
+      text: inputAdmin.trim(),
+    };
 
-    console.log("Updated chat:", res.data);
+    setAdminMessages((prev) => [...prev, adminMessage]);
 
+    setInputAdmin("");
 
-  } catch (err) {
-    console.error(err.response?.data || err.message);
-    message.error("Failed to send message");
+    try {
+      const res = await axios.post(`${API_URL}/chat/addMessageWeb`, {
+        userId: uid,
+        senderId: uid,
+        senderType: "user",
+        senderName: fullname,
+        message: inputAdmin.trim(),
+      });
+
+      console.log("Updated chat:", res.data);
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      message.error("Failed to send message");
+    }
   }
-}
-
-
-
-
 
   const styles = {
     floatingWrapper: {
@@ -265,18 +278,27 @@ async function sendAdminMessage() {
       </div>
 
       <div ref={scrollRef} style={styles.chatArea}>
-        {messages.length === 0 || adminMessages.length === 0 && (
+        {(chatBotMode ? messages : [...chatAdminHistory, ...adminMessages])
+          .length === 0 && (
           <div
             style={{ textAlign: "center", marginTop: "40px", color: "#aaa" }}
           >
             <p style={{ fontSize: "12px" }}>Hello! How can I help you today?</p>
           </div>
         )}
-        {(chatBotMode ? messages : adminMessages).map((msg, index) => (
-          <div key={index} style={styles.messageRow(msg.role)}>
-            <div style={styles.bubble(msg.role)}>{msg.text}</div>
-          </div>
-        ))}
+
+        {(chatBotMode ? messages : [...chatAdminHistory, ...adminMessages]).map(
+          (msg, index) => {
+            const role = getMessageRole(msg);
+
+            return (
+              <div key={index} style={styles.messageRow(role)}>
+                <div style={styles.bubble(role)}>{msg.text || msg.message}</div>
+              </div>
+            );
+          },
+        )}
+
         {loading && (
           <div style={styles.messageRow("ai")}>
             <span
@@ -294,12 +316,16 @@ async function sendAdminMessage() {
             type="text"
             style={styles.inputField}
             value={chatBotMode ? inputBot : inputAdmin}
-            onChange={(e) => chatBotMode ? setInputBot(e.target.value) : setInputAdmin(e.target.value)}
+            onChange={(e) =>
+              chatBotMode
+                ? setInputBot(e.target.value)
+                : setInputAdmin(e.target.value)
+            }
             onKeyDown={(e) => {
-  if (e.key === "Enter") {
-    chatBotMode ? sendMessage() : sendAdminMessage();
-  }
-}}
+              if (e.key === "Enter") {
+                chatBotMode ? sendMessage() : sendAdminMessage();
+              }
+            }}
             placeholder="Type a message..."
           />
           <button

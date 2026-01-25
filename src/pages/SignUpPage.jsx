@@ -36,45 +36,43 @@ export default function SignUpPage() {
     mname: "",
     lname: "",
     contactNumber: "",
+    birthday: "",
+    email: "",
     password: "",
     repass: "",
   });
 
   const [loading, setLoading] = useState(false);
 
-  const validateName = (name) => {
-    if (/\d/.test(name)) {
-      return "Name cannot contain numbers";
-    }
+  const validateName = (name) =>
+    /\d/.test(name) ? "Name cannot contain numbers" : "";
 
+  const validateEmail = (email) => {
+    if (!email) return "Email is required";
+    if (!/\S+@\S+\.\S+/.test(email)) return "Invalid email format";
     return "";
   };
 
   const validateContactNumber = (contact) => {
-    const digitsOnly = contact.replace(/\D/g, "");
-
-    if (contact && digitsOnly !== contact) {
-      return "Contact number must contain numbers only";
-    }
-
-    if (contact && !contact.startsWith("09")) {
-      return "Contact number must start with 09";
-    }
-
-    if (contact && contact.length !== 11) {
-      return "Contact number must be exactly 11 digits";
-    }
-
+    if (!contact) return "";
+    if (!/^\d+$/.test(contact)) return "Numbers only";
+    if (!contact.startsWith("09")) return "Must start with 09";
+    if (contact.length !== 11) return "Must be 11 digits";
     return "";
   };
 
-  const validatePasswordMatch = (password, repass) => {
-    if (repass && password !== repass) {
-      return "Passwords do not match";
-    }
-
+  const validatePassword = (password) => {
+    if (!password) return "Password is required";
+    if (password.length < 6) return "Password must be at least 6 characters";
+    if (!/[0-9]/.test(password))
+      return "Password must contain at least one number";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+      return "Password must contain at least one special character";
     return "";
   };
+
+  const validatePasswordMatch = (password, repass) =>
+    repass && password !== repass ? "Passwords do not match" : "";
 
   const handleFnameChange = (e) => {
     const value = e.target.value;
@@ -107,16 +105,17 @@ export default function SignUpPage() {
     }));
   };
 
-  const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setInputPassword(value);
-    if (inputRepass) {
-      setErrors((prev) => ({
-        ...prev,
-        repass: validatePasswordMatch(value, inputRepass),
-      }));
-    }
-  };
+ const handlePasswordChange = (e) => {
+  const value = e.target.value;
+  setInputPassword(value);
+
+  setErrors((prev) => ({
+    ...prev,
+    password: validatePassword(value),
+    repass: validatePasswordMatch(value, inputRepass),
+  }));
+};
+
 
   const handleRepassChange = (e) => {
     const value = e.target.value;
@@ -128,83 +127,62 @@ export default function SignUpPage() {
   };
 
   async function handleSignup() {
+    const validationErrors = {
+      fname: validateName(inputFname),
+      mname: validateName(inputMname),
+      lname: validateName(inputLname),
+      contactNumber: validateContactNumber(inputContactNumber),
+      birthday: inputBirthday ? "" : "Birthday is required",
+      email: inputEmail ? "" : "Email is required",
+      password: validatePassword(inputPassword),
+      repass: validatePasswordMatch(inputPassword, inputRepass),
+    };
+
+    setErrors(validationErrors);
+
+    if (Object.values(validationErrors).some(Boolean)) {
+      setModalMessage("Please fix the highlighted errors.");
+      setShowModalMessage(true);
+      return;
+    }
+
     try {
-      const validationErrors = {
-        fname: validateName(inputFname),
-        mname: validateName(inputMname),
-        lname: validateName(inputLname),
-        contactNumber: validateContactNumber(inputContactNumber),
-        repass: validatePasswordMatch(inputPassword, inputRepass),
-      };
-
-      setErrors(validationErrors);
-
-      const hasErrors = Object.values(validationErrors).some(
-        (error) => error !== "",
-      );
-      if (hasErrors) {
-        setShowModalMessage(true);
-        setModalMessage("Please fix the validation errors before submitting.");
-        return;
-      }
-
-      if (!inputEmail || !inputPassword || !inputFname || !inputLname) {
-        setShowModalMessage(true);
-        setModalMessage("Please fill out all required fields.");
-        return;
-      }
-      if (inputPassword !== inputRepass) {
-        setShowModalMessage(true);
-        setModalMessage("Passwords do not match!");
-        return;
-      }
-
       setLoading(true);
 
-      const userCredential = await createUserWithEmailAndPassword(
+      const { user } = await createUserWithEmailAndPassword(
         auth,
         inputEmail,
         inputPassword,
       );
-      const user = userCredential.user;
-      const uid = user.uid;
 
       await sendEmailVerification(user);
-        setShowModalMessage(true);
-      setModalMessage("Account created successfully! Please verify your email.");
-      
+
       await axios.post(`${API_URL}/createUser`, {
         first_name: inputFname,
         middle_name: inputMname,
         last_name: inputLname,
-        // gender: inputGender,
         contact_number: inputContactNumber,
-        // civil_status: inputCivilStatus,
         birthday: inputBirthday,
         email: inputEmail,
         password: inputPassword,
-        uid: uid,
+        uid: user.uid,
+        is_priest: false,
       });
 
-      setInputFname("");
-      setInputMname("");
-      setInputLname("");
-      // setInputGender("")
-      setInputContactNumber("");
-      // setInputCivilStatus("")
-      setInputBirthday("");
-      setInputEmail("");
-      setInputPassword("");
-      setInputRepass("");
+      setModalMessage("Account created! Please verify your email.");
+      setShowModalMessage(true);
+
       setShowSignup(false);
     } catch (err) {
+      setModalMessage(err.message || "Signup failed.");
       setShowModalMessage(true);
-      setModalMessage("Signup Error:", err.message);
-      alert(err.message);
     } finally {
       setLoading(false);
     }
   }
+
+  const inputClass = (fieldValue, fieldError) =>
+    `modal-input ${fieldError || !fieldValue ? "input-error" : ""}`;
 
   return (
     <div className="modal-overlay">
@@ -230,7 +208,7 @@ export default function SignUpPage() {
               type="text"
               value={inputFname}
               onChange={handleFnameChange}
-              className={`modal-input ${errors.fname ? "input-error" : ""}`}
+              className={inputClass(inputFname, errors.fname)}
             />
             {errors.fname && (
               <span className="error-message">{errors.fname}</span>
@@ -242,7 +220,7 @@ export default function SignUpPage() {
               type="text"
               value={inputMname}
               onChange={handleMnameChange}
-              className={`modal-input ${errors.mname ? "input-error" : ""}`}
+              className={inputClass(inputMname, errors.mname)}
             />
             {errors.mname && (
               <span className="error-message">{errors.mname}</span>
@@ -254,7 +232,7 @@ export default function SignUpPage() {
               type="text"
               value={inputLname}
               onChange={handleLnameChange}
-              className={`modal-input ${errors.lname ? "input-error" : ""}`}
+              className={inputClass(inputLname, errors.lname)}
             />
             {errors.lname && (
               <span className="error-message">{errors.lname}</span>
@@ -268,7 +246,7 @@ export default function SignUpPage() {
                 value={inputContactNumber}
                 onChange={handleContactNumberChange}
                 maxLength={11}
-                className={`modal-input ${errors.contactNumber ? "input-error" : ""}`}
+                className={inputClass(inputContactNumber, errors.contactNumber)}
               />
               {errors.contactNumber && (
                 <span className="error-message">{errors.contactNumber}</span>
@@ -280,7 +258,7 @@ export default function SignUpPage() {
                 type="date"
                 value={inputBirthday}
                 onChange={(e) => setInputBirthday(e.target.value)}
-                className="modal-input"
+                className={inputClass(inputBirthday, errors.birthday)}
               />
             </div>
           </div>
@@ -290,8 +268,15 @@ export default function SignUpPage() {
             <input
               type="email"
               value={inputEmail}
-              onChange={(e) => setInputEmail(e.target.value)}
-              className="modal-input"
+              onChange={(e) => {
+                const value = e.target.value;
+                setInputEmail(value);
+                setErrors((prev) => ({
+                  ...prev,
+                  email: validateEmail(value),
+                }));
+              }}
+              className={inputClass(inputEmail, errors.email)}
             />
           </div>
           <div>
@@ -301,7 +286,7 @@ export default function SignUpPage() {
                 type={showPass ? "text" : "password"}
                 value={inputPassword}
                 onChange={handlePasswordChange}
-                className={`modal-input ${errors.password ? "input-error" : ""}`}
+                className={inputClass(inputPassword, errors.password)}
               />
               <button
                 type="button"
@@ -327,7 +312,7 @@ export default function SignUpPage() {
                 type={showRepass ? "text" : "password"}
                 value={inputRepass}
                 onChange={handleRepassChange}
-                className={`modal-input ${errors.repass ? "input-error" : ""}`}
+                className={inputClass(inputRepass, errors.repass)}
               />
               <button
                 type="button"
