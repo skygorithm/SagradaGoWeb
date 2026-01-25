@@ -2,11 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { API_URL } from "../Constants";
 import Cookies from "js-cookie";
+import { message } from "antd";
 
 export default function ChatBot({ isOpen, onClose }) {
   const [messages, setMessages] = useState([]);
   const [inputBot, setInputBot] = useState("");
+
+  const [adminMessages, setAdminMessages] = useState([]);
   const [inputAdmin, setInputAdmin] = useState("");
+
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef(null);
   const [chatBotMode, setChatBotMode] = useState(true);
@@ -14,6 +18,7 @@ export default function ChatBot({ isOpen, onClose }) {
   const chatbotContainerRef = useRef(null);
 
   const uid = Cookies.get("uid");
+  const fullname = Cookies.get("fullname"); 
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -68,20 +73,52 @@ export default function ChatBot({ isOpen, onClose }) {
     }
   };
 
-  async function sendAdminMessage(){
-    try{
-      const res = await axios.post(`${API_URL}/chat/getOrCreateChat`, {
-        userId: uid,
+async function sendAdminMessage() { 
 
-      });
-      console.log("res", res);
-      
-    }
-    catch(err){
-      console.log(err);
-      
-    }
+  if (!inputAdmin.trim() || loading) return;
+
+
+  if (!uid) {
+    message.error("Admin not authenticated");
+    return;
   }
+
+  const adminMessage = {
+    role: "user",
+    senderId: uid,
+    senderType: "user", 
+    senderName: fullname,
+    message: inputAdmin.trim(),
+    text: inputAdmin.trim(),
+  };
+
+
+  setAdminMessages(prev => [...prev, adminMessage]);
+
+
+  setInputAdmin("");
+
+  try {
+    const res = await axios.post(`${API_URL}/chat/addMessageWeb`, {
+      userId: uid, 
+      senderId: uid,
+      senderType: "user",
+      senderName: fullname,
+      message: inputAdmin.trim(),
+    });
+
+    console.log("Updated chat:", res.data);
+
+
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+    message.error("Failed to send message");
+  }
+}
+
+
+
+
 
   const styles = {
     floatingWrapper: {
@@ -228,14 +265,14 @@ export default function ChatBot({ isOpen, onClose }) {
       </div>
 
       <div ref={scrollRef} style={styles.chatArea}>
-        {messages.length === 0 && (
+        {messages.length === 0 || adminMessages.length === 0 && (
           <div
             style={{ textAlign: "center", marginTop: "40px", color: "#aaa" }}
           >
             <p style={{ fontSize: "12px" }}>Hello! How can I help you today?</p>
           </div>
         )}
-        {messages.map((msg, index) => (
+        {(chatBotMode ? messages : adminMessages).map((msg, index) => (
           <div key={index} style={styles.messageRow(msg.role)}>
             <div style={styles.bubble(msg.role)}>{msg.text}</div>
           </div>
@@ -258,11 +295,15 @@ export default function ChatBot({ isOpen, onClose }) {
             style={styles.inputField}
             value={chatBotMode ? inputBot : inputAdmin}
             onChange={(e) => chatBotMode ? setInputBot(e.target.value) : setInputAdmin(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            onKeyDown={(e) => {
+  if (e.key === "Enter") {
+    chatBotMode ? sendMessage() : sendAdminMessage();
+  }
+}}
             placeholder="Type a message..."
           />
           <button
-            onClick={sendMessage}
+            onClick={chatBotMode ? sendMessage : sendAdminMessage}
             disabled={
               loading || (chatBotMode ? !inputBot.trim() : !inputAdmin.trim())
             }
