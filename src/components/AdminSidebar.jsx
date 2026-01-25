@@ -44,7 +44,7 @@ export default function AdminSidebar() {
       if (response.data) {
         setNotificationUnreadCount(response.data.unreadCount || 0);
       }
-      
+
     } catch (error) {
       console.error("Error fetching notification unread count:", error);
     }
@@ -54,13 +54,13 @@ export default function AdminSidebar() {
     try {
       const response = await axios.get(`${API_URL}/chat/getAllChats`);
       const fetchedChats = response.data.chats || [];
-      
+
       const totalUnread = fetchedChats.reduce(
         (sum, chat) => sum + (chat.unreadCount || 0),
         0
       );
       setChatUnreadCount(totalUnread);
-      
+
     } catch (error) {
       console.error("Error fetching chat unread count:", error);
     }
@@ -123,6 +123,7 @@ export default function AdminSidebar() {
               count={notificationUnreadCount}
               style={{
                 backgroundColor: "#b87d3e",
+                marginRight: "5px",
               }}
             />
           )}
@@ -140,6 +141,7 @@ export default function AdminSidebar() {
               count={chatUnreadCount}
               style={{
                 backgroundColor: "#b87d3e",
+                marginRight: "5px",
               }}
             />
           )}
