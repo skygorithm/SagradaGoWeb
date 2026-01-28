@@ -323,26 +323,18 @@ export default function AccountManagement() {
   };
 
   const validatePassword = (password) => {
-    if (!password) {
-      return "Password is required";
-    }
-
-    if (password.length < 6) {
-      return "Password must be at least 6 characters";
-    }
-
+    if (!password) return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
+    if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "Password must contain at least one special character";
     return "";
   };
 
   const validatePasswordMatch = (password, confirmPassword) => {
-    if (!confirmPassword) {
-      return "Please confirm your password";
-    }
-
-    if (password !== confirmPassword) {
-      return "Passwords do not match";
-    }
-
+    if (!confirmPassword) return "Confirm password is required";
+    if (password !== confirmPassword) return "Passwords do not match";
     return "";
   };
 
@@ -370,6 +362,9 @@ export default function AccountManagement() {
     if (!formData.last_name) newErrors.last_name = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
 
+    const passwordError = validatePassword(formData.password);
+    const confirmError = validatePasswordMatch(formData.password, formData.confirmPassword);
+
     const contactError = validateContactNumber(formData.contact_number);
     if (contactError) {
       newErrors.contact_number = contactError;
@@ -380,14 +375,23 @@ export default function AccountManagement() {
       newErrors.birthday = birthdayError;
     }
 
-    const passwordError = validatePassword(formData.password);
-    if (passwordError) {
-      newErrors.password = passwordError;
-    }
+    // const passwordError = validatePassword(formData.password);
+    // if (passwordError) {
+    //   newErrors.password = passwordError;
+    // }
 
-    const confirmPasswordError = validatePasswordMatch(formData.password, formData.confirmPassword);
-    if (confirmPasswordError) {
-      newErrors.confirmPassword = confirmPasswordError;
+    // const confirmPasswordError = validatePasswordMatch(formData.password, formData.confirmPassword);
+    // if (confirmPasswordError) {
+    //   newErrors.confirmPassword = confirmPasswordError;
+    // }
+
+    if (passwordError || confirmError) {
+      setErrors(prev => ({
+        ...prev,
+        password: passwordError,
+        confirmPassword: confirmError
+      }));
+      return;
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -2002,9 +2006,10 @@ export default function AccountManagement() {
                       // Validate match if password exists
                       if (formData.password) {
                         const error = validatePasswordMatch(formData.password, newConfirmPassword);
-                        if (error) {
-                          setErrors((prev) => ({ ...prev, confirmPassword: error }));
-                        }
+                        // if (error) {
+                        //   setErrors((prev) => ({ ...prev, confirmPassword: error }));
+                        // }
+                        setErrors(prev => ({ ...prev, confirmPassword: error }));
                       }
                     }}
                     onBlur={() => {
