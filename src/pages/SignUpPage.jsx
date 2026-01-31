@@ -31,6 +31,8 @@ export default function SignUpPage() {
   const [showPass, setShowPass] = useState(false);
   const [showRepass, setShowRepass] = useState(false);
 
+  const [submitted, setSubmitted] = useState(false);
+
   const [errors, setErrors] = useState({
     fname: "",
     mname: "",
@@ -105,17 +107,16 @@ export default function SignUpPage() {
     }));
   };
 
- const handlePasswordChange = (e) => {
-  const value = e.target.value;
-  setInputPassword(value);
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setInputPassword(value);
 
-  setErrors((prev) => ({
-    ...prev,
-    password: validatePassword(value),
-    repass: validatePasswordMatch(value, inputRepass),
-  }));
-};
-
+    setErrors((prev) => ({
+      ...prev,
+      password: validatePassword(value),
+      repass: validatePasswordMatch(value, inputRepass),
+    }));
+  };
 
   const handleRepassChange = (e) => {
     const value = e.target.value;
@@ -127,13 +128,15 @@ export default function SignUpPage() {
   };
 
   async function handleSignup() {
+    setSubmitted(true);
+
     const validationErrors = {
       fname: validateName(inputFname),
       mname: validateName(inputMname),
       lname: validateName(inputLname),
       contactNumber: validateContactNumber(inputContactNumber),
       birthday: inputBirthday ? "" : "Birthday is required",
-      email: inputEmail ? "" : "Email is required",
+      email: validateEmail(inputEmail),
       password: validatePassword(inputPassword),
       repass: validatePasswordMatch(inputPassword, inputRepass),
     };
@@ -141,7 +144,7 @@ export default function SignUpPage() {
     setErrors(validationErrors);
 
     if (Object.values(validationErrors).some(Boolean)) {
-      setModalMessage("Please fix the highlighted errors.");
+      setModalMessage("Please fill all input fields.");
       setShowModalMessage(true);
       return;
     }
@@ -181,8 +184,12 @@ export default function SignUpPage() {
     }
   }
 
-  const inputClass = (fieldValue, fieldError) =>
-    `modal-input ${fieldError || !fieldValue ? "input-error" : ""}`;
+const inputClass = (value, error) => {
+  if (!submitted) return "modal-input"; // always black before submit
+  if (error || !value) return "modal-input input-error";
+  return "modal-input";
+};
+
 
   return (
     <div className="modal-overlay">
