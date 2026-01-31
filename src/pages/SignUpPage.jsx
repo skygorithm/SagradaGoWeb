@@ -127,6 +127,27 @@ export default function SignUpPage() {
     }));
   };
 
+  const validateBirthday = (birthday) => {
+    if (!birthday) return "Birthday is required";
+
+    const today = new Date();
+    const birthDate = new Date(birthday);
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    if (age < 18) return "You must be at least 18 years old";
+
+    return "";
+  };
+
   async function handleSignup() {
     setSubmitted(true);
 
@@ -135,7 +156,7 @@ export default function SignUpPage() {
       mname: validateName(inputMname),
       lname: validateName(inputLname),
       contactNumber: validateContactNumber(inputContactNumber),
-      birthday: inputBirthday ? "" : "Birthday is required",
+      birthday: validateBirthday(inputBirthday),
       email: validateEmail(inputEmail),
       password: validatePassword(inputPassword),
       repass: validatePasswordMatch(inputPassword, inputRepass),
@@ -184,12 +205,11 @@ export default function SignUpPage() {
     }
   }
 
-const inputClass = (value, error) => {
-  if (!submitted) return "modal-input"; // always black before submit
-  if (error || !value) return "modal-input input-error";
-  return "modal-input";
-};
-
+  const inputClass = (value, error) => {
+    if (!submitted) return "modal-input"; // always black before submit
+    if (error || !value) return "modal-input input-error";
+    return "modal-input";
+  };
 
   return (
     <div className="modal-overlay">
@@ -267,6 +287,9 @@ const inputClass = (value, error) => {
                 onChange={(e) => setInputBirthday(e.target.value)}
                 className={inputClass(inputBirthday, errors.birthday)}
               />
+              {errors.birthday && (
+                <span className="error-message">{errors.birthday}</span>
+              )}
             </div>
           </div>
 

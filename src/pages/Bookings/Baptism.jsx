@@ -51,7 +51,11 @@ export default function Baptism() {
   const fileInputRefs = useRef([]);
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+today.setHours(0, 0, 0, 0);
+
+const aWeekAfter = new Date(today);
+aWeekAfter.setDate(aWeekAfter.getDate() + 7);
+
 
   const inputText = [
     {
@@ -83,7 +87,8 @@ export default function Baptism() {
       type: "date",
       onChange: setDate,
       value: date,
-      minDate: today,
+      minDate: aWeekAfter,
+      openToDate: aWeekAfter,
     },
     {
       key: "candidate_fname",
@@ -114,6 +119,7 @@ export default function Baptism() {
       onChange: setCandidateBday,
       value: candidateBday,
       maxDate: today,
+      openToDate: today,
     },
     {
       key: "candidate_bplace",
@@ -644,7 +650,7 @@ export default function Baptism() {
                     dateFormat="yyyy-MM-dd"
                     minDate={elem.minDate}
                     maxDate={elem.maxDate}
-                    openToDate={today}
+                    openToDate={elem.openToDate}
                     showYearDropdown
                     dropdownMode="select"
                     onKeyDown={(e) => e.preventDefault()}

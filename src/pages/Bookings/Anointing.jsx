@@ -262,6 +262,10 @@ export default function Anointing() {
     ["date", "time", "attendees"].includes(i.key),
   );
 
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
@@ -317,7 +321,7 @@ export default function Anointing() {
                     className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
                     dateFormat="yyyy-MM-dd"
                     showYearDropdown
-                    minDate={tomorrow}
+                    minDate={today}
                     dropdownMode="select"
                     placeholderText="Select preferred date"
                     onKeyDown={(e) => e.preventDefault()}
