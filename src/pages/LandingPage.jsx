@@ -47,7 +47,7 @@ export default function LandingPage() {
 
               <div className="hero-right-box">
                 <p className="hero-description">
-                  A community of faith, hope, and love in the heart of Pateros.
+                  A community of faith, hope, and love in the heart of Bagumbayan, Taguig.
                   Join us in worship and celebrate the holy sacraments.
                 </p>
                 <div className="hero-btns">
