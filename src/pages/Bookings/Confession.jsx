@@ -27,7 +27,7 @@ export default function Confession() {
   const [lname, setLname] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [attendees, setAttendees] = useState(0);
+  const [attendees, setAttendees] = useState(1); 
   const [email, setEmail] = useState(Cookies.get("email") || "");
 
   const [bookComplete, setBookComplete] = useState(false);
@@ -92,6 +92,7 @@ export default function Confession() {
       type: "number",
       onChange: setAttendees,
       value: attendees,
+      readOnly: true,
     },
   ];
 
