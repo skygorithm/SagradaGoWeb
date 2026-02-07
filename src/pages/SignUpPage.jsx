@@ -391,7 +391,7 @@ export default function SignUpPage() {
       </div>
 
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} hideCancel={true}/>
       )}
     </div>
   );

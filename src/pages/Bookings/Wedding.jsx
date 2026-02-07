@@ -812,6 +812,7 @@ export default function Wedding() {
           setShowModal={setShowModalMessage} 
           onOk={handleModalClose}
           bookComplete={bookComplete}
+          hideCancel={true}
         />
       )}
     </div>
