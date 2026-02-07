@@ -479,8 +479,8 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
 
     if (!mainGodMotherLname.trim()) newErrors.main_godmother_lname = true;
 
-    if (additionalGodParents.length === 0)
-      newErrors.additional_godparents = true;
+    // if (additionalGodParents.length === 0)
+    //   newErrors.additional_godparents = true;
 
     if (!birthCertificateFile) newFileErrors.birthcert = true;
     if (!marriageCertFile) newFileErrors.parent_marriagecert = true;
@@ -533,8 +533,8 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
         mainGodFatherFname.trim() === "" ||
         mainGodFatherLname.trim() === "" ||
         mainGodMotherFname.trim() === "" ||
-        mainGodMotherLname.trim() === "" ||
-        additionalGodParents.length === 0
+        mainGodMotherLname.trim() === "" 
+        // additionalGodParents.length === 0
       ) {
         setShowModalMessage(true);
         setModalMessage("Please fill in all required fields.");
