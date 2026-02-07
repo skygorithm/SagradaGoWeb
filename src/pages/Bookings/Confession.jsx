@@ -41,6 +41,25 @@ export default function Confession() {
 
   const uid = Cookies.get("uid");
 
+  const getMinimumBookingDate = (sacrament) => {
+    const today = dayjs();
+
+    switch (sacrament) {
+      case "Baptism":
+      case "Wedding":
+        return today.add(2, "month").toDate(); 
+      case "Burial":
+        return today.add(1, "week").toDate();
+      case "First Communion":
+      case "Confession":
+      case "Anointing":
+      case "Confirmation":
+        return today.add(1, "day").toDate(); 
+      default:
+        return today.toDate();
+    }
+  };
+
   const inputText = [
     {
       key: "first_name",
@@ -77,6 +96,8 @@ export default function Confession() {
       type: "date",
       onChange: setDate,
       value: date,
+      minDate: getMinimumBookingDate("Confession"),
+      openToDate: getMinimumBookingDate("Confession"),
     },
     {
       key: "time",

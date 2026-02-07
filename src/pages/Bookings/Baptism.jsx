@@ -63,6 +63,24 @@ today.setHours(0, 0, 0, 0);
 const aWeekAfter = new Date(today);
 aWeekAfter.setDate(aWeekAfter.getDate() + 7);
 
+  const getMinimumBookingDate = (sacrament) => {
+    const today = dayjs();
+
+    switch (sacrament) {
+      case "Baptism":
+      case "Wedding":
+        return today.add(2, "month").toDate(); 
+      case "Burial":
+        return today.add(1, "week").toDate();
+      case "First Communion":
+      case "Confession":
+      case "Anointing":
+      case "Confirmation":
+        return today.add(1, "day").toDate(); 
+      default:
+        return today.toDate();
+    }
+  };
 
   const inputText = [
     {
@@ -94,8 +112,8 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "date",
       onChange: setDate,
       value: date,
-      minDate: aWeekAfter,
-      openToDate: aWeekAfter,
+      minDate: getMinimumBookingDate("Baptism"),
+      openToDate: getMinimumBookingDate("Baptism"),
     },
     {
       key: "candidate_fname",

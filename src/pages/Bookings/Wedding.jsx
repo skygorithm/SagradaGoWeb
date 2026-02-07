@@ -53,6 +53,25 @@ export default function Wedding() {
   const [errors, setErrors] = useState({});
   const inputClass = (key) => `input-text ${errors[key] ? "input-error" : ""}`;
 
+  const getMinimumBookingDate = (sacrament) => {
+    const today = dayjs();
+
+    switch (sacrament) {
+      case "Baptism":
+      case "Wedding":
+        return today.add(2, "month").toDate(); 
+      case "Burial":
+        return today.add(1, "week").toDate();
+      case "First Communion":
+      case "Confession":
+      case "Anointing":
+      case "Confirmation":
+        return today.add(1, "day").toDate(); 
+      default:
+        return today.toDate();
+    }
+  };
+
   const inputText = [
     {
       key: "groom_first",
@@ -81,6 +100,8 @@ export default function Wedding() {
       type: "date",
       onChange: setDate,
       value: date,
+      minDate: getMinimumBookingDate("Wedding"),
+      openToDate: getMinimumBookingDate("Wedding"),
     },
 
     {
