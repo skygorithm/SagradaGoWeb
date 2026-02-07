@@ -153,10 +153,19 @@ export default function Anointing() {
     return `ANO-${timestamp}-${random}`;
   }
 
-    const handleModalClose = () => {
+  //   const handleModalClose = () => {
+  //   setShowModalMessage(false);
+  //   setSelectedNavbar("Home")
+  //   navigate("/");
+  // };
+
+  const handleModalClose = () => {
     setShowModalMessage(false);
-    setSelectedNavbar("Home")
-    navigate("/");
+
+    if (bookComplete) {
+      setSelectedNavbar("Home");
+      navigate("/");
+    }
   };
 
   async function handleSubmit() {

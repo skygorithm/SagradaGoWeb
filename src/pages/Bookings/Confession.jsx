@@ -95,11 +95,20 @@ export default function Confession() {
     },
   ];
 
-    const handleModalClose = () => {
-      setShowModalMessage(false);
-      setSelectedNavbar("Home")
+    // const handleModalClose = () => {
+    //   setShowModalMessage(false);
+    //   setSelectedNavbar("Home")
+    //   navigate("/");
+    // };
+
+  const handleModalClose = () => {
+    setShowModalMessage(false);
+
+    if (bookComplete) {
+      setSelectedNavbar("Home");
       navigate("/");
-    };
+    }
+  };
 
   async function handleSubmit() {
     const newErrors = {};

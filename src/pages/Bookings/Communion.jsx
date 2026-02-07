@@ -181,17 +181,27 @@ export default function Communion() {
     const { data } = supabase.storage.from("communion").getPublicUrl(filePath);
     return data.publicUrl;
   }
+
   function generateTransactionID() {
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     const timestamp = Date.now().toString().slice(-6);
     return `COM-${timestamp}-${random}`;
   }
 
-    const handleModalClose = () => {
-      setShowModalMessage(false);
-      setSelectedNavbar("Home")
+    // const handleModalClose = () => {
+    //   setShowModalMessage(false);
+    //   setSelectedNavbar("Home")
+    //   navigate("/");
+    // };
+
+  const handleModalClose = () => {
+    setShowModalMessage(false);
+
+    if (bookComplete) {
+      setSelectedNavbar("Home");
       navigate("/");
-    };
+    }
+  };
 
   async function handleSubmit() {
     if (!validate()) {

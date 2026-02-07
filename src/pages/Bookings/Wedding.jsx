@@ -382,12 +382,20 @@ export default function Wedding() {
     setFileErrors({});
   }
 
+  // const handleModalClose = () => {
+  //   setShowModalMessage(false);
+  //   setSelectedNavbar("Home")
+  //   navigate("/");
+  // };
+
   const handleModalClose = () => {
     setShowModalMessage(false);
-    setSelectedNavbar("Home")
-    navigate("/");
-  };
 
+    if (bookComplete) {
+      setSelectedNavbar("Home");
+      navigate("/");
+    }
+  };
 
   async function handleUpload() {
     const { textErrors, fileErrors } = validateForm();

@@ -426,11 +426,20 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
     if (baptismalSeminar.current) baptismalSeminar.current.value = "";
   }
 
-    const handleModalClose = () => {
-      setShowModalMessage(false);
-      setSelectedNavbar("Home")
+    // const handleModalClose = () => {
+    //   setShowModalMessage(false);
+    //   setSelectedNavbar("Home")
+    //   navigate("/");
+    // };
+
+  const handleModalClose = () => {
+    setShowModalMessage(false);
+
+    if (bookComplete) {
+      setSelectedNavbar("Home");
       navigate("/");
-    };
+    }
+  };
 
   async function handleUpload() {
     const newErrors = {};
