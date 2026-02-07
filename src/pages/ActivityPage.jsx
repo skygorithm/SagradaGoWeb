@@ -23,6 +23,7 @@ export default function ActivityPage() {
     const [donations, setDonations] = useState([]);
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [bookings, setBookings] = useState([]);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -43,8 +44,51 @@ export default function ActivityPage() {
                     user_id: currentUser.uid,
                 });
                 setEvents(eventsRes.data.volunteers || []);
+
+                // ================= BOOKINGS =================
+                const allBookings = [];
+
+                const normalize = (data, sacrament) =>
+                (data || []).map(item => ({
+                    sacrament,
+                    date: item.date,
+                    time: item.time,
+                    status: item.status || "pending",
+                    createdAt: item.createdAt,
+                    amount: item.amount,
+                    payment_method: item.payment_method,
+                }));
+
+                const baptismRes = await axios.post(`${API_URL}/getUserBaptisms`, {
+                uid: currentUser.uid,
+                });
+                allBookings.push(...normalize(baptismRes.data.baptisms, "Baptism"));
+
+                const weddingRes = await axios.post(`${API_URL}/getUserWeddings`, {
+                uid: currentUser.uid,
+                });
+                allBookings.push(...normalize(weddingRes.data.weddings, "Wedding"));
+
+                const burialRes = await axios.post(`${API_URL}/getUserBurials`, {
+                uid: currentUser.uid,
+                });
+                allBookings.push(...normalize(burialRes.data.burials, "Burial"));
+
+                const communionRes = await axios.post(`${API_URL}/getUserCommunions`, {
+                uid: currentUser.uid,
+                });
+                allBookings.push(...normalize(communionRes.data.communions, "Communion"));
+
+                const anointingRes = await axios.post(`${API_URL}/getUserAnointings`, {
+                uid: currentUser.uid,
+                });
+                allBookings.push(...normalize(anointingRes.data.anointings, "Anointing of the Sick"));
+
+                setBookings(allBookings);
+
             } catch (error) {
                 console.error("Error fetching history:", error);
+
             } finally {
                 setLoading(false);
             }
@@ -108,6 +152,7 @@ export default function ActivityPage() {
                                 locale={{ emptyText: <div className="history-empty">No donations found.</div> }}
                             />
                         </Tabs.TabPane>
+
                         <Tabs.TabPane tab="Events" key="2">
                             <div
                                 style={{
@@ -163,6 +208,63 @@ export default function ActivityPage() {
                                 />
                             </div>
                         </Tabs.TabPane>
+
+                        <Tabs.TabPane tab="Bookings" key="3">
+                            <List
+                                className="history-list"
+                                dataSource={bookings}
+                                renderItem={(item) => (
+                                <List.Item>
+                                    <List.Item.Meta
+                                    title={
+                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                        <span style={{ fontWeight: 600 }}>
+                                            {item.sacrament}
+                                        </span>
+                                        <Tag
+                                            color={
+                                            item.status === "approved" || item.status === "confirmed"
+                                                ? "green"
+                                                : item.status === "pending"
+                                                ? "orange"
+                                                : "red"
+                                            }
+                                        >
+                                            {item.status.toUpperCase()}
+                                        </Tag>
+                                        </div>
+                                    }
+                                    description={
+                                        <>
+                                        <div style={{ color: "#8c8c8c" }}>
+                                            {new Date(item.date).toLocaleDateString()} • {item.time}
+                                        </div>
+                                        <div style={{ fontSize: 12, color: "#bfbfbf" }}>
+                                            Booked on {new Date(item.createdAt).toLocaleDateString()}
+                                        </div>
+                                        {item.amount && (
+                                            <div style={{ marginTop: 4 }}>
+                                            ₱{Number(item.amount).toLocaleString()} •{" "}
+                                            {item.payment_method === "gcash"
+                                                ? "GCash"
+                                                : "In-Person"}
+                                            </div>
+                                        )}
+                                        </>
+                                    }
+                                    />
+                                </List.Item>
+                                )}
+                                locale={{
+                                emptyText: (
+                                    <div className="history-empty">
+                                    No bookings found.
+                                    </div>
+                                ),
+                                }}
+                            />
+                        </Tabs.TabPane>
+
                     </Tabs>
                 </div>
             </div>
