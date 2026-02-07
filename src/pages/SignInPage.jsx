@@ -22,109 +22,284 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
+  // async function SignIn() {
+  //   setError("");
+  //   setLoading(true);
+
+  //   try {
+  //     const userCredential = await signInWithEmailAndPassword(
+  //       auth,
+  //       inputEmail,
+  //       inputPassword
+  //     );
+
+  //     const user = userCredential.user;
+
+  //     // if (!user.emailVerified) {
+  //     //   setError(
+  //     //     "Please verify your email address before logging in. Check your inbox for the verification link."
+  //     //   );
+  //     //   setLoading(false);
+  //     //   return;
+  //     // }
+
+  //     const uid = user.uid;
+  //     console.log("uid:", uid);
+
+  //     try {
+  //       console.log("napasok sa admin");
+
+  //       const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
+
+  //       if (adminResponse.data?.user) {
+  //         const adminUser = adminResponse.data.user;
+  //         adminUser.is_admin = true;
+  //         setCurrentUser(adminUser);
+  //         localStorage.setItem("currentUser", JSON.stringify(adminUser));
+  //         Cookies.set("email", inputEmail, { expires: 7 });
+
+  //         const sessionTimeout = Date.now() + (5 * 60 * 1000); 
+  //         localStorage.setItem("sessionTimeout", sessionTimeout.toString());
+
+  //         navigate("/admin/dashboard");
+  //         setShowSignin(false);
+  //         setLoading(false);
+  //         return;
+  //       }
+
+
+  //     } catch (err) {
+        
+  //       console.error("Admin check failed:", err);
+  //     }
+
+  //     try {
+  //       const firebaseToken = await user.getIdToken();
+
+  //       const loginResponse = await axios.post(`${API_URL}/login`, {
+  //         email: inputEmail,
+  //         password: inputPassword,
+  //         firebaseToken: firebaseToken, 
+  //       });
+  //       console.log("user", loginResponse);
+
+  //       setCurrentUser(loginResponse.data.user);
+  //       localStorage.setItem("currentUser", JSON.stringify(loginResponse.data.user));
+
+  //       Cookies.set("email", inputEmail, { expires: 7 });
+  //       Cookies.set("uid", loginResponse.data.user.uid, { expires: 7 });
+  //       Cookies.set("fullname", `${loginResponse.data.user.first_name} ${loginResponse.data.user.middle_name} ${loginResponse.data.user.last_name}`, { expires: 7 });
+  //       Cookies.set("contact", loginResponse.data.user.contact_number, { expires: 7 });
+        
+  //       const sessionTimeout = Date.now() + (5 * 60 * 1000); 
+  //       localStorage.setItem("sessionTimeout", sessionTimeout.toString());
+
+  //       navigate("/");
+  //       setShowSignin(false);
+  //       return;
+
+  //     } catch (err) {
+  //       console.error("Backend login failed:", err);
+        
+  //       if (err.response?.status === 401) {
+  //         setError("Invalid email or password. If you recently changed your password, please try again in a few moments.");
+        
+  //       } else if (err.response?.status === 404) {
+  //         setError("No account found with this email.");
+  //       } else {
+  //         setError("Login failed. Please try again.");
+  //       }
+        
+  //     }
+
+  //   // } catch (err) {
+  //   //   console.error("Firebase login failed:", err);
+
+  //   //   if (err.code === "auth/user-not-found") {
+  //   //     setError("No account found with this email.");
+
+  //   //   } else if (err.code === "auth/wrong-password") {
+  //   //     setError("Incorrect password.");
+
+  //   //   } else {
+  //   //     setError("Login failed. Please try again.");
+  //   //   }
+      
+  //   // } finally {
+  //   //   setLoading(false);
+  //   // }
+
+  //   } catch (err) {
+  //     console.error("Firebase login failed:", err);
+
+  //     switch (err.code) {
+  //       case "auth/user-not-found":
+  //         setError("No account found with this email.");
+  //         break;
+
+  //       case "auth/wrong-password":
+  //         setError("Incorrect password.");
+  //         break;
+
+  //       case "auth/invalid-email":
+  //         setError("Please enter a valid email address.");
+  //         break;
+
+  //       case "auth/missing-password":
+  //         setError("Please enter your password.");
+  //         break;
+
+  //       case "auth/too-many-requests":
+  //         setError(
+  //           "Too many failed login attempts. Please wait a few minutes and try again."
+  //         );
+  //         break;
+
+  //       case "auth/user-disabled":
+  //         setError(
+  //           "This account has been disabled. Please contact the administrator."
+  //         );
+  //         break;
+
+  //       default:
+  //         setError("Unable to sign in. Please check your credentials and try again.");
+  //     }
+  //   }
+  // }
+
   async function SignIn() {
     setError("");
     setLoading(true);
 
+    let user;
+
     try {
+      // --- Step 1: Firebase login ---
       const userCredential = await signInWithEmailAndPassword(
         auth,
         inputEmail,
         inputPassword
       );
-
-      const user = userCredential.user;
-
-      // if (!user.emailVerified) {
-      //   setError(
-      //     "Please verify your email address before logging in. Check your inbox for the verification link."
-      //   );
-      //   setLoading(false);
-      //   return;
-      // }
-
+      user = userCredential.user;
       const uid = user.uid;
       console.log("uid:", uid);
-
-      try {
-        console.log("napasok sa admin");
-
-        const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid });
-
-        if (adminResponse.data?.user) {
-          const adminUser = adminResponse.data.user;
-          adminUser.is_admin = true;
-          setCurrentUser(adminUser);
-          localStorage.setItem("currentUser", JSON.stringify(adminUser));
-          Cookies.set("email", inputEmail, { expires: 7 });
-
-          const sessionTimeout = Date.now() + (5 * 60 * 1000); 
-          localStorage.setItem("sessionTimeout", sessionTimeout.toString());
-
-          navigate("/admin/dashboard");
-          setShowSignin(false);
-          setLoading(false);
-          return;
-        }
-
-
-      } catch (err) {
-        
-        console.error("Admin check failed:", err);
-      }
-
-      try {
-        const firebaseToken = await user.getIdToken();
-
-        const loginResponse = await axios.post(`${API_URL}/login`, {
-          email: inputEmail,
-          password: inputPassword,
-          firebaseToken: firebaseToken, 
-        });
-        console.log("user", loginResponse);
-
-        setCurrentUser(loginResponse.data.user);
-        localStorage.setItem("currentUser", JSON.stringify(loginResponse.data.user));
-
-        Cookies.set("email", inputEmail, { expires: 7 });
-        Cookies.set("uid", loginResponse.data.user.uid, { expires: 7 });
-        Cookies.set("fullname", `${loginResponse.data.user.first_name} ${loginResponse.data.user.middle_name} ${loginResponse.data.user.last_name}`, { expires: 7 });
-        Cookies.set("contact", loginResponse.data.user.contact_number, { expires: 7 });
-        
-        const sessionTimeout = Date.now() + (5 * 60 * 1000); 
-        localStorage.setItem("sessionTimeout", sessionTimeout.toString());
-
-        navigate("/");
-        setShowSignin(false);
-        return;
-
-      } catch (err) {
-        console.error("Backend login failed:", err);
-        
-        if (err.response?.status === 401) {
-          setError("Invalid email or password. If you recently changed your password, please try again in a few moments.");
-        
-        } else if (err.response?.status === 404) {
-          setError("No account found with this email.");
-        } else {
-          setError("Login failed. Please try again.");
-        }
-        
-      }
 
     } catch (err) {
       console.error("Firebase login failed:", err);
 
-      if (err.code === "auth/user-not-found") {
-        setError("No account found with this email.");
+      // --- Firebase-specific errors ---
+      switch (err.code) {
+        case "auth/user-not-found":
+          setError("No account found with this email.");
+          break;
 
-      } else if (err.code === "auth/wrong-password") {
-        setError("Incorrect password.");
+        case "auth/wrong-password":
+          setError("Incorrect password.");
+          break;
 
-      } else {
-        setError("Login failed. Please try again.");
+        case "auth/invalid-email":
+          setError("Please enter a valid email address.");
+          break;
+
+        case "auth/missing-password":
+          setError("Please enter your password.");
+          break;
+
+        case "auth/too-many-requests":
+          setError(
+            "Too many failed login attempts. Please wait a few minutes and try again."
+          );
+          break;
+
+        case "auth/user-disabled":
+          setError(
+            "This account has been disabled. Please contact the administrator."
+          );
+          break;
+
+        case "auth/invalid-credential":
+          setError("Incorrect email or password."); // <- your mobile-style handling
+          break;
+
+        default:
+          setError(
+            `Login failed: ${err.message || "Please check your credentials and try again."}`
+          );
+      }
+
+      setLoading(false);
+      return; // STOP execution here if Firebase login failed
+    }
+
+    // --- Step 2: Admin check ---
+    try {
+      const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid: user.uid });
+
+      if (adminResponse.data?.user) {
+        const adminUser = adminResponse.data.user;
+        adminUser.is_admin = true;
+        setCurrentUser(adminUser);
+        localStorage.setItem("currentUser", JSON.stringify(adminUser));
+        Cookies.set("email", inputEmail, { expires: 7 });
+
+        const sessionTimeout = Date.now() + 5 * 60 * 1000;
+        localStorage.setItem("sessionTimeout", sessionTimeout.toString());
+
+        navigate("/admin/dashboard");
+        setShowSignin(false);
+        setLoading(false);
+        return;
       }
       
+    } catch (err) {
+      console.error("Admin check failed:", err);
+    }
+
+    // --- Step 3: Backend login ---
+    try {
+      const firebaseToken = await user.getIdToken();
+
+      const loginResponse = await axios.post(`${API_URL}/login`, {
+        email: inputEmail,
+        password: inputPassword,
+        firebaseToken,
+      });
+
+      const backendUser = loginResponse.data.user;
+      setCurrentUser(backendUser);
+      localStorage.setItem("currentUser", JSON.stringify(backendUser));
+
+      Cookies.set("email", inputEmail, { expires: 7 });
+      Cookies.set("uid", backendUser.uid, { expires: 7 });
+      Cookies.set(
+        "fullname",
+        `${backendUser.first_name} ${backendUser.middle_name} ${backendUser.last_name}`,
+        { expires: 7 }
+      );
+
+      Cookies.set("contact", backendUser.contact_number, { expires: 7 });
+
+      const sessionTimeout = Date.now() + 5 * 60 * 1000;
+      localStorage.setItem("sessionTimeout", sessionTimeout.toString());
+
+      navigate("/");
+      setShowSignin(false);
+
+    } catch (err) {
+      console.error("Backend login failed:", err);
+
+      if (err.response?.status === 401) {
+        setError(
+          "Invalid email or password. If you recently changed your password, please try again in a few moments."
+        );
+
+      } else if (err.response?.status === 404) {
+        setError("No account found with this email.");
+
+      } else {
+        setError(err.response?.data?.message || "Login failed. Please try again.");
+      }
+
     } finally {
       setLoading(false);
     }
