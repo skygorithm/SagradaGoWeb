@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { NavbarContext } from "../context/AllContext";
 import "../styles/profile.css";
-import { Modal, Button, message, Spin, Tabs, List, Tag } from "antd";
+import { Modal, Button, message, Spin, Tabs, List, Tag, Select } from "antd";
 import axios from "axios";
 import { API_URL } from "../Constants";
 
@@ -24,6 +24,7 @@ export default function ActivityPage() {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [bookings, setBookings] = useState([]);
+    const [statusFilter, setStatusFilter] = useState("all");
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -49,46 +50,51 @@ export default function ActivityPage() {
                 const allBookings = [];
 
                 const normalize = (data, sacrament) =>
-                (data || []).map(item => ({
-                    sacrament,
-                    date: item.date,
-                    time: item.time,
-                    status: item.status || "pending",
-                    createdAt: item.createdAt,
-                    amount: item.amount,
-                    payment_method: item.payment_method,
-                }));
+                    (data || []).map(item => ({
+                        sacrament,
+                        date: item.date,
+                        time: item.time,
+                        status: item.status || "pending",
+                        createdAt: item.createdAt,
+                        amount: item.amount,
+                        payment_method: item.payment_method,
+                    }));
 
                 const baptismRes = await axios.post(`${API_URL}/getUserBaptisms`, {
-                uid: currentUser.uid,
+                    uid: currentUser.uid,
                 });
                 allBookings.push(...normalize(baptismRes.data.baptisms, "Baptism"));
 
                 const weddingRes = await axios.post(`${API_URL}/getUserWeddings`, {
-                uid: currentUser.uid,
+                    uid: currentUser.uid,
                 });
                 allBookings.push(...normalize(weddingRes.data.weddings, "Wedding"));
 
                 const burialRes = await axios.post(`${API_URL}/getUserBurials`, {
-                uid: currentUser.uid,
+                    uid: currentUser.uid,
                 });
                 allBookings.push(...normalize(burialRes.data.burials, "Burial"));
 
                 const communionRes = await axios.post(`${API_URL}/getUserCommunions`, {
-                uid: currentUser.uid,
+                    uid: currentUser.uid,
                 });
                 allBookings.push(...normalize(communionRes.data.communions, "Communion"));
 
                 const anointingRes = await axios.post(`${API_URL}/getUserAnointings`, {
-                uid: currentUser.uid,
+                    uid: currentUser.uid,
                 });
                 allBookings.push(...normalize(anointingRes.data.anointings, "Anointing of the Sick"));
 
-                setBookings(allBookings);
+                // ===== Normalize status to match mobile =====
+                setBookings(
+                    allBookings.map(b => ({
+                        ...b,
+                        status: b.status === "confirmed" ? "approved" : b.status,
+                    }))
+                );
 
             } catch (error) {
                 console.error("Error fetching history:", error);
-
             } finally {
                 setLoading(false);
             }
@@ -96,6 +102,10 @@ export default function ActivityPage() {
 
         fetchHistory();
     }, [currentUser]);
+
+    const filteredBookings = statusFilter === "all"
+        ? bookings
+        : bookings.filter(b => b.status === statusFilter);
 
     if (loading) {
         return (
@@ -210,61 +220,66 @@ export default function ActivityPage() {
                         </Tabs.TabPane>
 
                         <Tabs.TabPane tab="Bookings" key="3">
+                            {/* Status Filter Dropdown */}
+                            <div style={{ marginBottom: 16 }}>
+                                <Select
+                                    value={statusFilter}
+                                    onChange={setStatusFilter}
+                                    style={{ width: 200 }}
+                                >
+                                    <Select.Option value="all">All</Select.Option>
+                                    <Select.Option value="approved">Approved</Select.Option>
+                                    <Select.Option value="pending">Pending</Select.Option>
+                                    <Select.Option value="cancelled">Cancelled</Select.Option>
+                                </Select>
+                            </div>
+
                             <List
                                 className="history-list"
-                                dataSource={bookings}
+                                dataSource={filteredBookings}
                                 renderItem={(item) => (
-                                <List.Item>
-                                    <List.Item.Meta
-                                    title={
-                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                        <span style={{ fontWeight: 600 }}>
-                                            {item.sacrament}
-                                        </span>
-                                        <Tag
-                                            color={
-                                            item.status === "approved" || item.status === "confirmed"
-                                                ? "green"
-                                                : item.status === "pending"
-                                                ? "orange"
-                                                : "red"
+                                    <List.Item>
+                                        <List.Item.Meta
+                                            title={
+                                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                                    <span style={{ fontWeight: 600 }}>{item.sacrament}</span>
+                                                    <Tag
+                                                        color={
+                                                            item.status === "approved"
+                                                                ? "green"
+                                                                : item.status === "pending"
+                                                                    ? "orange"
+                                                                    : "red"
+                                                        }
+                                                    >
+                                                        {item.status.toUpperCase()}
+                                                    </Tag>
+                                                </div>
                                             }
-                                        >
-                                            {item.status.toUpperCase()}
-                                        </Tag>
-                                        </div>
-                                    }
-                                    description={
-                                        <>
-                                        <div style={{ color: "#8c8c8c" }}>
-                                            {new Date(item.date).toLocaleDateString()} • {item.time}
-                                        </div>
-                                        <div style={{ fontSize: 12, color: "#bfbfbf" }}>
-                                            Booked on {new Date(item.createdAt).toLocaleDateString()}
-                                        </div>
-                                        {item.amount && (
-                                            <div style={{ marginTop: 4 }}>
-                                            ₱{Number(item.amount).toLocaleString()} •{" "}
-                                            {item.payment_method === "gcash"
-                                                ? "GCash"
-                                                : "In-Person"}
-                                            </div>
-                                        )}
-                                        </>
-                                    }
-                                    />
-                                </List.Item>
+                                            description={
+                                                <>
+                                                    <div style={{ color: "#8c8c8c" }}>
+                                                        {new Date(item.date).toLocaleDateString()} • {item.time}
+                                                    </div>
+                                                    <div style={{ fontSize: 12, color: "#bfbfbf" }}>
+                                                        Booked on {new Date(item.createdAt).toLocaleDateString()}
+                                                    </div>
+                                                    {item.amount && (
+                                                        <div style={{ marginTop: 4 }}>
+                                                            ₱{Number(item.amount).toLocaleString()} •{" "}
+                                                            {item.payment_method === "gcash" ? "GCash" : "In-Person"}
+                                                        </div>
+                                                    )}
+                                                </>
+                                            }
+                                        />
+                                    </List.Item>
                                 )}
                                 locale={{
-                                emptyText: (
-                                    <div className="history-empty">
-                                    No bookings found.
-                                    </div>
-                                ),
+                                    emptyText: <div className="history-empty">No bookings found.</div>,
                                 }}
                             />
                         </Tabs.TabPane>
-
                     </Tabs>
                 </div>
             </div>
