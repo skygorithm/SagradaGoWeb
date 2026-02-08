@@ -109,6 +109,7 @@ export default function ActivityPage() {
 
             } catch (error) {
                 console.error("Error fetching history:", error);
+                
             } finally {
                 setLoading(false);
             }
