@@ -627,6 +627,7 @@ export default function Wedding() {
             ].map((elem) => (
               <div key={elem.key} className="per-grid-container">
                 <h1>{elem.title}</h1>
+
                 <input
                   type="file"
                   className={fileInputClass(elem.key)}
@@ -634,31 +635,55 @@ export default function Wedding() {
                   ref={(el) => (fileInputRefs.current[elem.key] = el)}
                   onChange={(e) => {
                     const file = e.target.files[0];
+                    if (!file) return;
+
                     elem.fileSetter(file);
+                    setFileErrors((prev) => ({ ...prev, [elem.key]: false }));
 
-                    if (file) {
-                      setFileErrors((prev) => ({
-                        ...prev,
-                        [elem.key]: false,
-                      }));
-
-                      if (file.type === "application/pdf") {
-                        elem.previewSetter(pdf_image);
-                      } else {
-                        elem.previewSetter(URL.createObjectURL(file));
-                      }
-                    }
+                    elem.previewSetter(
+                      file.type === "application/pdf"
+                        ? pdf_image
+                        : URL.createObjectURL(file)
+                    );
                   }}
                 />
+
                 {elem.preview && (
-                  <img
-                    src={elem.preview.url || elem.preview}
-                    className="image-preview"
-                    alt="preview"
-                  />
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={elem.preview}
+                      className="image-preview"
+                      alt="preview"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        elem.fileSetter(null);
+                        elem.previewSetter("");
+                        setFileErrors((prev) => ({ ...prev, [elem.key]: false }));
+
+                        if (fileInputRefs.current[elem.key]) {
+                          fileInputRefs.current[elem.key].value = "";
+                        }
+                      }}
+                      style={{
+                        marginTop: "6px",
+                        background: "#e53935",
+                        color: "#fff",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        fontSize: "0.75rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 )}
               </div>
-            ))}
+            ))} 
           </div>
         </div>
 
@@ -682,7 +707,7 @@ export default function Wedding() {
               </div>
             ))}
           </div>
-          <div className="upload-grid">
+          {/* <div className="upload-grid">
             {[
               uploadProfileImage[1],
               uploadBaptismal[1],
@@ -721,6 +746,75 @@ export default function Wedding() {
                     className="image-preview"
                     alt="preview"
                   />
+                )}
+              </div>
+            ))}
+          </div> */}
+
+          <div className="upload-grid">
+            {[
+              uploadProfileImage[1],
+              uploadBaptismal[1],
+              uploadConfirmation[1],
+              uploadCenomar[1],
+              uploadPermission[1],
+            ].map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <h1>{elem.title}</h1>
+
+                <input
+                  type="file"
+                  className={fileInputClass(elem.key)}
+                  accept="image/*,application/pdf"
+                  ref={(el) => (fileInputRefs.current[elem.key] = el)}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    elem.fileSetter(file);
+                    setFileErrors((prev) => ({ ...prev, [elem.key]: false }));
+
+                    elem.previewSetter(
+                      file.type === "application/pdf"
+                        ? pdf_image
+                        : URL.createObjectURL(file)
+                    );
+                  }}
+                />
+
+                {elem.preview && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={elem.preview}
+                      className="image-preview"
+                      alt="preview"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        elem.fileSetter(null);
+                        elem.previewSetter("");
+                        setFileErrors((prev) => ({ ...prev, [elem.key]: false }));
+
+                        if (fileInputRefs.current[elem.key]) {
+                          fileInputRefs.current[elem.key].value = "";
+                        }
+                      }}
+                      style={{
+                        marginTop: "6px",
+                        background: "#e53935",
+                        color: "#fff",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        fontSize: "0.75rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
@@ -783,13 +877,49 @@ export default function Wedding() {
                 }}
               />
 
-              {uploadMarriageDocu[0].preview && (
+              {/* {uploadMarriageDocu[0].preview && (
                 <img
                   src={uploadMarriageDocu[0].preview}
                   className="image-preview"
                   alt="preview"
                   style={{ marginTop: "10px", maxWidth: "200px" }}
                 />
+              )} */}
+
+              {uploadMarriageDocu[0].preview && (
+                <div style={{ marginTop: "10px" }}>
+                  <img
+                    src={uploadMarriageDocu[0].preview}
+                    className="image-preview"
+                    alt="preview"
+                    style={{ maxWidth: "200px" }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      uploadMarriageDocu[0].fileSetter(null);
+                      uploadMarriageDocu[0].previewSetter("");
+                      setFileErrors((prev) => ({ ...prev, marriage_docu: false }));
+
+                      if (fileInputRefs.current["marriage_docu"]) {
+                        fileInputRefs.current["marriage_docu"].value = "";
+                      }
+                    }}
+                    style={{
+                      marginTop: "6px",
+                      background: "#e53935",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 10px",
+                      borderRadius: "4px",
+                      fontSize: "0.75rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
               )}
             </div>
           )}

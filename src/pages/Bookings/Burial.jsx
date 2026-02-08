@@ -286,6 +286,23 @@ export default function Burial() {
   const [deceasedBaptismalPreview, setDeceasedBaptismalPreview] =
     useState(null);
 
+  // const uploadFiles = [
+  //   {
+  //     key: "death_cert",
+  //     title: "Death Certificate",
+  //     fileSetter: setDeathCertificateFile,
+  //     preview: deathCertificatePreview,
+  //     previewSetter: setDeathCertificatePreview,
+  //   },
+  //   {
+  //     key: "deceased_baptismal_cert",
+  //     title: "Deceased Baptismal Certificate",
+  //     fileSetter: setDeceasedBaptismalFile,
+  //     preview: deceasedBaptismalPreview,
+  //     previewSetter: setDeceasedBaptismalPreview,
+  //   },
+  // ];
+
   const uploadFiles = [
     {
       key: "death_cert",
@@ -302,6 +319,7 @@ export default function Burial() {
       previewSetter: setDeceasedBaptismalPreview,
     },
   ];
+
   async function uploadImage(file, namePrefix) {
     const ext = file.name.split(".").pop();
     const fileName = `${namePrefix}_${Date.now()}.${ext}`;
@@ -641,7 +659,7 @@ export default function Burial() {
         <div className="form-section">
           <h2 className="section-title">5. Required Documents</h2>
           <div className="upload-grid">
-            {uploadFiles.map((elem) => (
+            {/* {uploadFiles.map((elem) => (
               <div key={elem.key} className="per-grid-container">
                 <h1
                   style={{
@@ -681,6 +699,75 @@ export default function Burial() {
                     className="image-preview"
                     alt="preview"
                   />
+                )}
+              </div>
+            ))} */}
+
+            {uploadFiles.map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <h1
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "10px",
+                    color: "#424242",
+                  }}
+                >
+                  {elem.title}
+                </h1>
+
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={`inputFile-properties ${
+                    errors[elem.key] ? "input-error" : ""
+                  }`}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    elem.fileSetter(file);
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    if (errors[elem.key]) {
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }
+                  }}
+                />
+
+                {elem.preview && (
+                  <div style={{ position: "relative" }}>
+                    <img
+                      src={elem.preview}
+                      className="image-preview"
+                      alt="preview"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        elem.fileSetter(null);
+                        elem.previewSetter(null);
+                        setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                      }}
+                      style={{
+                        marginTop: "8px",
+                        background: "#e53935",
+                        color: "#fff",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 )}
               </div>
             ))}

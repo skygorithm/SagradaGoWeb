@@ -185,6 +185,7 @@ export default function Communion() {
       previewSetter: setParentConsentPreview,
     },
   ];
+  
   async function uploadImage(file, namePrefix) {
     const ext = file.name.split(".").pop();
     const fileName = `${namePrefix}_${Date.now()}.${ext}`;
@@ -419,7 +420,7 @@ export default function Communion() {
         <div className="form-section">
           <h2 className="section-title">3. Required Certificates</h2>
           <div className="upload-grid">
-            {uploadFiles.map((elem) => (
+            {/* {uploadFiles.map((elem) => (
               <div
                 key={elem.key}
                 className="per-grid-container"
@@ -473,7 +474,92 @@ export default function Communion() {
                   />
                 )}
               </div>
+            ))} */}
+
+            {uploadFiles.map((elem) => (
+              <div
+                key={elem.key}
+                className="per-grid-container"
+                style={{
+                  padding: "15px",
+                  border: "1px solid #eee",
+                  borderRadius: "8px",
+                }}
+              >
+                <h1
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "10px",
+                    color: "#424242",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {elem.title}
+                </h1>
+
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={`inputFile-properties ${
+                    errors[elem.key + "File"] ? "input-error" : ""
+                  }`}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    elem.fileSetter(file);
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    if (errors[elem.key + "File"]) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        [elem.key + "File"]: false,
+                      }));
+                    }
+                  }}
+                />
+
+                {elem.preview && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img
+                      src={elem.preview}
+                      className="image-preview"
+                      alt="preview"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        elem.fileSetter(null);
+                        elem.previewSetter(null);
+                        setErrors((prev) => ({
+                          ...prev,
+                          [elem.key + "File"]: false,
+                        }));
+                      }}
+                      style={{
+                        marginTop: "8px",
+                        background: "#e53935",
+                        color: "#fff",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
+
           </div>
         </div>
 

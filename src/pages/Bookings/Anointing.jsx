@@ -302,12 +302,10 @@ export default function Anointing() {
       "medical_condition",
     ].includes(i.key),
   );
+
   const scheduleInputs = inputText.filter((i) =>
     ["date", "time", "attendees"].includes(i.key),
   );
-
-  
-
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -315,6 +313,16 @@ export default function Anointing() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
+
+  const handleRemoveFile = (fileSetter, previewSetter, key) => {
+    fileSetter(null);
+    previewSetter(null);
+    setErrors((prev) => ({ ...prev, [key]: false }));
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <div className="main-holder">
@@ -450,13 +458,30 @@ export default function Anointing() {
                 >
                   {elem.title}
                 </h1>
-                <input
+                {/* <input
                   type="file"
                   accept="image/*,application/pdf"
                   className={`inputFile-properties ${errors[elem.key] ? "input-error" : ""}`}
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
+                    elem.fileSetter(file);
+                    elem.previewSetter(URL.createObjectURL(file));
+
+                    if (errors[elem.key])
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                  }}
+                /> */}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={`inputFile-properties ${errors[elem.key] ? "input-error" : ""}`}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
                     elem.fileSetter(file);
                     elem.previewSetter(URL.createObjectURL(file));
 
@@ -475,6 +500,32 @@ export default function Anointing() {
                     alt="preview"
                   />
                 )}
+
+                {elem.preview && (
+                  <div style={{ marginTop: "8px", textAlign: "right" }}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveFile(
+                          elem.fileSetter,
+                          elem.previewSetter,
+                          elem.key
+                        )
+                      }
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#d32f2f",
+                        fontSize: "0.75rem",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Remove file
+                    </button>
+                  </div>
+                )}
+
               </div>
             ))}
           </div>

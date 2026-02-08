@@ -673,6 +673,17 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
     }
   }
 
+  const handleRemoveUpload = (elem) => {
+    elem.fileSetter("");
+    elem.previewSetter("");
+
+    if (fileInputRefs.current[elem.key]) {
+      fileInputRefs.current[elem.key].value = "";
+    }
+
+    setFileErrors((prev) => ({ ...prev, [elem.key]: false }));
+  };
+
   return (
     <div className="main-holder">
       <div className="form-wrapper">
@@ -833,7 +844,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
         </div>
 
         {/* SECTION 4: DOCUMENT UPLOADS */}
-        <div className="form-section">
+        {/* <div className="form-section">
           <h2 className="section-title">4. Required Documents</h2>
           <div className="upload-grid">
             {uploadFiles.map((elem) => (
@@ -877,6 +888,89 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
                     className="image-preview"
                     alt="preview"
                   />
+                )}
+              </div>
+            ))}
+          </div>
+        </div> */}
+
+        <div className="form-section">
+          <h2 className="section-title">4. Required Documents</h2>
+          <div className="upload-grid">
+            {uploadFiles.map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <h1
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "10px",
+                    color: "#424242",
+                  }}
+                >
+                  {elem.title}
+                </h1>
+
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={fileInputClass(elem.key)}
+                  ref={(el) => (fileInputRefs.current[elem.key] = el)}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    elem.fileSetter(file);
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    setFileErrors((prev) => ({
+                      ...prev,
+                      [elem.key]: false,
+                    }));
+                  }}
+                />
+
+                {elem.preview && (
+                  <>
+                    <img
+                      src={elem.preview}
+                      className="image-preview"
+                      alt="preview"
+                    />
+
+                    {/* REMOVE BUTTON */}
+                    <div style={{ textAlign: "right", marginTop: "6px" }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          elem.fileSetter("");
+                          elem.previewSetter("");
+
+                          if (fileInputRefs.current[elem.key]) {
+                            fileInputRefs.current[elem.key].value = "";
+                          }
+
+                          setFileErrors((prev) => ({
+                            ...prev,
+                            [elem.key]: false,
+                          }));
+                        }}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#d32f2f",
+                          fontSize: "0.75rem",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        Remove file
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
             ))}
