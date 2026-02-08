@@ -25,6 +25,7 @@ export default function ActivityPage() {
     const [loading, setLoading] = useState(true);
     const [bookings, setBookings] = useState([]);
     const [statusFilter, setStatusFilter] = useState("all");
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -123,6 +124,45 @@ export default function ActivityPage() {
         );
     }
 
+    const handleConfirmCancel = async () => {
+        if (!selectedBooking) return;
+
+        try {
+            const sacramentMap = {
+                Baptism: "baptism",
+                Wedding: "wedding",
+                Burial: "burial",
+                Communion: "communion",
+                "Anointing of the Sick": "anointing",
+            };
+
+            const bookingType = sacramentMap[selectedBooking.sacrament];
+            if (!bookingType) throw new Error("Invalid booking type");
+
+            const response = await axios.put(`${API_URL}/cancelBooking`, {
+                transaction_id: selectedBooking.transaction_id || selectedBooking.id,
+                bookingType,
+            });
+
+            // Update bookings locally
+            setBookings((prev) =>
+                prev.map((b) =>
+                    b === selectedBooking ? { ...b, status: "cancelled" } : b
+                )
+            );
+
+            message.success(response.data.message || "Booking cancelled successfully");
+            setSelectedBooking(null);
+        } catch (error) {
+            console.error("Cancel booking error:", error);
+            message.error(error.response?.data?.message || error.message || "Failed to cancel booking");
+        }
+    };
+
+    const handleCancelConfirm = () => {
+        setSelectedBooking(null);
+    };
+
     return (
         <div className="profileContainer">
             <div style={{ padding: 32 }}>
@@ -219,6 +259,7 @@ export default function ActivityPage() {
                             </div>
                         </Tabs.TabPane>
 
+                        {/* Bookings Tab */}
                         <Tabs.TabPane tab="Bookings" key="3">
                             {/* Status Filter Dropdown */}
                             <div style={{ marginBottom: 16 }}>
@@ -238,7 +279,21 @@ export default function ActivityPage() {
                                 className="history-list"
                                 dataSource={filteredBookings}
                                 renderItem={(item) => (
-                                    <List.Item>
+                                    <List.Item
+                                        actions={
+                                            item.status !== "cancelled" // only allow cancel if not already cancelled
+                                                ? [
+                                                    <Button
+                                                        type="link"
+                                                        danger
+                                                        onClick={() => setSelectedBooking(item)}
+                                                    >
+                                                        Cancel
+                                                    </Button>,
+                                                ]
+                                                : []
+                                        }
+                                    >
                                         <List.Item.Meta
                                             title={
                                                 <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -279,6 +334,24 @@ export default function ActivityPage() {
                                     emptyText: <div className="history-empty">No bookings found.</div>,
                                 }}
                             />
+
+                            {/* Cancel Confirmation Modal */}
+                            <Modal
+                                open={!!selectedBooking}
+                                title="Cancel Booking"
+                                onOk={handleConfirmCancel}
+                                onCancel={handleCancelConfirm}
+                                okText="Yes, Cancel"
+                                cancelText="No"
+                            >
+                                {selectedBooking && (
+                                    <p>
+                                        Are you sure you want to cancel your{" "}
+                                        <strong>{selectedBooking.sacrament}</strong> booking on{" "}
+                                        {new Date(selectedBooking.date).toLocaleDateString()} at {selectedBooking.time}?
+                                    </p>
+                                )}
+                            </Modal>
                         </Tabs.TabPane>
                     </Tabs>
                 </div>
