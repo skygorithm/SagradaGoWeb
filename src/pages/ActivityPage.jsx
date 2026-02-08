@@ -17,8 +17,21 @@ export default function ActivityPage() {
         }
     };
 
+    // const storedUser = getStoredUser();
+    // const currentUser = contextUser || storedUser;
+
+    const normalizeUser = (u) => ({
+        ...u,
+        uid: u?.uid || u?.user_id || u?.id,
+        first_name: u?.first_name || "",
+        middle_name: u?.middle_name || "",
+        last_name: u?.last_name || "",
+        contact_number: u?.contact_number || "",
+        is_admin: u?.is_admin || false,
+    });
+
     const storedUser = getStoredUser();
-    const currentUser = contextUser || storedUser;
+    const currentUser = normalizeUser(contextUser || storedUser);
 
     const [donations, setDonations] = useState([]);
     const [events, setEvents] = useState([]);
