@@ -185,7 +185,7 @@ export default function Communion() {
       previewSetter: setParentConsentPreview,
     },
   ];
-  
+
   async function uploadImage(file, namePrefix) {
     const ext = file.name.split(".").pop();
     const fileName = `${namePrefix}_${Date.now()}.${ext}`;
@@ -327,9 +327,32 @@ export default function Communion() {
         <div className="form-section">
           <h2 className="section-title">1. Communicant Information</h2>
           <div className="grid-layout">
-            {personalInputs.map((elem) => (
+            {/* {personalInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
                 <h1>{elem.title}</h1>
+                <input
+                  type={elem.type}
+                  className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
+                  onChange={(e) => {
+                    elem.onChange(e.target.value);
+                    if (errors[elem.key])
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                  }}
+                  value={elem.value}
+                  placeholder={`Enter ${elem.title.toLowerCase()}`}
+                  readOnly={elem.readOnly}
+                />
+              </div>
+            ))} */}
+
+            {personalInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>
+                  {elem.title}
+                  {["first_name", "last_name", "email"].includes(elem.key) && (
+                    <span style={{ color: "red" }}> *</span>
+                  )}
+                </h1>
                 <input
                   type={elem.type}
                   className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
@@ -350,9 +373,80 @@ export default function Communion() {
         <div className="form-section">
           <h2 className="section-title">2. Schedule & Attendance</h2>
           <div className="grid-layout">
-            {scheduleInputs.map((elem) => (
+            {/* {scheduleInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
                 <h1>{elem.title}</h1>
+                {elem.type === "date" ? (
+                  <DatePicker
+                    selected={elem.value ? new Date(elem.value) : null}
+                    onChange={(v) => {
+                      elem.onChange(v ? v.toISOString() : "");
+                      if (errors.date)
+                        setErrors((prev) => ({ ...prev, date: false }));
+                    }}
+                    className={`input-text ${errors.date ? "input-error" : ""}`}
+                    minDate={tomorrow}
+                    dateFormat="yyyy-MM-dd"
+                    showYearDropdown
+                    dropdownMode="select"
+                    placeholderText="Select date"
+                    onKeyDown={(e) => e.preventDefault()}
+                  />
+                ) : elem.type === "time" ? (
+                  <div
+                    className={`time-container ${errors.time ? "input-error" : ""}`}
+                    style={{
+                      borderRadius: "6px",
+                      height: "45px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <MobileTimePicker
+                        value={time ? dayjs(`2000-01-01 ${time}`) : null}
+                        onChange={(v) => {
+                          setTime(v ? dayjs(v).format("HH:mm") : "");
+                          if (errors.time)
+                            setErrors((prev) => ({ ...prev, time: false }));
+                        }}
+                        slotProps={{
+                          textField: {
+                            variant: "standard",
+                            fullWidth: true,
+                            InputProps: {
+                              disableUnderline: true,
+                              sx: { px: 2, height: "45px", fontSize: "0.9rem" },
+                            },
+                          },
+                        }}
+                      />
+                    </LocalizationProvider>
+                  </div>
+                ) : (
+                  <input
+                    type={elem.type}
+                    className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
+                    onChange={(e) => {
+                      elem.onChange(e.target.value);
+                      if (errors[elem.key])
+                        setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }}
+                    value={elem.value}
+                    placeholder={`Enter ${elem.title.toLowerCase()}`}
+                  />
+                )}
+              </div>
+            ))} */}
+
+            {scheduleInputs.map((elem) => (
+              <div className="input-group" key={elem.key}>
+                <h1>
+                  {elem.title}
+                  {["date", "time", "attendees"].includes(elem.key) && (
+                    <span style={{ color: "red" }}> *</span>
+                  )}
+                </h1>
+
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
@@ -476,7 +570,7 @@ export default function Communion() {
               </div>
             ))} */}
 
-            {uploadFiles.map((elem) => (
+            {/* {uploadFiles.map((elem) => (
               <div
                 key={elem.key}
                 className="per-grid-container"
@@ -531,6 +625,87 @@ export default function Communion() {
                       className="image-preview"
                       alt="preview"
                     />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        elem.fileSetter(null);
+                        elem.previewSetter(null);
+                        setErrors((prev) => ({
+                          ...prev,
+                          [elem.key + "File"]: false,
+                        }));
+                      }}
+                      style={{
+                        marginTop: "8px",
+                        background: "#e53935",
+                        color: "#fff",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))} */}
+
+            {uploadFiles.map((elem) => (
+              <div
+                key={elem.key}
+                className="per-grid-container"
+                style={{
+                  padding: "15px",
+                  border: "1px solid #eee",
+                  borderRadius: "8px",
+                }}
+              >
+                <h1
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "10px",
+                    color: "#424242",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {elem.title}
+                  <span style={{ color: "red" }}> *</span>
+                </h1>
+
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={`inputFile-properties ${
+                    errors[elem.key + "File"] ? "input-error" : ""
+                  }`}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    elem.fileSetter(file);
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    if (errors[elem.key + "File"]) {
+                      setErrors((prev) => ({
+                        ...prev,
+                        [elem.key + "File"]: false,
+                      }));
+                    }
+                  }}
+                />
+
+                {elem.preview && (
+                  <div style={{ marginTop: "10px" }}>
+                    <img src={elem.preview} className="image-preview" alt="preview" />
 
                     <button
                       type="button"
