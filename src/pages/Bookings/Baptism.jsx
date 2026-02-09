@@ -499,7 +499,6 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
     if (!time) newErrors.time = true;
 
     if (!candidateFname.trim()) newErrors.candidate_fname = true;
-    if (!candidateMname.trim()) newErrors.candidate_mname = true;
     if (!candidateLname.trim()) newErrors.candidate_lname = true;
     if (!candidateBday) newErrors.candidate_bday = true;
     if (!candidateBplace.trim()) newErrors.candidate_bplace = true;
