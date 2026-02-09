@@ -6,6 +6,7 @@ import "../../styles/booking/wedding.css";
 import { NavbarContext } from "../../context/AllContext";
 
 
+
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
@@ -206,7 +207,12 @@ export default function Confession() {
           <div className="grid-layout">
             {penitentInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>
+                  {elem.title}
+                  {["first_name", "last_name", "email"].includes(elem.key) && (
+                    <span style={{ color: "red" }}> *</span>
+                  )}
+                </h1>
                 <input
                   type={elem.type}
                   className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
@@ -231,7 +237,12 @@ export default function Confession() {
           <div className="grid-layout">
             {scheduleInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>
+                  {elem.title}
+                  {["date", "time"].includes(elem.key) && (
+                    <span style={{ color: "red" }}> *</span>
+                  )}
+                </h1>
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
@@ -300,7 +311,6 @@ export default function Confession() {
           </div>
         </div>
 
-
         <div className="submit-btn-container" style={{ marginTop: "30px" }}>
           <button className="submit-button" onClick={handleSubmit}>
             Confirm Confession Schedule
@@ -308,7 +318,7 @@ export default function Confession() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} hideCancel={true}/>
       )}
     </div>
   );

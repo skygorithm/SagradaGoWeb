@@ -70,6 +70,7 @@ export default function Anointing() {
       type: "text",
       onChange: setFname,
       value: fname,
+      required: true,
     },
     {
       key: "middle_name",
@@ -77,6 +78,7 @@ export default function Anointing() {
       type: "text",
       onChange: setMname,
       value: mname,
+      required: false,
     },
     {
       key: "last_name",
@@ -84,6 +86,7 @@ export default function Anointing() {
       type: "text",
       onChange: setLname,
       value: lname,
+      required: true,
     },
     {
       key: "email",
@@ -92,6 +95,7 @@ export default function Anointing() {
       onChange: setEmail,
       value: email,
       readOnly: true,
+      required: true,
     },
     {
       key: "date",
@@ -101,6 +105,7 @@ export default function Anointing() {
       value: date,
       minDate: getMinimumBookingDate("Anointing"),
       openToDate: getMinimumBookingDate("Anointing"),
+      required: true,
     },
     {
       key: "time",
@@ -108,6 +113,7 @@ export default function Anointing() {
       type: "time",
       onChange: setTime,
       value: time,
+      required: true,
     },
 
     {
@@ -116,6 +122,7 @@ export default function Anointing() {
       type: "number",
       onChange: setAttendees,
       value: attendees,
+      required: true,
     },
     {
       key: "contact_number",
@@ -125,6 +132,7 @@ export default function Anointing() {
       value: contactNumber,
       maxLength: 11,
       readOnly: true,
+      required: true,
     },
     {
       key: "medical_condition",
@@ -132,6 +140,7 @@ export default function Anointing() {
       type: "text",
       onChange: setMedicalCondition,
       value: medicalCondition,
+      required: true,
     },
   ];
 
@@ -147,6 +156,7 @@ export default function Anointing() {
       fileSetter: setMedicalCertificateFile,
       preview: medicalCertificatePreview,
       previewSetter: setMedicalCertificatePreview,
+      required: true,
     },
   ];
 
@@ -302,12 +312,10 @@ export default function Anointing() {
       "medical_condition",
     ].includes(i.key),
   );
+
   const scheduleInputs = inputText.filter((i) =>
     ["date", "time", "attendees"].includes(i.key),
   );
-
-  
-
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -315,6 +323,16 @@ export default function Anointing() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setHours(0, 0, 0, 0);
+
+  const handleRemoveFile = (fileSetter, previewSetter, key) => {
+    fileSetter(null);
+    previewSetter(null);
+    setErrors((prev) => ({ ...prev, [key]: false }));
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   return (
     <div className="main-holder">
@@ -325,7 +343,7 @@ export default function Anointing() {
           <div className="grid-layout">
             {patientInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 <input
                   type={elem.type}
                   className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
@@ -355,7 +373,7 @@ export default function Anointing() {
           <div className="grid-layout">
             {scheduleInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
@@ -448,15 +466,32 @@ export default function Anointing() {
                     fontWeight: "bold",
                   }}
                 >
-                  {elem.title}
+                  {elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}
                 </h1>
-                <input
+                {/* <input
                   type="file"
                   accept="image/*,application/pdf"
                   className={`inputFile-properties ${errors[elem.key] ? "input-error" : ""}`}
                   onChange={(e) => {
                     const file = e.target.files[0];
                     if (!file) return;
+                    elem.fileSetter(file);
+                    elem.previewSetter(URL.createObjectURL(file));
+
+                    if (errors[elem.key])
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                  }}
+                /> */}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={`inputFile-properties ${errors[elem.key] ? "input-error" : ""}`}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
                     elem.fileSetter(file);
                     elem.previewSetter(URL.createObjectURL(file));
 
@@ -475,6 +510,32 @@ export default function Anointing() {
                     alt="preview"
                   />
                 )}
+
+                {elem.preview && (
+                  <div style={{ marginTop: "8px", textAlign: "right" }}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveFile(
+                          elem.fileSetter,
+                          elem.previewSetter,
+                          elem.key
+                        )
+                      }
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#d32f2f",
+                        fontSize: "0.75rem",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Remove file
+                    </button>
+                  </div>
+                )}
+
               </div>
             ))}
           </div>
@@ -496,7 +557,7 @@ export default function Anointing() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} hideCancel={true}/>
       )}
     </div>
   );

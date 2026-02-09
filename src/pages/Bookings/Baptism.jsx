@@ -90,6 +90,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       onChange: setFullname,
       value: fullname,
       readOnly: true,
+      required: true,
     },
     {
       key: "email",
@@ -98,6 +99,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       onChange: setEmail,
       value: email,
       disabled: true,
+      required: true,
     },
     {
       key: "time",
@@ -105,6 +107,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "time",
       onChange: setTime,
       value: time,
+      required: true,
     },
     {
       key: "date",
@@ -114,6 +117,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       value: date,
       minDate: getMinimumBookingDate("Baptism"),
       openToDate: getMinimumBookingDate("Baptism"),
+      required: true,
     },
     {
       key: "candidate_fname",
@@ -121,6 +125,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setCandidateFname,
       value: candidateFname,
+      required: true,
     },
 
     {
@@ -129,6 +134,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setCandidateMname,
       value: candidateMname,
+      required: false,
     },
     {
       key: "candidate_lname",
@@ -136,6 +142,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setCandidateLname,
       value: candidateLname,
+      required: true,
     },
     {
       key: "candidate_bday",
@@ -145,6 +152,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       value: candidateBday,
       maxDate: today,
       openToDate: today,
+      required: true,
     },
     {
       key: "candidate_bplace",
@@ -152,6 +160,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setCandidateBplace,
       value: candidateBplace,
+      required: true,
     },
 
     {
@@ -162,6 +171,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       value: contact,
       maxLength: 11,
       readOnly: true,
+      required: true,
     },
     {
       key: "attendees",
@@ -169,6 +179,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "number",
       onChange: setAttendees,
       value: attendees,
+      required: true,
     },
     {
       key: "address",
@@ -176,6 +187,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setAddress,
       value: address,
+      required: true,
     },
   ];
 
@@ -197,6 +209,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMotherFname,
       value: motherFname,
+      required: true,
     },
 
     {
@@ -205,6 +218,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMotherMname,
       value: motherMname,
+      required: false,
     },
     {
       key: "mother_lname",
@@ -212,6 +226,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMotherLname,
       value: motherLname,
+      required: true,
     },
 
     {
@@ -220,6 +235,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMotherBirthPlace,
       value: motherBirthPlace,
+      required: true,
     },
     {
       key: "father_fname",
@@ -227,6 +243,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setFatherFname,
       value: fatherFname,
+      required: true,
     },
 
     {
@@ -235,6 +252,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setFatherMname,
       value: fatherMname,
+      required: false,
     },
     {
       key: "father_lname",
@@ -242,6 +260,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setFatherLname,
       value: fatherLname,
+      required: true,
     },
     {
       key: "father_bplace",
@@ -249,6 +268,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setFatherBirthPlace,
       value: fatherBirthPlace,
+      required: true,
     },
   ];
 
@@ -266,6 +286,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMainGodFatherFname,
       value: mainGodFatherFname,
+      required: true,
     },
     {
       key: "main_godfather_mname",
@@ -273,6 +294,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMainGodFatherMname,
       value: mainGodFatherMname,
+      required: false,
     },
     {
       key: "main_godfather_lname",
@@ -280,6 +302,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMainGodFatherLname,
       value: mainGodFatherLname,
+      required: true,
     },
     {
       key: "main_godmother_fname",
@@ -287,6 +310,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMainGodMotherFname,
       value: mainGodMotherFname,
+      required: true,
     },
     {
       key: "main_godmother_mname",
@@ -294,6 +318,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMainGodMotherMname,
       value: mainGodMotherMname,
+      required: false,
     },
     {
       key: "main_godmother_lname",
@@ -301,6 +326,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       type: "text",
       onChange: setMainGodMotherLname,
       value: mainGodMotherLname,
+      required: true,
     },
   ];
 
@@ -342,6 +368,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       preview: birthCertificatePreview,
       previewSetter: setBirthCertificatePreview,
       ref: birthCertRef,
+      required: true,
     },
     {
       key: "parent_marriagecert",
@@ -350,6 +377,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       preview: marriageCertPreview,
       previewSetter: setMarriageCertPreview,
       ref: parentMarriageCert,
+      required: true,
     },
     {
       key: "godparent_confirmation",
@@ -358,6 +386,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       preview: godparentConfirmationPreview,
       previewSetter: setGodparentConfirmationPreview,
       ref: godParentConf,
+      required: true,
     },
     {
       key: "baptismal_seminar",
@@ -366,6 +395,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
       preview: baptismalSeminarPreview,
       previewSetter: setBaptismalSeminarPreview,
       ref: baptismalSeminar,
+      required: true,
     },
   ];
 
@@ -469,7 +499,6 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
     if (!time) newErrors.time = true;
 
     if (!candidateFname.trim()) newErrors.candidate_fname = true;
-    if (!candidateMname.trim()) newErrors.candidate_mname = true;
     if (!candidateLname.trim()) newErrors.candidate_lname = true;
     if (!candidateBday) newErrors.candidate_bday = true;
     if (!candidateBplace.trim()) newErrors.candidate_bplace = true;
@@ -673,6 +702,17 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
     }
   }
 
+  const handleRemoveUpload = (elem) => {
+    elem.fileSetter("");
+    elem.previewSetter("");
+
+    if (fileInputRefs.current[elem.key]) {
+      fileInputRefs.current[elem.key].value = "";
+    }
+
+    setFileErrors((prev) => ({ ...prev, [elem.key]: false }));
+  };
+
   return (
     <div className="main-holder">
       <div className="form-wrapper">
@@ -682,7 +722,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
           <div className="grid-layout">
             {inputText.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={elem.value ? new Date(elem.value) : null}
@@ -745,7 +785,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
           <div className="grid-layout" style={{ marginBottom: "20px" }}>
             {inputText2.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 <input
                   type={elem.type}
                   className={inputClass(elem.key)}
@@ -786,7 +826,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
           <div className="grid-layout">
             {inputGodParents.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 <input
                   type="text"
                   className={inputClass(elem.key)}
@@ -833,7 +873,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
         </div>
 
         {/* SECTION 4: DOCUMENT UPLOADS */}
-        <div className="form-section">
+        {/* <div className="form-section">
           <h2 className="section-title">4. Required Documents</h2>
           <div className="upload-grid">
             {uploadFiles.map((elem) => (
@@ -881,6 +921,89 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
               </div>
             ))}
           </div>
+        </div> */}
+
+        <div className="form-section">
+          <h2 className="section-title">4. Required Documents</h2>
+          <div className="upload-grid">
+            {uploadFiles.map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <h1
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "10px",
+                    color: "#424242",
+                  }}
+                >
+                  {elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}
+                </h1>
+
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={fileInputClass(elem.key)}
+                  ref={(el) => (fileInputRefs.current[elem.key] = el)}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    elem.fileSetter(file);
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    setFileErrors((prev) => ({
+                      ...prev,
+                      [elem.key]: false,
+                    }));
+                  }}
+                />
+
+                {elem.preview && (
+                  <>
+                    <img
+                      src={elem.preview}
+                      className="image-preview"
+                      alt="preview"
+                    />
+
+                    {/* REMOVE BUTTON */}
+                    <div style={{ textAlign: "right", marginTop: "6px" }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          elem.fileSetter("");
+                          elem.previewSetter("");
+
+                          if (fileInputRefs.current[elem.key]) {
+                            fileInputRefs.current[elem.key].value = "";
+                          }
+
+                          setFileErrors((prev) => ({
+                            ...prev,
+                            [elem.key]: false,
+                          }));
+                        }}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#d32f2f",
+                          fontSize: "0.75rem",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                        }}
+                      >
+                        Remove file
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* SUBMIT SECTION */}
@@ -895,7 +1018,7 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} hideCancel={true}/>
       )}
     </div>
   );

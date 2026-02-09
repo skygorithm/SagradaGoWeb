@@ -118,6 +118,7 @@ export default function Burial() {
       type: "text",
       onChange: setFname,
       value: fname,
+      required: true,
     },
     {
       key: "middle_name",
@@ -125,6 +126,7 @@ export default function Burial() {
       type: "text",
       onChange: setMname,
       value: mname,
+      required: false,
     },
     {
       key: "last_name",
@@ -132,6 +134,7 @@ export default function Burial() {
       type: "text",
       onChange: setLname,
       value: lname,
+      required: true,
     },
     {
       key: "email",
@@ -140,6 +143,7 @@ export default function Burial() {
       onChange: setEmail,
       value: email,
       readOnly: true,
+      required: true,
     },
     {
       key: "date",
@@ -149,6 +153,7 @@ export default function Burial() {
       value: date,
       minDate: getMinimumBookingDate("Burial"),
       openToDate: getMinimumBookingDate("Burial"),
+      required: true,
     },
     {
       key: "time",
@@ -156,6 +161,7 @@ export default function Burial() {
       type: "time",
       onChange: setTime,
       value: time,
+      required: true,
     },
 
     {
@@ -164,6 +170,7 @@ export default function Burial() {
       type: "number",
       onChange: setAttendees,
       value: attendees,
+      required: true,
     },
 
     {
@@ -172,6 +179,7 @@ export default function Burial() {
       type: "text",
       onChange: setAddress,
       value: address,
+      required: true,
     },
 
     {
@@ -180,6 +188,7 @@ export default function Burial() {
       type: "text",
       onChange: setDeceasedFname,
       value: deceasedFname,
+      required: true,
     },
     {
       key: "deceased_mname",
@@ -187,6 +196,7 @@ export default function Burial() {
       type: "text",
       onChange: setDeceasedMname,
       value: deceasedMname,
+      required: false,
     },
     {
       key: "deceased_lname",
@@ -194,6 +204,7 @@ export default function Burial() {
       type: "text",
       onChange: setDeceasedLname,
       value: deceasedLname,
+      required: true,
     },
     {
       key: "deceased_age",
@@ -201,6 +212,7 @@ export default function Burial() {
       type: "number",
       onChange: setDeceasedAge,
       value: deceasedAge,
+      required: true,
     },
     {
       key: "deceased_civil_status",
@@ -208,6 +220,7 @@ export default function Burial() {
       type: "text",
       onChange: setDeceasedCivilStatus,
       value: deceasedCivilStatus,
+      required: true,
     },
 
     {
@@ -216,6 +229,7 @@ export default function Burial() {
       type: "text",
       onChange: setRelationship,
       value: relationship,
+      required: true,
     },
     {
       key: "contact_number",
@@ -225,6 +239,7 @@ export default function Burial() {
       value: contactNumber,
       maxLength: 11,
       readOnly: true,
+      required: true,
     },
 
     {
@@ -233,6 +248,7 @@ export default function Burial() {
       type: "text",
       onChange: setPlaceOfMass,
       value: placeOfMass,
+      required: true,
     },
     {
       key: "mass_address",
@@ -240,6 +256,7 @@ export default function Burial() {
       type: "text",
       onChange: setMassAddress,
       value: massAddress,
+      required: true,
     },
   ];
 
@@ -286,6 +303,23 @@ export default function Burial() {
   const [deceasedBaptismalPreview, setDeceasedBaptismalPreview] =
     useState(null);
 
+  // const uploadFiles = [
+  //   {
+  //     key: "death_cert",
+  //     title: "Death Certificate",
+  //     fileSetter: setDeathCertificateFile,
+  //     preview: deathCertificatePreview,
+  //     previewSetter: setDeathCertificatePreview,
+  //   },
+  //   {
+  //     key: "deceased_baptismal_cert",
+  //     title: "Deceased Baptismal Certificate",
+  //     fileSetter: setDeceasedBaptismalFile,
+  //     preview: deceasedBaptismalPreview,
+  //     previewSetter: setDeceasedBaptismalPreview,
+  //   },
+  // ];
+
   const uploadFiles = [
     {
       key: "death_cert",
@@ -293,6 +327,7 @@ export default function Burial() {
       fileSetter: setDeathCertificateFile,
       preview: deathCertificatePreview,
       previewSetter: setDeathCertificatePreview,
+      required: true,
     },
     {
       key: "deceased_baptismal_cert",
@@ -300,8 +335,10 @@ export default function Burial() {
       fileSetter: setDeceasedBaptismalFile,
       preview: deceasedBaptismalPreview,
       previewSetter: setDeceasedBaptismalPreview,
+      required: true,
     },
   ];
+
   async function uploadImage(file, namePrefix) {
     const ext = file.name.split(".").pop();
     const fileName = `${namePrefix}_${Date.now()}.${ext}`;
@@ -448,7 +485,7 @@ export default function Burial() {
           <div className="grid-layout">
             {requesterInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 <input
                   type={elem.type}
                   className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
@@ -472,7 +509,7 @@ export default function Burial() {
           <div className="grid-layout">
             {deceasedInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 <input
                   type={elem.type}
                   className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
@@ -495,7 +532,7 @@ export default function Burial() {
           <div className="grid-layout" style={{ marginBottom: "20px" }}>
             {scheduleInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 {elem.type === "date" ? (
                   <DatePicker
                     selected={date ? new Date(date) : null}
@@ -575,8 +612,9 @@ export default function Burial() {
                 color: "#424242",
               }}
             >
-              Type of Service Requested:
+              Type of Service Requested: <span style={{ color: "red" }}>*</span>
             </h1>
+
             <div
               style={{
                 display: "grid",
@@ -620,7 +658,7 @@ export default function Burial() {
           <div className="grid-layout">
             {massInputs.map((elem) => (
               <div className="input-group" key={elem.key}>
-                <h1>{elem.title}</h1>
+                <h1>{elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}</h1>
                 <input
                   type="text"
                   className={`input-text ${errors[elem.key] ? "input-error" : ""}`}
@@ -641,7 +679,7 @@ export default function Burial() {
         <div className="form-section">
           <h2 className="section-title">5. Required Documents</h2>
           <div className="upload-grid">
-            {uploadFiles.map((elem) => (
+            {/* {uploadFiles.map((elem) => (
               <div key={elem.key} className="per-grid-container">
                 <h1
                   style={{
@@ -683,6 +721,75 @@ export default function Burial() {
                   />
                 )}
               </div>
+            ))} */}
+
+            {uploadFiles.map((elem) => (
+              <div key={elem.key} className="per-grid-container">
+                <h1
+                  style={{
+                    fontSize: "0.85rem",
+                    marginBottom: "10px",
+                    color: "#424242",
+                  }}
+                >
+                  {elem.title} {elem.required && <span style={{ color: "red" }}>*</span>}
+                </h1>
+
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className={`inputFile-properties ${
+                    errors[elem.key] ? "input-error" : ""
+                  }`}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    elem.fileSetter(file);
+
+                    if (file.type === "application/pdf") {
+                      elem.previewSetter(pdf_image);
+                    } else {
+                      elem.previewSetter(URL.createObjectURL(file));
+                    }
+
+                    if (errors[elem.key]) {
+                      setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                    }
+                  }}
+                />
+
+                {elem.preview && (
+                  <div style={{ position: "relative" }}>
+                    <img
+                      src={elem.preview}
+                      className="image-preview"
+                      alt="preview"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        elem.fileSetter(null);
+                        elem.previewSetter(null);
+                        setErrors((prev) => ({ ...prev, [elem.key]: false }));
+                      }}
+                      style={{
+                        marginTop: "8px",
+                        background: "#e53935",
+                        color: "#fff",
+                        border: "none",
+                        padding: "6px 10px",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -698,7 +805,7 @@ export default function Burial() {
         </div>
       </div>
       {showModalMessage && (
-        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} />
+        <Modal message={modalMessage} setShowModal={setShowModalMessage} onOk={handleModalClose} bookComplete={bookComplete} hideCancel={true}/>
       )}
     </div>
   );
