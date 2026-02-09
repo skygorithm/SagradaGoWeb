@@ -864,13 +864,22 @@ aWeekAfter.setDate(aWeekAfter.getDate() + 7);
                   Add
                 </button>
               </div>
+
             </div>
           </div>
 
-          {/* <div className="godparent-list">
-        
-        </div> */}
+
+                                            <div className="w-full h-auto py-3! px-5!">
+                  {additionalGodParents.map((name, index) => (
+                    <div key={index} className="godparent-item">
+                      <p>{name}</p>
+                    </div>
+                  ))}
+              </div>
         </div>
+
+
+
 
         {/* SECTION 4: DOCUMENT UPLOADS */}
         {/* <div className="form-section">
