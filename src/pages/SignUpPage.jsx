@@ -5,6 +5,7 @@ import { auth } from "../config/firebase";
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  deleteUser,
 } from "firebase/auth";
 import "../styles/signup.css";
 import axios from "axios";
@@ -21,9 +22,7 @@ export default function SignUpPage() {
   const [inputFname, setInputFname] = useState("");
   const [inputMname, setInputMname] = useState("");
   const [inputLname, setInputLname] = useState("");
-  // const [inputGender, setInputGender] = useState("");
   const [inputContactNumber, setInputContactNumber] = useState("");
-  // const [inputCivilStatus, setInputCivilStatus] = useState("");
   const [inputBirthday, setInputBirthday] = useState("");
   const [inputEmail, setInputEmail] = useState("");
   const [inputPassword, setInputPassword] = useState("");
@@ -45,6 +44,10 @@ export default function SignUpPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  
+  // Add checking states
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [checkingContact, setCheckingContact] = useState(false);
 
   const validateName = (name) =>
     /\d/.test(name) ? "Name cannot contain numbers" : "";
@@ -78,6 +81,64 @@ export default function SignUpPage() {
   const validatePasswordMatch = (password, repass) =>
     repass && password !== repass ? "Passwords do not match" : "";
 
+  const validateBirthday = (birthday) => {
+    if (!birthday) return "Birthday is required";
+
+    const today = new Date();
+    const birthDate = new Date(birthday);
+
+    // Check if date is in the future
+    if (birthDate > today) return "Birthday cannot be in the future";
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    if (age < 18) return "You must be at least 18 years old to register";
+
+    return "";
+  };
+
+  // Check if email already exists
+  const checkEmailExists = async (email) => {
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      return false;
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/checkEmail`, {
+        email: email.trim(),
+      });
+      return response.data.exists;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  };
+
+  // Check if contact number already exists
+  const checkContactExists = async (contactNumber) => {
+    if (!contactNumber || contactNumber.length !== 11 || !/^\d+$/.test(contactNumber)) {
+      return false;
+    }
+
+    try {
+      const response = await axios.post(`${API_URL}/checkContact`, {
+        contact_number: contactNumber.trim(),
+      });
+      return response.data.exists;
+    } catch (error) {
+      console.error('Error checking contact:', error);
+      return false;
+    }
+  };
+
   const handleFnameChange = (e) => {
     const value = e.target.value;
     const lettersOnly = value.replace(/\d/g, "");
@@ -109,6 +170,33 @@ export default function SignUpPage() {
     }));
   };
 
+  // Handle contact number blur - check for existing contact
+  const handleContactBlur = async () => {
+    const basicError = validateContactNumber(inputContactNumber);
+    
+    if (!basicError && inputContactNumber) {
+      setCheckingContact(true);
+      const exists = await checkContactExists(inputContactNumber);
+      setCheckingContact(false);
+      
+      if (exists) {
+        setErrors((prev) => ({
+          ...prev,
+          contactNumber: "This contact number is already registered",
+        }));
+      }
+    }
+  };
+
+  const handleBirthdayChange = (e) => {
+    const value = e.target.value;
+    setInputBirthday(value);
+    setErrors((prev) => ({
+      ...prev,
+      birthday: validateBirthday(value),
+    }));
+  };
+
   const handlePasswordChange = (e) => {
     const value = e.target.value;
     setInputPassword(value);
@@ -129,33 +217,29 @@ export default function SignUpPage() {
     }));
   };
 
-  const validateBirthday = (birthday) => {
-    if (!birthday) return "Birthday is required";
-
-    const today = new Date();
-    const birthDate = new Date(birthday);
-
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
+  // Handle email blur - check for existing email
+  const handleEmailBlur = async () => {
+    const basicError = validateEmail(inputEmail);
+    
+    if (!basicError && inputEmail) {
+      setCheckingEmail(true);
+      const exists = await checkEmailExists(inputEmail);
+      setCheckingEmail(false);
+      
+      if (exists) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "This email is already registered",
+        }));
+      }
     }
-
-    if (age < 18) return "You must be at least 18 years old";
-
-    return "";
   };
 
-
-    const handleModalClose = () => {
-      setShowModalMessage(false);
-      setSelectedNavbar("Home")
-      setShowSignup(false);
-    };
+  const handleModalClose = () => {
+    setShowModalMessage(false);
+    setSelectedNavbar("Home");
+    setShowSignup(false);
+  };
 
   async function handleSignup() {
     setSubmitted(true);
@@ -174,22 +258,55 @@ export default function SignUpPage() {
     setErrors(validationErrors);
 
     if (Object.values(validationErrors).some(Boolean)) {
-      setModalMessage("Please fill all input fields.");
+      setModalMessage("Please fill all input fields correctly.");
       setShowModalMessage(true);
       return;
     }
 
+    let user;
     try {
       setLoading(true);
 
-      const { user } = await createUserWithEmailAndPassword(
+      // Check if email and contact number already exist before creating account
+      const [emailExists, contactExists] = await Promise.all([
+        checkEmailExists(inputEmail),
+        checkContactExists(inputContactNumber)
+      ]);
+
+      if (emailExists) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "This email is already registered. Please use a different email.",
+        }));
+        setModalMessage("This email is already registered.");
+        setShowModalMessage(true);
+        setLoading(false);
+        return;
+      }
+
+      if (contactExists) {
+        setErrors((prev) => ({
+          ...prev,
+          contactNumber: "This contact number is already registered. Please use a different contact number.",
+        }));
+        setModalMessage("This contact number is already registered.");
+        setShowModalMessage(true);
+        setLoading(false);
+        return;
+      }
+
+      // Create Firebase user
+      const userCredential = await createUserWithEmailAndPassword(
         auth,
         inputEmail,
         inputPassword,
       );
+      user = userCredential.user;
 
+      // Send verification email
       await sendEmailVerification(user);
 
+      // Create user in database
       await axios.post(`${API_URL}/createUser`, {
         uid: user.uid,
         email: inputEmail,
@@ -201,12 +318,45 @@ export default function SignUpPage() {
         birthday: inputBirthday,
       });
 
-      setModalMessage("Account created! Please verify your email.");
+      setModalMessage("Account created! Please check your email spam folder to verify your account.");
       setShowModalMessage(true);
 
-
     } catch (err) {
-      setModalMessage(err.message || "Signup failed.");
+      console.error('Signup Error:', err);
+      
+      // Rollback Firebase user if database creation fails
+      if (user) {
+        try {
+          await deleteUser(user);
+          console.log('Firebase user rolled back due to error');
+        } catch (deleteError) {
+          console.error('Error deleting Firebase user:', deleteError);
+        }
+      }
+
+      // Handle specific error messages
+      if (err.message?.includes('email-already-in-use')) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "This email is already registered.",
+        }));
+        setModalMessage("This email is already registered.");
+      } else if (err.response?.data?.message?.includes('Email already exists')) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "This email is already registered.",
+        }));
+        setModalMessage("This email is already registered.");
+      } else if (err.response?.data?.message?.includes('Contact number already exists')) {
+        setErrors((prev) => ({
+          ...prev,
+          contactNumber: "This contact number is already registered.",
+        }));
+        setModalMessage("This contact number is already registered.");
+      } else {
+        setModalMessage(err.message || "Signup failed. Please try again.");
+      }
+      
       setShowModalMessage(true);
     } finally {
       setLoading(false);
@@ -276,13 +426,21 @@ export default function SignUpPage() {
           <div style={{ display: "flex", gap: "16px" }}>
             <div style={{ flex: 1 }}>
               <label>Contact Number</label>
-              <input
-                type="text"
-                value={inputContactNumber}
-                onChange={handleContactNumberChange}
-                maxLength={11}
-                className={inputClass(inputContactNumber, errors.contactNumber)}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={inputContactNumber}
+                  onChange={handleContactNumberChange}
+                  onBlur={handleContactBlur}
+                  maxLength={11}
+                  className={inputClass(inputContactNumber, errors.contactNumber)}
+                />
+                {checkingContact && (
+                  <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#666' }}>
+                    Checking...
+                  </span>
+                )}
+              </div>
               {errors.contactNumber && (
                 <span className="error-message">{errors.contactNumber}</span>
               )}
@@ -292,7 +450,8 @@ export default function SignUpPage() {
               <input
                 type="date"
                 value={inputBirthday}
-                onChange={(e) => setInputBirthday(e.target.value)}
+                onChange={handleBirthdayChange}
+                max={new Date().toISOString().split('T')[0]}
                 className={inputClass(inputBirthday, errors.birthday)}
               />
               {errors.birthday && (
@@ -303,19 +462,30 @@ export default function SignUpPage() {
 
           <div>
             <label>Email</label>
-            <input
-              type="email"
-              value={inputEmail}
-              onChange={(e) => {
-                const value = e.target.value;
-                setInputEmail(value);
-                setErrors((prev) => ({
-                  ...prev,
-                  email: validateEmail(value),
-                }));
-              }}
-              className={inputClass(inputEmail, errors.email)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type="email"
+                value={inputEmail}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setInputEmail(value);
+                  setErrors((prev) => ({
+                    ...prev,
+                    email: validateEmail(value),
+                  }));
+                }}
+                onBlur={handleEmailBlur}
+                className={inputClass(inputEmail, errors.email)}
+              />
+              {checkingEmail && (
+                <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '12px', color: '#666' }}>
+                  Checking...
+                </span>
+              )}
+            </div>
+            {errors.email && (
+              <span className="error-message">{errors.email}</span>
+            )}
           </div>
           <div>
             <label>Password</label>
