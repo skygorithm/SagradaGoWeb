@@ -28,8 +28,11 @@ export default function Confession() {
   const [lname, setLname] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [attendees, setAttendees] = useState(1); 
+  const [attendees, setAttendees] = useState(0); 
   const [email, setEmail] = useState(Cookies.get("email") || "");
+
+
+  const [loading, setLoading] = useState(false);
 
   const [bookComplete, setBookComplete] = useState(false);
 
@@ -134,6 +137,7 @@ export default function Confession() {
   };
 
   async function handleSubmit() {
+    setLoading(true)
     const newErrors = {};
 
     if (!fname.trim()) newErrors.first_name = true;
@@ -149,8 +153,10 @@ export default function Confession() {
     if (Object.keys(newErrors).length > 0) {
       setShowModalMessage(true);
       setModalMessage("Please fill in all required fields");
+      setLoading(true)
       return;
     }
+
 
     try {
       const payload = {
@@ -177,13 +183,15 @@ export default function Confession() {
       setDate("");
       setTime("");
       setAttendees(0);
+      setLoading(false)
 
-
+      navigate("/");
     } catch (err) {
       console.error("UPLOAD ERROR:", err);
 
       setShowModalMessage(true);
       setModalMessage("Failed to submit confession booking");
+      setLoading(false)
     }
   }
 
@@ -313,7 +321,7 @@ export default function Confession() {
 
         <div className="submit-btn-container" style={{ marginTop: "30px" }}>
           <button className="submit-button" onClick={handleSubmit}>
-            Confirm Confession Schedule
+            {loading ? "Submitting..." : "Confirm Confession Schedule"}
           </button>
         </div>
       </div>
