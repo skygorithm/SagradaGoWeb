@@ -153,7 +153,7 @@ export default function Confession() {
     if (Object.keys(newErrors).length > 0) {
       setShowModalMessage(true);
       setModalMessage("Please fill in all required fields");
-      setLoading(true)
+      setLoading(false)
       return;
     }
 
