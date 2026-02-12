@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_URL } from "../Constants";
-import { EyeInvisibleOutlined, EyeTwoTone } from '@ant-design/icons';
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 
 export default function SignInPage() {
   const navigate = useNavigate();
@@ -58,7 +58,7 @@ export default function SignInPage() {
   //         localStorage.setItem("currentUser", JSON.stringify(adminUser));
   //         Cookies.set("email", inputEmail, { expires: 7 });
 
-  //         const sessionTimeout = Date.now() + (5 * 60 * 1000); 
+  //         const sessionTimeout = Date.now() + (5 * 60 * 1000);
   //         localStorage.setItem("sessionTimeout", sessionTimeout.toString());
 
   //         navigate("/admin/dashboard");
@@ -67,9 +67,8 @@ export default function SignInPage() {
   //         return;
   //       }
 
-
   //     } catch (err) {
-        
+
   //       console.error("Admin check failed:", err);
   //     }
 
@@ -79,7 +78,7 @@ export default function SignInPage() {
   //       const loginResponse = await axios.post(`${API_URL}/login`, {
   //         email: inputEmail,
   //         password: inputPassword,
-  //         firebaseToken: firebaseToken, 
+  //         firebaseToken: firebaseToken,
   //       });
   //       console.log("user", loginResponse);
 
@@ -90,8 +89,8 @@ export default function SignInPage() {
   //       Cookies.set("uid", loginResponse.data.user.uid, { expires: 7 });
   //       Cookies.set("fullname", `${loginResponse.data.user.first_name} ${loginResponse.data.user.middle_name} ${loginResponse.data.user.last_name}`, { expires: 7 });
   //       Cookies.set("contact", loginResponse.data.user.contact_number, { expires: 7 });
-        
-  //       const sessionTimeout = Date.now() + (5 * 60 * 1000); 
+
+  //       const sessionTimeout = Date.now() + (5 * 60 * 1000);
   //       localStorage.setItem("sessionTimeout", sessionTimeout.toString());
 
   //       navigate("/");
@@ -100,16 +99,16 @@ export default function SignInPage() {
 
   //     } catch (err) {
   //       console.error("Backend login failed:", err);
-        
+
   //       if (err.response?.status === 401) {
   //         setError("Invalid email or password. If you recently changed your password, please try again in a few moments.");
-        
+
   //       } else if (err.response?.status === 404) {
   //         setError("No account found with this email.");
   //       } else {
   //         setError("Login failed. Please try again.");
   //       }
-        
+
   //     }
 
   //   // } catch (err) {
@@ -124,7 +123,7 @@ export default function SignInPage() {
   //   //   } else {
   //   //     setError("Login failed. Please try again.");
   //   //   }
-      
+
   //   // } finally {
   //   //   setLoading(false);
   //   // }
@@ -250,7 +249,7 @@ export default function SignInPage() {
   //       setLoading(false);
   //       return;
   //     }
-      
+
   //   } catch (err) {
   //     console.error("Admin check failed:", err);
   //   }
@@ -309,9 +308,9 @@ export default function SignInPage() {
     setError("");
     setLoading(true);
 
-    let user;
+    let firebaseUser;
 
-    // --- Helper: normalize user object ---
+    // --- Helper: normalize user object to ensure consistent fields ---
     const normalizeUser = (u) => ({
       ...u,
       uid: u.uid || u.user_id || u.id,
@@ -323,91 +322,103 @@ export default function SignInPage() {
     });
 
     try {
-      // --- Step 1: Firebase login ---
-      const userCredential = await signInWithEmailAndPassword(auth, inputEmail, inputPassword);
-      user = userCredential.user;
-      console.log("Firebase UID:", user.uid);
-
+      // --- Step 1: Firebase Authentication ---
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        inputEmail,
+        inputPassword,
+      );
+      firebaseUser = userCredential.user;
     } catch (err) {
       console.error("Firebase login failed:", err);
-
+      // Handle Firebase-specific errors
       switch (err.code) {
         case "auth/user-not-found":
-          setError("No account found with this email.");
-          break;
         case "auth/wrong-password":
-          setError("Incorrect password.");
-          break;
-        case "auth/invalid-email":
-          setError("Please enter a valid email address.");
-          break;
-        case "auth/missing-password":
-          setError("Please enter your password.");
+        case "auth/invalid-credential":
+          setError("Invalid email or password.");
           break;
         case "auth/too-many-requests":
-          setError("Too many failed login attempts. Please wait a few minutes and try again.");
-          break;
-        case "auth/user-disabled":
-          setError("This account has been disabled. Please contact the administrator.");
-          break;
-        case "auth/invalid-credential":
-          setError("Incorrect email or password.");
+          setError("Too many attempts. Please try again later.");
           break;
         default:
-          setError(`Login failed: ${err.message || "Please check your credentials and try again."}`);
+          setError("Login failed. Please check your credentials.");
       }
-
       setLoading(false);
       return;
     }
 
-    // --- Step 2: Admin check ---
     try {
-      const adminResponse = await axios.post(`${API_URL}/findAdmin`, { uid: user.uid });
+      // --- Step 2: Check for Admin Privileges ---
+      const adminResponse = await axios.post(`${API_URL}/findAdmin`, {
+        uid: firebaseUser.uid,
+      });
 
       if (adminResponse.data?.user) {
-        const adminUser = normalizeUser(adminResponse.data.user);
-        adminUser.is_admin = true;
+        const adminData = adminResponse.data.user;
 
+        // Check if Admin account is disabled
+        if (adminData.is_active === false) {
+          setError("This admin account has been disabled.");
+          setLoading(false);
+          return;
+        }
+
+        const adminUser = normalizeUser(adminData);
+        adminUser.is_admin = true; // Force true for admin route
+
+        // Set State & Storage
         setCurrentUser(adminUser);
+
+        console.log("subadmin",adminUser.isSubAdmin);
+        
         localStorage.setItem("currentUser", JSON.stringify(adminUser));
-
         Cookies.set("email", inputEmail, { expires: 7 });
+        Cookies.set("subAdmin", adminUser.isSubAdmin, { expires: 7 });
+        
 
+        // Set Session Timeout (5 mins)
         const sessionTimeout = Date.now() + 5 * 60 * 1000;
         localStorage.setItem("sessionTimeout", sessionTimeout.toString());
 
         navigate("/admin/dashboard");
         setShowSignin(false);
         setLoading(false);
-        return;
+        return; // Exit here if admin
       }
 
-    } catch (err) {
-      console.error("Admin check failed:", err);
-    }
-
-    // --- Step 3: Backend login ---
-    try {
-      const firebaseToken = await user.getIdToken();
-
+      // --- Step 3: Regular User Backend Login ---
+      // If code reaches here, it means the UID was not found in the Admin table
+      const firebaseToken = await firebaseUser.getIdToken();
       const loginResponse = await axios.post(`${API_URL}/login`, {
         email: inputEmail,
         password: inputPassword,
         firebaseToken,
       });
 
-      const backendUser = normalizeUser(loginResponse.data.user);
+      const userData = loginResponse.data.user;
 
+      // Check if Regular User account is disabled
+      if (userData.is_active === false) {
+        setError("Your account has been disabled. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
+      const backendUser = normalizeUser(userData);
+
+      // Set State & Storage
       setCurrentUser(backendUser);
       localStorage.setItem("currentUser", JSON.stringify(backendUser));
 
+      // Set Cookies
       Cookies.set("email", inputEmail, { expires: 7 });
       Cookies.set("uid", backendUser.uid, { expires: 7 });
+      Cookies.set("isAdmin", "false", { expires: 7 });
       Cookies.set(
         "fullname",
-        `${backendUser.first_name} ${backendUser.middle_name} ${backendUser.last_name}`,
-        { expires: 7 }
+        `${backendUser.first_name} ${backendUser.middle_name} ${backendUser.last_name}`.trim(),
+        { expires: 7 },
       );
       Cookies.set("contact", backendUser.contact_number, { expires: 7 });
 
@@ -416,20 +427,15 @@ export default function SignInPage() {
 
       navigate("/");
       setShowSignin(false);
-
     } catch (err) {
-      console.error("Backend login failed:", err);
-
+      console.error("Backend validation failed:", err);
       if (err.response?.status === 401) {
-        setError(
-          "Invalid email or password. If you recently changed your password, please try again in a few moments."
-        );
-      } else if (err.response?.status === 404) {
-        setError("No account found with this email.");
+        setError("Invalid credentials or session expired.");
+      } else if (err.response?.status === 403) {
+        setError(err.response.data?.message || "Access denied.");
       } else {
-        setError(err.response?.data?.message || "Login failed. Please try again.");
+        setError("An error occurred during login. Please try again.");
       }
-
     } finally {
       setLoading(false);
     }
@@ -586,7 +592,11 @@ export default function SignInPage() {
                 onClick={() => setShowPass(!showPass)}
                 className="password-toggle"
               >
-                {showPass ? <EyeTwoTone twoToneColor="#555" /> : <EyeInvisibleOutlined />}
+                {showPass ? (
+                  <EyeTwoTone twoToneColor="#555" />
+                ) : (
+                  <EyeInvisibleOutlined />
+                )}
               </button>
             </div>
 
@@ -595,7 +605,7 @@ export default function SignInPage() {
             <button
               onClick={() => setShowForgotPassword(true)}
               className="modal-link"
-              style={{ marginTop: -10, marginBottom: 10, textAlign: 'right' }}
+              style={{ marginTop: -10, marginBottom: 10, textAlign: "right" }}
               disabled={loading}
             >
               Forgot Password?

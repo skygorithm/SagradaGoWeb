@@ -136,6 +136,7 @@ function App() {
         localStorage.removeItem("sessionTimeout");
         localStorage.removeItem("userEmail");
         localStorage.removeItem("userPosition");
+         localStorage.removeItem("subAdmin");
         setCurrentUser(null);
 
         document.cookie.split(";").forEach((c) => {

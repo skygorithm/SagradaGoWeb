@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from "react";
+import Cookies from "js-cookie";
 import {
   Card,
   Table,
@@ -35,7 +36,7 @@ import {
   PlusOutlined,
   EditOutlined,
   CheckOutlined,
-  CloseOutlined
+  CloseOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -48,6 +49,8 @@ const { Title, Text } = Typography;
 const { Option } = Select;
 
 function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
+
+  
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(null);
@@ -77,15 +80,13 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       setLoadingUsers(true);
       const response = await axios.get(`${API_URL}/getAllUsers`);
       const regularUsers = (response.data || []).filter(
-        (user) => !user.is_priest && !user.is_admin && user.is_active !== false
+        (user) => !user.is_priest && !user.is_admin && user.is_active !== false,
       );
 
       setUsers(regularUsers);
-
     } catch (error) {
       console.error("Error fetching users:", error);
       message.error("Failed to load users list");
-
     } finally {
       setLoadingUsers(false);
     }
@@ -93,28 +94,36 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
   const validateContactNumber = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error('Contact number is required'));
+      return Promise.reject(new Error("Contact number is required"));
     }
 
     const trimmed = value.trim();
 
     if (!/^\d+$/.test(trimmed)) {
-      return Promise.reject(new Error('Contact number must contain only numbers'));
+      return Promise.reject(
+        new Error("Contact number must contain only numbers"),
+      );
     }
 
     if (trimmed.length !== 11) {
-      return Promise.reject(new Error('Contact number must be exactly 11 digits'));
+      return Promise.reject(
+        new Error("Contact number must be exactly 11 digits"),
+      );
     }
 
     if (!trimmed.startsWith("09")) {
-      return Promise.reject(new Error('Contact number must start with 09 (Philippine mobile number format)'));
+      return Promise.reject(
+        new Error(
+          "Contact number must start with 09 (Philippine mobile number format)",
+        ),
+      );
     }
 
     return Promise.resolve();
   };
 
   const handleNameInput = (fieldName, value) => {
-    const filteredValue = value.replace(/[^a-zA-Z\s\-']/g, '');
+    const filteredValue = value.replace(/[^a-zA-Z\s\-']/g, "");
     form.setFieldsValue({ [fieldName]: filteredValue });
   };
 
@@ -123,10 +132,8 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
     if (numbers.length <= 2) {
       return numbers;
-
     } else if (numbers.length <= 4) {
       return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-
     } else {
       return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
     }
@@ -150,26 +157,32 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
   const validateBirthday = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error('Birthday is required'));
+      return Promise.reject(new Error("Birthday is required"));
     }
 
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-      const [month, day, year] = value.split('/');
+      const [month, day, year] = value.split("/");
       let date = dayjs(`${year}-${month}-${day}`, "YYYY-MM-DD", true);
 
       if (!date.isValid()) {
-        return Promise.reject(new Error('Please enter a valid date (MM/DD/YYYY)'));
+        return Promise.reject(
+          new Error("Please enter a valid date (MM/DD/YYYY)"),
+        );
       }
 
       const today = dayjs();
       const minDate = dayjs().subtract(120, "years");
 
       if (date.isAfter(today)) {
-        return Promise.reject(new Error('Birthday cannot be in the future'));
+        return Promise.reject(new Error("Birthday cannot be in the future"));
       }
 
       if (date.isBefore(minDate)) {
-        return Promise.reject(new Error('Please enter a valid birthday (not more than 120 years ago)'));
+        return Promise.reject(
+          new Error(
+            "Please enter a valid birthday (not more than 120 years ago)",
+          ),
+        );
       }
 
       return Promise.resolve();
@@ -182,18 +195,24 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
     }
 
     if (!date.isValid()) {
-      return Promise.reject(new Error('Please enter a valid date (MM/DD/YYYY)'));
+      return Promise.reject(
+        new Error("Please enter a valid date (MM/DD/YYYY)"),
+      );
     }
 
     const today = dayjs();
     const minDate = dayjs().subtract(120, "years");
 
     if (date.isAfter(today)) {
-      return Promise.reject(new Error('Birthday cannot be in the future'));
+      return Promise.reject(new Error("Birthday cannot be in the future"));
     }
 
     if (date.isBefore(minDate)) {
-      return Promise.reject(new Error('Please enter a valid birthday (not more than 120 years ago)'));
+      return Promise.reject(
+        new Error(
+          "Please enter a valid birthday (not more than 120 years ago)",
+        ),
+      );
     }
 
     return Promise.resolve();
@@ -217,199 +236,263 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       combinedDateTime.setSeconds(0);
       combinedDateTime.setMilliseconds(0);
 
-      const timeString = time ? `${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}` : '';
+      const timeString = time
+        ? `${time.getHours().toString().padStart(2, "0")}:${time.getMinutes().toString().padStart(2, "0")}`
+        : "";
 
-      console.log('Creating booking for user UID:', selectedUserId);
-      console.log('Booking type:', bookingType);
+      console.log("Creating booking for user UID:", selectedUserId);
+      console.log("Booking type:", bookingType);
 
-      formData.append('uid', selectedUserId);
-      formData.append('full_name', values.full_name || '');
-      formData.append('email', values.email || '');
-      formData.append('date', combinedDateTime.toISOString());
-      formData.append('time', timeString);
-      formData.append('attendees', values.attendees || '1');
-      formData.append('contact_number', values.contact_number || '');
-      formData.append('payment_method', values.payment_method || 'in_person');
-      formData.append('amount', getSacramentPrice(bookingType).toString());
+      formData.append("uid", selectedUserId);
+      formData.append("full_name", values.full_name || "");
+      formData.append("email", values.email || "");
+      formData.append("date", combinedDateTime.toISOString());
+      formData.append("time", timeString);
+      formData.append("attendees", values.attendees || "1");
+      formData.append("contact_number", values.contact_number || "");
+      formData.append("payment_method", values.payment_method || "in_person");
+      formData.append("amount", getSacramentPrice(bookingType).toString());
 
-      formData.append('physical_requirements', JSON.stringify(physicalRequirements));
+      formData.append(
+        "physical_requirements",
+        JSON.stringify(physicalRequirements),
+      );
 
-      if (bookingType === 'Wedding') {
+      if (bookingType === "Wedding") {
         const groomNameParts = [
           values.groom_first_name,
           values.groom_middle_name,
-          values.groom_last_name
-        ].filter(part => part && part.trim());
+          values.groom_last_name,
+        ].filter((part) => part && part.trim());
         const brideNameParts = [
           values.bride_first_name,
           values.bride_middle_name,
-          values.bride_last_name
-        ].filter(part => part && part.trim());
-        
-        const groomFullname = groomNameParts.join(' ').trim();
-        const brideFullname = brideNameParts.join(' ').trim();
-        
-        formData.append('groom_fullname', groomFullname);
-        formData.append('bride_fullname', brideFullname);
-        formData.append('is_civilly_married', isCivillyMarried);
+          values.bride_last_name,
+        ].filter((part) => part && part.trim());
 
-        if (groomPic) formData.append('groom_1x1', groomPic);
-        if (bridePic) formData.append('bride_1x1', bridePic);
+        const groomFullname = groomNameParts.join(" ").trim();
+        const brideFullname = brideNameParts.join(" ").trim();
 
-        Object.keys(uploadedFiles).forEach(key => {
+        formData.append("groom_fullname", groomFullname);
+        formData.append("bride_fullname", brideFullname);
+        formData.append("is_civilly_married", isCivillyMarried);
+
+        if (groomPic) formData.append("groom_1x1", groomPic);
+        if (bridePic) formData.append("bride_1x1", bridePic);
+
+        Object.keys(uploadedFiles).forEach((key) => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
         const requiredDocFields = [
-          'marriage_license',
-          'marriage_contract',
-          'groom_baptismal_cert',
-          'bride_baptismal_cert',
-          'groom_confirmation_cert',
-          'bride_confirmation_cert'
+          "marriage_license",
+          "marriage_contract",
+          "groom_baptismal_cert",
+          "bride_baptismal_cert",
+          "groom_confirmation_cert",
+          "bride_confirmation_cert",
         ];
 
-        requiredDocFields.forEach(field => {
+        requiredDocFields.forEach((field) => {
           if (!uploadedFiles[field]) {
-            formData.append(field, '');
+            formData.append(field, "");
           }
         });
 
-        const weddingResponse = await axios.post(`${API_URL}/createWedding`, formData);
-        await Logger.logCreateBooking(
-          weddingResponse.data?.wedding?.transaction_id || weddingResponse.data?.transaction_id,
-          bookingType,
-          { user_id: selectedUserId }
+        const weddingResponse = await axios.post(
+          `${API_URL}/createWedding`,
+          formData,
         );
+        await Logger.logCreateBooking(
+          weddingResponse.data?.wedding?.transaction_id ||
+            weddingResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId },
+        );
+      } else if (bookingType === "Baptism") {
+        formData.append(
+          "candidate_first_name",
+          values.candidate_first_name || "",
+        );
+        formData.append(
+          "candidate_middle_name",
+          values.candidate_middle_name || "",
+        );
+        formData.append(
+          "candidate_last_name",
+          values.candidate_last_name || "",
+        );
+        formData.append("candidate_birthday", values.candidate_birthday || "");
+        formData.append(
+          "candidate_birth_place",
+          values.candidate_birth_place || "",
+        );
+        formData.append("father_first_name", values.father_first_name || "");
+        formData.append("father_middle_name", values.father_middle_name || "");
+        formData.append("father_last_name", values.father_last_name || "");
+        formData.append("father_birth_place", values.father_birth_place || "");
+        formData.append("mother_first_name", values.mother_first_name || "");
+        formData.append("mother_middle_name", values.mother_middle_name || "");
+        formData.append("mother_last_name", values.mother_last_name || "");
+        formData.append("mother_birth_place", values.mother_birth_place || "");
+        formData.append("marriage_type", values.marriage_type || "");
+        formData.append("address", values.address || "");
+        formData.append(
+          "main_godfather",
+          JSON.stringify({
+            name: values.main_godfather_name || "",
+            relationship: values.main_godfather_relationship || "",
+          }),
+        );
+        formData.append(
+          "main_godmother",
+          JSON.stringify({
+            name: values.main_godmother_name || "",
+            relationship: values.main_godmother_relationship || "",
+          }),
+        );
+        formData.append("additional_godparents", JSON.stringify([]));
 
-      } else if (bookingType === 'Baptism') {
-        formData.append('candidate_first_name', values.candidate_first_name || '');
-        formData.append('candidate_middle_name', values.candidate_middle_name || '');
-        formData.append('candidate_last_name', values.candidate_last_name || '');
-        formData.append('candidate_birthday', values.candidate_birthday || '');
-        formData.append('candidate_birth_place', values.candidate_birth_place || '');
-        formData.append('father_first_name', values.father_first_name || '');
-        formData.append('father_middle_name', values.father_middle_name || '');
-        formData.append('father_last_name', values.father_last_name || '');
-        formData.append('father_birth_place', values.father_birth_place || '');
-        formData.append('mother_first_name', values.mother_first_name || '');
-        formData.append('mother_middle_name', values.mother_middle_name || '');
-        formData.append('mother_last_name', values.mother_last_name || '');
-        formData.append('mother_birth_place', values.mother_birth_place || '');
-        formData.append('marriage_type', values.marriage_type || '');
-        formData.append('address', values.address || '');
-        formData.append('main_godfather', JSON.stringify({
-          name: values.main_godfather_name || '',
-          relationship: values.main_godfather_relationship || ''
-        }));
-        formData.append('main_godmother', JSON.stringify({
-          name: values.main_godmother_name || '',
-          relationship: values.main_godmother_relationship || ''
-        }));
-        formData.append('additional_godparents', JSON.stringify([]));
-
-        Object.keys(uploadedFiles).forEach(key => {
+        Object.keys(uploadedFiles).forEach((key) => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        const baptismResponse = await axios.post(`${API_URL}/createBaptism`, formData);
+        const baptismResponse = await axios.post(
+          `${API_URL}/createBaptism`,
+          formData,
+        );
         await Logger.logCreateBooking(
-          baptismResponse.data?.baptism?.transaction_id || baptismResponse.data?.transaction_id,
+          baptismResponse.data?.baptism?.transaction_id ||
+            baptismResponse.data?.transaction_id,
           bookingType,
-          { user_id: selectedUserId }
+          { user_id: selectedUserId },
+        );
+      } else if (bookingType === "Burial") {
+        formData.append("deceased_name", values.deceased_name || "");
+        formData.append("deceased_age", values.deceased_age || "");
+        formData.append(
+          "deceased_civil_status",
+          values.deceased_civil_status || "",
+        );
+        formData.append("requested_by", values.requested_by || "");
+        formData.append(
+          "relationship_to_deceased",
+          values.relationship_to_deceased || "",
+        );
+        formData.append("address", values.address || "");
+        formData.append("place_of_mass", values.place_of_mass || "");
+        formData.append("mass_address", values.mass_address || "");
+        formData.append(
+          "funeral_mass",
+          burialServices.funeral_mass ? "true" : "false",
+        );
+        formData.append(
+          "death_anniversary",
+          burialServices.death_anniversary ? "true" : "false",
+        );
+        formData.append(
+          "funeral_blessing",
+          burialServices.funeral_blessing ? "true" : "false",
+        );
+        formData.append(
+          "tomb_blessing",
+          burialServices.tomb_blessing ? "true" : "false",
         );
 
-      } else if (bookingType === 'Burial') {
-        formData.append('deceased_name', values.deceased_name || '');
-        formData.append('deceased_age', values.deceased_age || '');
-        formData.append('deceased_civil_status', values.deceased_civil_status || '');
-        formData.append('requested_by', values.requested_by || '');
-        formData.append('relationship_to_deceased', values.relationship_to_deceased || '');
-        formData.append('address', values.address || '');
-        formData.append('place_of_mass', values.place_of_mass || '');
-        formData.append('mass_address', values.mass_address || '');
-        formData.append('funeral_mass', burialServices.funeral_mass ? 'true' : 'false');
-        formData.append('death_anniversary', burialServices.death_anniversary ? 'true' : 'false');
-        formData.append('funeral_blessing', burialServices.funeral_blessing ? 'true' : 'false');
-        formData.append('tomb_blessing', burialServices.tomb_blessing ? 'true' : 'false');
-
-        Object.keys(uploadedFiles).forEach(key => {
+        Object.keys(uploadedFiles).forEach((key) => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        const burialResponse = await axios.post(`${API_URL}/createBurial`, formData);
-        await Logger.logCreateBooking(
-          burialResponse.data?.burial?.transaction_id || burialResponse.data?.transaction_id,
-          bookingType,
-          { user_id: selectedUserId }
+        const burialResponse = await axios.post(
+          `${API_URL}/createBurial`,
+          formData,
         );
-
-      } else if (bookingType === 'Communion') {
-        Object.keys(uploadedFiles).forEach(key => {
+        await Logger.logCreateBooking(
+          burialResponse.data?.burial?.transaction_id ||
+            burialResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId },
+        );
+      } else if (bookingType === "Communion") {
+        Object.keys(uploadedFiles).forEach((key) => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        const communionResponse = await axios.post(`${API_URL}/createCommunion`, formData);
-        await Logger.logCreateBooking(
-          communionResponse.data?.communion?.transaction_id || communionResponse.data?.transaction_id,
-          bookingType,
-          { user_id: selectedUserId }
+        const communionResponse = await axios.post(
+          `${API_URL}/createCommunion`,
+          formData,
         );
+        await Logger.logCreateBooking(
+          communionResponse.data?.communion?.transaction_id ||
+            communionResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId },
+        );
+      } else if (bookingType === "Confirmation") {
+        formData.append("sponsor_name", values.sponsor_name || "");
 
-      } else if (bookingType === 'Confirmation') {
-        formData.append('sponsor_name', values.sponsor_name || '');
-
-        Object.keys(uploadedFiles).forEach(key => {
+        Object.keys(uploadedFiles).forEach((key) => {
           if (uploadedFiles[key]) formData.append(key, uploadedFiles[key]);
         });
 
-        const confirmationResponse = await axios.post(`${API_URL}/createConfirmation`, formData);
-        await Logger.logCreateBooking(
-          confirmationResponse.data?.confirmation?.transaction_id || confirmationResponse.data?.transaction_id,
-          bookingType,
-          { user_id: selectedUserId }
+        const confirmationResponse = await axios.post(
+          `${API_URL}/createConfirmation`,
+          formData,
         );
-
-      } else if (bookingType === 'Anointing') {
+        await Logger.logCreateBooking(
+          confirmationResponse.data?.confirmation?.transaction_id ||
+            confirmationResponse.data?.transaction_id,
+          bookingType,
+          { user_id: selectedUserId },
+        );
+      } else if (bookingType === "Anointing") {
         const payload = {
           uid: selectedUserId,
-          full_name: values.full_name || '',
-          email: values.email || '',
+          full_name: values.full_name || "",
+          email: values.email || "",
           date: combinedDateTime.toISOString(),
           time: timeString,
           attendees: 1,
-          contact_number: values.contact_number || '',
-          medical_condition: values.medical_condition || '',
+          contact_number: values.contact_number || "",
+          medical_condition: values.medical_condition || "",
           transaction_id: `ANOINT-${Date.now()}`,
-          status: 'pending',
+          status: "pending",
           physical_requirements: physicalRequirements,
         };
 
-        const anointingResponse = await axios.post(`${API_URL}/createAnointing`, payload);
-        await Logger.logCreateBooking(
-          anointingResponse.data?.anointing?.transaction_id || anointingResponse.data?.transaction_id || payload.transaction_id,
-          bookingType,
-          { user_id: selectedUserId }
+        const anointingResponse = await axios.post(
+          `${API_URL}/createAnointing`,
+          payload,
         );
-
-      } else if (bookingType === 'Confession') {
+        await Logger.logCreateBooking(
+          anointingResponse.data?.anointing?.transaction_id ||
+            anointingResponse.data?.transaction_id ||
+            payload.transaction_id,
+          bookingType,
+          { user_id: selectedUserId },
+        );
+      } else if (bookingType === "Confession") {
         const payload = {
           uid: selectedUserId,
-          full_name: values.full_name || '',
-          email: values.email || '',
+          full_name: values.full_name || "",
+          email: values.email || "",
           date: combinedDateTime.toISOString(),
           time: timeString,
           attendees: 1,
           transaction_id: `CONF-${Date.now()}`,
-          status: 'pending',
+          status: "pending",
           physical_requirements: physicalRequirements,
         };
 
-        const response = await axios.post(`${API_URL}/createConfession`, payload);
+        const response = await axios.post(
+          `${API_URL}/createConfession`,
+          payload,
+        );
         await Logger.logCreateBooking(
-          response.data?.booking?.transaction_id || response.data?.transaction_id,
+          response.data?.booking?.transaction_id ||
+            response.data?.transaction_id,
           bookingType,
-          { user_id: selectedUserId }
+          { user_id: selectedUserId },
         );
       }
 
@@ -430,11 +513,12 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
         tomb_blessing: false,
       });
       onSuccess();
-
     } catch (error) {
-      console.error('Error creating booking:', error);
-      message.error(error.response?.data?.message || `Failed to create ${bookingType} booking.`);
-
+      console.error("Error creating booking:", error);
+      message.error(
+        error.response?.data?.message ||
+          `Failed to create ${bookingType} booking.`,
+      );
     } finally {
       setLoading(false);
     }
@@ -442,13 +526,13 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
   const getSacramentPrice = (sacrament) => {
     const prices = {
-      'Wedding': 10000,
-      'Baptism': 2000,
-      'Confession': 0,
-      'Anointing': 0,
-      'Communion': 1500,
-      'Burial': 3000,
-      'Confirmation': 1500,
+      Wedding: 10000,
+      Baptism: 2000,
+      Confession: 0,
+      Anointing: 0,
+      Communion: 1500,
+      Burial: 3000,
+      Confirmation: 1500,
     };
     return prices[sacrament] || 0;
   };
@@ -462,34 +546,32 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
 
   const getMinimumDate = () => {
     const today = dayjs();
-    if (bookingType === 'Baptism' || bookingType === 'Wedding') {
-      return today.add(2, 'month');
-
-    } else if (bookingType === 'Burial') {
-      return today.add(7, 'day');
-
+    if (bookingType === "Baptism" || bookingType === "Wedding") {
+      return today.add(2, "month");
+    } else if (bookingType === "Burial") {
+      return today.add(7, "day");
     }
-    return today.add(1, 'day');
+    return today.add(1, "day");
   };
 
   const getUserDisplayName = (user) => {
-    if (!user) return '';
-    const firstName = user.first_name || '';
-    const middleName = user.middle_name || '';
-    const lastName = user.last_name || '';
-    const name = [firstName, middleName, lastName].filter(Boolean).join(' ');
-    return name || user.email || '';
+    if (!user) return "";
+    const firstName = user.first_name || "";
+    const middleName = user.middle_name || "";
+    const lastName = user.last_name || "";
+    const name = [firstName, middleName, lastName].filter(Boolean).join(" ");
+    return name || user.email || "";
   };
 
   const handleUserChange = (uid) => {
     setSelectedUserId(uid);
-    const selectedUser = users.find(u => u.uid === uid);
+    const selectedUser = users.find((u) => u.uid === uid);
     if (selectedUser) {
       const fullName = getUserDisplayName(selectedUser);
       form.setFieldsValue({
         full_name: fullName,
-        email: selectedUser.email || '',
-        contact_number: selectedUser.contact_number || '',
+        email: selectedUser.email || "",
+        contact_number: selectedUser.contact_number || "",
       });
     }
   };
@@ -515,18 +597,23 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
               loading={loadingUsers}
               showSearch
               filterOption={(input, option) => {
-                const user = users.find(u => u.uid === option.value);
+                const user = users.find((u) => u.uid === option.value);
                 if (!user) return false;
                 const displayName = getUserDisplayName(user).toLowerCase();
-                const email = (user.email || '').toLowerCase();
+                const email = (user.email || "").toLowerCase();
                 const searchTerm = input.toLowerCase();
-                return displayName.includes(searchTerm) || email.includes(searchTerm);
+                return (
+                  displayName.includes(searchTerm) || email.includes(searchTerm)
+                );
               }}
-              notFoundContent={loadingUsers ? <Spin size="small" /> : "No users found"}
+              notFoundContent={
+                loadingUsers ? <Spin size="small" /> : "No users found"
+              }
             >
               {users.map((user) => (
                 <Option key={user.uid} value={user.uid}>
-                  {getUserDisplayName(user)} {user.email ? `(${user.email})` : ''}
+                  {getUserDisplayName(user)}{" "}
+                  {user.email ? `(${user.email})` : ""}
                 </Option>
               ))}
             </Select>
@@ -538,11 +625,11 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           <Form.Item
             label="Full Name"
             name="full_name"
-            rules={[{ required: true, message: 'Please enter full name' }]}
+            rules={[{ required: true, message: "Please enter full name" }]}
           >
             <Input
               placeholder="Enter full name"
-              onChange={(e) => handleNameInput('full_name', e.target.value)}
+              onChange={(e) => handleNameInput("full_name", e.target.value)}
             />
           </Form.Item>
         </Col>
@@ -550,7 +637,13 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           <Form.Item
             label="Email"
             name="email"
-            rules={[{ required: true, type: 'email', message: 'Please enter valid email' }]}
+            rules={[
+              {
+                required: true,
+                type: "email",
+                message: "Please enter valid email",
+              },
+            ]}
           >
             <Input placeholder="Enter email" />
           </Form.Item>
@@ -576,12 +669,14 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
             />
           </Form.Item>
         </Col>
-        {(bookingType !== 'Confession' && bookingType !== 'Anointing') && (
+        {bookingType !== "Confession" && bookingType !== "Anointing" && (
           <Col span={12}>
             <Form.Item
               label="Number of Attendees"
               name="attendees"
-              rules={[{ required: true, message: 'Please enter number of attendees' }]}
+              rules={[
+                { required: true, message: "Please enter number of attendees" },
+              ]}
             >
               <Input type="number" min={1} placeholder="Enter attendees" />
             </Form.Item>
@@ -593,10 +688,10 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
         <Col span={12}>
           <Form.Item
             label="Date"
-            rules={[{ required: true, message: 'Please select date' }]}
+            rules={[{ required: true, message: "Please select date" }]}
           >
             <DatePicker
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               value={date ? dayjs(date) : null}
               onChange={(value) => setDate(value ? value.toDate() : null)}
               minDate={getMinimumDate()}
@@ -607,10 +702,10 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
         <Col span={12}>
           <Form.Item
             label="Time"
-            rules={[{ required: true, message: 'Please select time' }]}
+            rules={[{ required: true, message: "Please select time" }]}
           >
             <TimePicker
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               value={time ? dayjs(time) : null}
               onChange={(value) => setTime(value ? value.toDate() : null)}
               format="h:mm A"
@@ -620,45 +715,60 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
         </Col>
       </Row>
 
-      {(bookingType === 'Wedding' || bookingType === 'Baptism' || bookingType === 'Burial' ||
-        bookingType === 'Communion' || bookingType === 'Confirmation') && (
-          <Form.Item
-            label="Payment Method"
-            name="payment_method"
-            initialValue="in_person"
-          >
-            <Select>
-              <Option value="in_person">In-Person Payment</Option>
-              <Option value="gcash">GCash</Option>
-            </Select>
-          </Form.Item>
-        )}
+      {(bookingType === "Wedding" ||
+        bookingType === "Baptism" ||
+        bookingType === "Burial" ||
+        bookingType === "Communion" ||
+        bookingType === "Confirmation") && (
+        <Form.Item
+          label="Payment Method"
+          name="payment_method"
+          initialValue="in_person"
+        >
+          <Select>
+            <Option value="in_person">In-Person Payment</Option>
+            <Option value="gcash">GCash</Option>
+          </Select>
+        </Form.Item>
+      )}
 
       {/* Wedding-specific fields */}
-      {bookingType === 'Wedding' && (
+      {bookingType === "Wedding" && (
         <>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
                 label="Groom First Name"
                 name="groom_first_name"
-                rules={[{ required: true, message: 'Required' }]}
+                rules={[{ required: true, message: "Required" }]}
               >
-                <Input onChange={(e) => handleNameInput('groom_first_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("groom_first_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Groom Middle Name" name="groom_middle_name">
-                <Input onChange={(e) => handleNameInput('groom_middle_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("groom_middle_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
                 label="Groom Last Name"
                 name="groom_last_name"
-                rules={[{ required: true, message: 'Required' }]}
+                rules={[{ required: true, message: "Required" }]}
               >
-                <Input onChange={(e) => handleNameInput('groom_last_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("groom_last_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -667,23 +777,35 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
               <Form.Item
                 label="Bride First Name"
                 name="bride_first_name"
-                rules={[{ required: true, message: 'Required' }]}
+                rules={[{ required: true, message: "Required" }]}
               >
-                <Input onChange={(e) => handleNameInput('bride_first_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("bride_first_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Bride Middle Name" name="bride_middle_name">
-                <Input onChange={(e) => handleNameInput('bride_middle_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("bride_middle_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item
                 label="Bride Last Name"
                 name="bride_last_name"
-                rules={[{ required: true, message: 'Required' }]}
+                rules={[{ required: true, message: "Required" }]}
               >
-                <Input onChange={(e) => handleNameInput('bride_last_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("bride_last_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -721,7 +843,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       )}
 
       {/* Baptism-specific fields */}
-      {bookingType === 'Baptism' && (
+      {bookingType === "Baptism" && (
         <>
           <Title level={5}>Candidate Information</Title>
           <Row gutter={16}>
@@ -731,12 +853,20 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="candidate_first_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('candidate_first_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("candidate_first_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Middle Name" name="candidate_middle_name">
-                <Input onChange={(e) => handleNameInput('candidate_middle_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("candidate_middle_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -745,7 +875,11 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="candidate_last_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('candidate_last_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("candidate_last_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -777,13 +911,13 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                     form.setFieldsValue({ candidate_birthday: formatted });
 
                     if (/^\d{2}\/\d{2}\/\d{4}$/.test(formatted)) {
-                      form.validateFields(['candidate_birthday']);
+                      form.validateFields(["candidate_birthday"]);
                     }
                   }}
                   onBlur={() => {
                     if (birthdayDisplay) {
                       if (/^\d{2}\/\d{2}\/\d{4}$/.test(birthdayDisplay)) {
-                        form.validateFields(['candidate_birthday']);
+                        form.validateFields(["candidate_birthday"]);
                       } else {
                         form.setFieldsValue({ candidate_birthday: "" });
                         setBirthdayDisplay("");
@@ -812,12 +946,20 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="father_first_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('father_first_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("father_first_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Middle Name" name="father_middle_name">
-                <Input onChange={(e) => handleNameInput('father_middle_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("father_middle_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -826,7 +968,11 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="father_last_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('father_last_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("father_last_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -846,12 +992,20 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="mother_first_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('mother_first_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("mother_first_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
               <Form.Item label="Middle Name" name="mother_middle_name">
-                <Input onChange={(e) => handleNameInput('mother_middle_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("mother_middle_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -860,7 +1014,11 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="mother_last_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('mother_last_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("mother_last_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -875,7 +1033,7 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
           <Form.Item
             label="Marriage Type"
             name="marriage_type"
-            rules={[{ required: true, message: 'Please select marriage type' }]}
+            rules={[{ required: true, message: "Please select marriage type" }]}
           >
             <Select placeholder="Select marriage type">
               <Option value="Church">Church</Option>
@@ -901,11 +1059,18 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="main_godfather_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('main_godfather_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("main_godfather_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Relationship" name="main_godfather_relationship">
+              <Form.Item
+                label="Relationship"
+                name="main_godfather_relationship"
+              >
                 <Input />
               </Form.Item>
             </Col>
@@ -917,11 +1082,18 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
                 name="main_godmother_name"
                 rules={[{ required: true }]}
               >
-                <Input onChange={(e) => handleNameInput('main_godmother_name', e.target.value)} />
+                <Input
+                  onChange={(e) =>
+                    handleNameInput("main_godmother_name", e.target.value)
+                  }
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Relationship" name="main_godmother_relationship">
+              <Form.Item
+                label="Relationship"
+                name="main_godmother_relationship"
+              >
                 <Input />
               </Form.Item>
             </Col>
@@ -930,14 +1102,16 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       )}
 
       {/* Burial-specific fields */}
-      {bookingType === 'Burial' && (
+      {bookingType === "Burial" && (
         <>
           <Form.Item
             label="Deceased Name"
             name="deceased_name"
             rules={[{ required: true }]}
           >
-            <Input onChange={(e) => handleNameInput('deceased_name', e.target.value)} />
+            <Input
+              onChange={(e) => handleNameInput("deceased_name", e.target.value)}
+            />
           </Form.Item>
           <Row gutter={16}>
             <Col span={12}>
@@ -953,7 +1127,9 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
               <Form.Item
                 label="Civil Status"
                 name="deceased_civil_status"
-                rules={[{ required: true, message: 'Please select civil status' }]}
+                rules={[
+                  { required: true, message: "Please select civil status" },
+                ]}
               >
                 <Select placeholder="Select civil status">
                   <Option value="Single">Single</Option>
@@ -968,7 +1144,9 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
             name="requested_by"
             rules={[{ required: true }]}
           >
-            <Input onChange={(e) => handleNameInput('requested_by', e.target.value)} />
+            <Input
+              onChange={(e) => handleNameInput("requested_by", e.target.value)}
+            />
           </Form.Item>
           <Form.Item
             label="Relationship to Deceased"
@@ -994,25 +1172,45 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
             <Space direction="vertical">
               <Checkbox
                 checked={burialServices.funeral_mass}
-                onChange={(e) => setBurialServices({ ...burialServices, funeral_mass: e.target.checked })}
+                onChange={(e) =>
+                  setBurialServices({
+                    ...burialServices,
+                    funeral_mass: e.target.checked,
+                  })
+                }
               >
                 Funeral Mass
               </Checkbox>
               <Checkbox
                 checked={burialServices.death_anniversary}
-                onChange={(e) => setBurialServices({ ...burialServices, death_anniversary: e.target.checked })}
+                onChange={(e) =>
+                  setBurialServices({
+                    ...burialServices,
+                    death_anniversary: e.target.checked,
+                  })
+                }
               >
                 Death Anniversary
               </Checkbox>
               <Checkbox
                 checked={burialServices.funeral_blessing}
-                onChange={(e) => setBurialServices({ ...burialServices, funeral_blessing: e.target.checked })}
+                onChange={(e) =>
+                  setBurialServices({
+                    ...burialServices,
+                    funeral_blessing: e.target.checked,
+                  })
+                }
               >
                 Funeral Blessing
               </Checkbox>
               <Checkbox
                 checked={burialServices.tomb_blessing}
-                onChange={(e) => setBurialServices({ ...burialServices, tomb_blessing: e.target.checked })}
+                onChange={(e) =>
+                  setBurialServices({
+                    ...burialServices,
+                    tomb_blessing: e.target.checked,
+                  })
+                }
               >
                 Tomb Blessing
               </Checkbox>
@@ -1022,14 +1220,16 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       )}
 
       {/* Confirmation-specific fields */}
-      {bookingType === 'Confirmation' && (
+      {bookingType === "Confirmation" && (
         <Form.Item label="Sponsor Name" name="sponsor_name">
-          <Input onChange={(e) => handleNameInput('sponsor_name', e.target.value)} />
+          <Input
+            onChange={(e) => handleNameInput("sponsor_name", e.target.value)}
+          />
         </Form.Item>
       )}
 
       {/* Anointing-specific fields */}
-      {bookingType === 'Anointing' && (
+      {bookingType === "Anointing" && (
         <Form.Item label="Medical Condition" name="medical_condition">
           <Input.TextArea />
         </Form.Item>
@@ -1038,16 +1238,18 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
       {(() => {
         let requirements = sacramentRequirements[bookingType] || [];
 
-        if (bookingType === 'Wedding') {
+        if (bookingType === "Wedding") {
           requirements = requirements.filter((req) => {
             if (req.onlyIfCivillyMarried) {
-              return isCivillyMarried === 'yes';
+              return isCivillyMarried === "yes";
             }
             return true;
           });
         }
 
-        const uploadRequirements = requirements.filter(req => req.requiresUpload);
+        const uploadRequirements = requirements.filter(
+          (req) => req.requiresUpload,
+        );
 
         if (uploadRequirements.length === 0) {
           return null;
@@ -1059,27 +1261,30 @@ function AdminBookingForm({ bookingType, onSuccess, onCancel }) {
               <span>
                 <Text strong>Document Requirements</Text>
                 <br />
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  Check the documents that need to be submitted physically or in-hand
+                <Text type="secondary" style={{ fontSize: "12px" }}>
+                  Check the documents that need to be submitted physically or
+                  in-hand
                 </Text>
               </span>
             }
           >
-            <div style={{
-              border: '1px solid #d9d9d9',
-              borderRadius: '4px',
-              padding: '16px',
-              backgroundColor: '#fafafa'
-            }}>
-              <Space direction="vertical" style={{ width: '100%' }}>
+            <div
+              style={{
+                border: "1px solid #d9d9d9",
+                borderRadius: "4px",
+                padding: "16px",
+                backgroundColor: "#fafafa",
+              }}
+            >
+              <Space direction="vertical" style={{ width: "100%" }}>
                 {uploadRequirements.map((requirement) => (
                   <Checkbox
                     key={requirement.id}
                     checked={physicalRequirements[requirement.id] || false}
                     onChange={(e) => {
-                      setPhysicalRequirements(prev => ({
+                      setPhysicalRequirements((prev) => ({
                         ...prev,
-                        [requirement.id]: e.target.checked
+                        [requirement.id]: e.target.checked,
                       }));
                     }}
                   >
@@ -1126,8 +1331,9 @@ export default function BookingPendingRequests() {
   const [loadingPriests, setLoadingPriests] = useState(false);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState(null);
-  const [selectedImageTitle, setSelectedImageTitle] = useState('');
-  const [createBookingModalVisible, setCreateBookingModalVisible] = useState(false);
+  const [selectedImageTitle, setSelectedImageTitle] = useState("");
+  const [createBookingModalVisible, setCreateBookingModalVisible] =
+    useState(false);
   const [selectedBookingType, setSelectedBookingType] = useState(null);
   const [dateFilterTab, setDateFilterTab] = useState("all");
   const [adminComment, setAdminComment] = useState("");
@@ -1151,7 +1357,12 @@ export default function BookingPendingRequests() {
   // Real-time polling for bookings
   useEffect(() => {
     // Don't poll if modals are open to avoid unnecessary requests
-    if (detailModalVisible || createBookingModalVisible || editModalVisible || confirmModalVisible) {
+    if (
+      detailModalVisible ||
+      createBookingModalVisible ||
+      editModalVisible ||
+      confirmModalVisible
+    ) {
       setIsPolling(false);
       return;
     }
@@ -1171,7 +1382,13 @@ export default function BookingPendingRequests() {
       clearInterval(pollInterval);
       setIsPolling(false);
     };
-  }, [statusFilter, detailModalVisible, createBookingModalVisible, editModalVisible, confirmModalVisible]);
+  }, [
+    statusFilter,
+    detailModalVisible,
+    createBookingModalVisible,
+    editModalVisible,
+    confirmModalVisible,
+  ]);
 
   const fetchPriests = async () => {
     try {
@@ -1197,14 +1414,36 @@ export default function BookingPendingRequests() {
       if (showLoading) {
         setLoading(true);
       }
-      const [weddings, baptisms, burials, communions, confirmations, anointings, confessions] = await Promise.all([
-        axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
-        axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
-        axios.get(`${API_URL}/admin/getAllBurials`).catch(() => ({ data: { burials: [] } })),
-        axios.get(`${API_URL}/admin/getAllCommunions`).catch(() => ({ data: { communions: [] } })),
-        axios.get(`${API_URL}/admin/getAllConfirmations`).catch(() => ({ data: { confirmations: [] } })),
-        axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
-        axios.get(`${API_URL}/admin/getAllConfessions`).catch(() => ({ data: { bookings: [] } })),
+      const [
+        weddings,
+        baptisms,
+        burials,
+        communions,
+        confirmations,
+        anointings,
+        confessions,
+      ] = await Promise.all([
+        axios
+          .get(`${API_URL}/admin/getAllWeddings`)
+          .catch(() => ({ data: { weddings: [] } })),
+        axios
+          .get(`${API_URL}/admin/getAllBaptisms`)
+          .catch(() => ({ data: { baptisms: [] } })),
+        axios
+          .get(`${API_URL}/admin/getAllBurials`)
+          .catch(() => ({ data: { burials: [] } })),
+        axios
+          .get(`${API_URL}/admin/getAllCommunions`)
+          .catch(() => ({ data: { communions: [] } })),
+        axios
+          .get(`${API_URL}/admin/getAllConfirmations`)
+          .catch(() => ({ data: { confirmations: [] } })),
+        axios
+          .get(`${API_URL}/admin/getAllAnointings`)
+          .catch(() => ({ data: { anointings: [] } })),
+        axios
+          .get(`${API_URL}/admin/getAllConfessions`)
+          .catch(() => ({ data: { bookings: [] } })),
       ]);
 
       // Normalize confession bookings and fetch user data if missing
@@ -1214,14 +1453,19 @@ export default function BookingPendingRequests() {
           let userData = b.user;
 
           // If user object is missing but uid exists, fetch user data
-          if (!userData && b.uid && b.uid !== 'admin') {
+          if (!userData && b.uid && b.uid !== "admin") {
             try {
-              const userResponse = await axios.post(`${API_URL}/findUser`, { uid: b.uid });
+              const userResponse = await axios.post(`${API_URL}/findUser`, {
+                uid: b.uid,
+              });
               if (userResponse.data && userResponse.data.user) {
                 userData = userResponse.data.user;
               }
             } catch (error) {
-              console.error(`Error fetching user data for confession booking ${b.transaction_id}:`, error);
+              console.error(
+                `Error fetching user data for confession booking ${b.transaction_id}:`,
+                error,
+              );
             }
           }
 
@@ -1237,55 +1481,108 @@ export default function BookingPendingRequests() {
             transaction_id: b.transaction_id || `CONF-${Date.now()}`,
             time: b.time || null,
           };
-        })
+        }),
       );
 
       const allBookings = [
-        ...(weddings.data.weddings || []).map((b) => ({ ...b, bookingType: "Wedding", typeLabel: "Wedding" })),
-        ...(baptisms.data.baptisms || []).map((b) => ({ ...b, bookingType: "Baptism", typeLabel: "Baptism" })),
-        ...(burials.data.burials || []).map((b) => ({ ...b, bookingType: "Burial", typeLabel: "Burial" })),
-        ...(communions.data.communions || []).map((b) => ({ ...b, bookingType: "Communion", typeLabel: "Communion" })),
-        ...(confirmations.data.confirmations || []).map((b) => ({ ...b, bookingType: "Confirmation", typeLabel: "Confirmation" })),
-        ...(anointings.data.anointings || []).map((b) => ({ ...b, bookingType: "Anointing", typeLabel: "Anointing of the Sick" })),
-        ...normalizedConfessions
+        ...(weddings.data.weddings || []).map((b) => ({
+          ...b,
+          bookingType: "Wedding",
+          typeLabel: "Wedding",
+        })),
+        ...(baptisms.data.baptisms || []).map((b) => ({
+          ...b,
+          bookingType: "Baptism",
+          typeLabel: "Baptism",
+        })),
+        ...(burials.data.burials || []).map((b) => ({
+          ...b,
+          bookingType: "Burial",
+          typeLabel: "Burial",
+        })),
+        ...(communions.data.communions || []).map((b) => ({
+          ...b,
+          bookingType: "Communion",
+          typeLabel: "Communion",
+        })),
+        ...(confirmations.data.confirmations || []).map((b) => ({
+          ...b,
+          bookingType: "Confirmation",
+          typeLabel: "Confirmation",
+        })),
+        ...(anointings.data.anointings || []).map((b) => ({
+          ...b,
+          bookingType: "Anointing",
+          typeLabel: "Anointing of the Sick",
+        })),
+        ...normalizedConfessions,
       ];
 
-      if (process.env.NODE_ENV === 'development' && allBookings.length > 0) {
-        console.log('Sample booking time fields:', allBookings.slice(0, 3).map(b => ({
-          type: b.bookingType,
-          transaction_id: b.transaction_id,
-          time: b.time,
-          timeType: typeof b.time
-        })));
+      if (process.env.NODE_ENV === "development" && allBookings.length > 0) {
+        console.log(
+          "Sample booking time fields:",
+          allBookings.slice(0, 3).map((b) => ({
+            type: b.bookingType,
+            transaction_id: b.transaction_id,
+            time: b.time,
+            timeType: typeof b.time,
+          })),
+        );
       }
 
       const rejectedCount = await autoRejectPastDueBookings(allBookings);
 
       if (rejectedCount > 0) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const [weddings2, baptisms2, burials2, communions2, confirmations2, anointings2, confessions2] = await Promise.all([
-          axios.get(`${API_URL}/admin/getAllWeddings`).catch(() => ({ data: { weddings: [] } })),
-          axios.get(`${API_URL}/admin/getAllBaptisms`).catch(() => ({ data: { baptisms: [] } })),
-          axios.get(`${API_URL}/admin/getAllBurials`).catch(() => ({ data: { burials: [] } })),
-          axios.get(`${API_URL}/admin/getAllCommunions`).catch(() => ({ data: { communions: [] } })),
-          axios.get(`${API_URL}/admin/getAllConfirmations`).catch(() => ({ data: { confirmations: [] } })),
-          axios.get(`${API_URL}/admin/getAllAnointings`).catch(() => ({ data: { anointings: [] } })),
-          axios.get(`${API_URL}/admin/getAllConfessions`).catch(() => ({ data: { bookings: [] } })),
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const [
+          weddings2,
+          baptisms2,
+          burials2,
+          communions2,
+          confirmations2,
+          anointings2,
+          confessions2,
+        ] = await Promise.all([
+          axios
+            .get(`${API_URL}/admin/getAllWeddings`)
+            .catch(() => ({ data: { weddings: [] } })),
+          axios
+            .get(`${API_URL}/admin/getAllBaptisms`)
+            .catch(() => ({ data: { baptisms: [] } })),
+          axios
+            .get(`${API_URL}/admin/getAllBurials`)
+            .catch(() => ({ data: { burials: [] } })),
+          axios
+            .get(`${API_URL}/admin/getAllCommunions`)
+            .catch(() => ({ data: { communions: [] } })),
+          axios
+            .get(`${API_URL}/admin/getAllConfirmations`)
+            .catch(() => ({ data: { confirmations: [] } })),
+          axios
+            .get(`${API_URL}/admin/getAllAnointings`)
+            .catch(() => ({ data: { anointings: [] } })),
+          axios
+            .get(`${API_URL}/admin/getAllConfessions`)
+            .catch(() => ({ data: { bookings: [] } })),
         ]);
 
         const confessionBookings2 = confessions2.data.bookings || [];
         const normalizedConfessions2 = await Promise.all(
           confessionBookings2.map(async (b) => {
             let userData = b.user;
-            if (!userData && b.uid && b.uid !== 'admin') {
+            if (!userData && b.uid && b.uid !== "admin") {
               try {
-                const userResponse = await axios.post(`${API_URL}/findUser`, { uid: b.uid });
+                const userResponse = await axios.post(`${API_URL}/findUser`, {
+                  uid: b.uid,
+                });
                 if (userResponse.data && userResponse.data.user) {
                   userData = userResponse.data.user;
                 }
-
               } catch (error) {
-                console.error(`Error fetching user data for confession booking ${b.transaction_id}:`, error);
+                console.error(
+                  `Error fetching user data for confession booking ${b.transaction_id}:`,
+                  error,
+                );
               }
             }
 
@@ -1294,23 +1591,49 @@ export default function BookingPendingRequests() {
               bookingType: "Confession",
               typeLabel: "Confession",
               date: b.date ? new Date(b.date).toISOString() : null,
-              createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : null,
+              createdAt: b.createdAt
+                ? new Date(b.createdAt).toISOString()
+                : null,
               status: b.status || "pending",
               user: userData || b.user,
               transaction_id: b.transaction_id || `CONF-${Date.now()}`,
               time: b.time || null,
             };
-          })
+          }),
         );
 
         allBookings = [
-          ...(weddings2.data.weddings || []).map((b) => ({ ...b, bookingType: "Wedding", typeLabel: "Wedding" })),
-          ...(baptisms2.data.baptisms || []).map((b) => ({ ...b, bookingType: "Baptism", typeLabel: "Baptism" })),
-          ...(burials2.data.burials || []).map((b) => ({ ...b, bookingType: "Burial", typeLabel: "Burial" })),
-          ...(communions2.data.communions || []).map((b) => ({ ...b, bookingType: "Communion", typeLabel: "Communion" })),
-          ...(confirmations2.data.confirmations || []).map((b) => ({ ...b, bookingType: "Confirmation", typeLabel: "Confirmation" })),
-          ...(anointings2.data.anointings || []).map((b) => ({ ...b, bookingType: "Anointing", typeLabel: "Anointing of the Sick" })),
-          ...normalizedConfessions2
+          ...(weddings2.data.weddings || []).map((b) => ({
+            ...b,
+            bookingType: "Wedding",
+            typeLabel: "Wedding",
+          })),
+          ...(baptisms2.data.baptisms || []).map((b) => ({
+            ...b,
+            bookingType: "Baptism",
+            typeLabel: "Baptism",
+          })),
+          ...(burials2.data.burials || []).map((b) => ({
+            ...b,
+            bookingType: "Burial",
+            typeLabel: "Burial",
+          })),
+          ...(communions2.data.communions || []).map((b) => ({
+            ...b,
+            bookingType: "Communion",
+            typeLabel: "Communion",
+          })),
+          ...(confirmations2.data.confirmations || []).map((b) => ({
+            ...b,
+            bookingType: "Confirmation",
+            typeLabel: "Confirmation",
+          })),
+          ...(anointings2.data.anointings || []).map((b) => ({
+            ...b,
+            bookingType: "Anointing",
+            typeLabel: "Anointing of the Sick",
+          })),
+          ...normalizedConfessions2,
         ];
       }
 
@@ -1326,18 +1649,20 @@ export default function BookingPendingRequests() {
 
       const total = allBookings.length;
       const pending = allBookings.filter((b) => b.status === "pending").length;
-      const confirmed = allBookings.filter((b) => b.status === "confirmed").length;
-      const cancelled = allBookings.filter((b) => b.status === "cancelled").length;
+      const confirmed = allBookings.filter(
+        (b) => b.status === "confirmed",
+      ).length;
+      const cancelled = allBookings.filter(
+        (b) => b.status === "cancelled",
+      ).length;
 
       setStats({ total, pending, confirmed, cancelled });
       setLastUpdateTime(new Date());
-
     } catch (error) {
       console.error("Error fetching bookings:", error);
       if (showLoading) {
         message.error("Failed to fetch bookings. Please try again.");
       }
-
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -1350,7 +1675,6 @@ export default function BookingPendingRequests() {
 
     if (dateFilterTab === "past") {
       filtered = filtered.filter((b) => isBookingDatePast(b));
-
     } else if (dateFilterTab === "active") {
       filtered = filtered.filter((b) => !isBookingDatePast(b));
     }
@@ -1393,7 +1717,9 @@ export default function BookingPendingRequests() {
           b.user?.name,
           b.user?.email,
         ].filter(Boolean);
-        return searchableFields.some((field) => field?.toLowerCase().includes(term));
+        return searchableFields.some((field) =>
+          field?.toLowerCase().includes(term),
+        );
       });
     }
 
@@ -1402,8 +1728,18 @@ export default function BookingPendingRequests() {
 
   const getMonthOptions = () => {
     const months = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
 
     return [
@@ -1415,17 +1751,23 @@ export default function BookingPendingRequests() {
     ];
   };
 
-  const checkPriestConflict = async (priestId, bookingDate, bookingTime, transactionId = null) => {
+  const checkPriestConflict = async (
+    priestId,
+    bookingDate,
+    bookingTime,
+    transactionId = null,
+  ) => {
     try {
       if (!priestId || !bookingDate || !bookingTime) {
         return { hasConflict: false };
       }
 
-      const dateStr = bookingDate instanceof Date ? bookingDate.toISOString() : bookingDate;
+      const dateStr =
+        bookingDate instanceof Date ? bookingDate.toISOString() : bookingDate;
       let timeStr = bookingTime;
-      
-      if (typeof bookingTime === 'string' && !bookingTime.includes('T')) {
-        const timeParts = bookingTime.split(':');
+
+      if (typeof bookingTime === "string" && !bookingTime.includes("T")) {
+        const timeParts = bookingTime.split(":");
         if (timeParts.length >= 2) {
           const tempDate = new Date();
           tempDate.setHours(parseInt(timeParts[0], 10));
@@ -1434,7 +1776,6 @@ export default function BookingPendingRequests() {
           tempDate.setMilliseconds(0);
           timeStr = tempDate.toISOString();
         }
-
       } else if (bookingTime instanceof Date) {
         timeStr = bookingTime.toISOString();
       }
@@ -1443,32 +1784,41 @@ export default function BookingPendingRequests() {
         priest_id: priestId,
         date: dateStr,
         time: timeStr,
-        transaction_id: transactionId
+        transaction_id: transactionId,
       });
 
       return response.data;
-
     } catch (error) {
       console.error("Error checking priest conflict:", error);
       return { hasConflict: false, error: error.message };
     }
   };
 
-  const handleStatusUpdate = async (bookingId, bookingType, newStatus, comment = null) => {
+  const handleStatusUpdate = async (
+    bookingId,
+    bookingType,
+    newStatus,
+    comment = null,
+  ) => {
     try {
       if (newStatus === "confirmed") {
         const bookingToUpdate = bookings.find(
-          (b) => b.transaction_id === bookingId && b.bookingType === bookingType
+          (b) =>
+            b.transaction_id === bookingId && b.bookingType === bookingType,
         );
 
         if (bookingToUpdate && isBookingDatePast(bookingToUpdate)) {
-          message.error("Cannot confirm booking that is past its scheduled date.");
+          message.error(
+            "Cannot confirm booking that is past its scheduled date.",
+          );
           return;
         }
 
         // Only check for priest if not coming from quick action (which will have its own check)
         if (!comment && !selectedPriestId) {
-          message.warning("Please select a priest before confirming the booking.");
+          message.warning(
+            "Please select a priest before confirming the booking.",
+          );
           return;
         }
 
@@ -1478,11 +1828,14 @@ export default function BookingPendingRequests() {
             selectedPriestId,
             bookingToUpdate.date,
             bookingToUpdate.time,
-            bookingId
+            bookingId,
           );
 
           if (conflictCheck.hasConflict) {
-            message.error(conflictCheck.message || "This priest already has a booking at this time. Please select a different priest or time.");
+            message.error(
+              conflictCheck.message ||
+                "This priest already has a booking at this time. Please select a different priest or time.",
+            );
             return;
           }
         }
@@ -1505,28 +1858,33 @@ export default function BookingPendingRequests() {
         return;
       }
 
-      const selectedPriest = priests.find(p => p.uid === selectedPriestId);
-      const commentToUse = comment !== null ? comment : (adminComment || null);
+      const selectedPriest = priests.find((p) => p.uid === selectedPriestId);
+      const commentToUse = comment !== null ? comment : adminComment || null;
 
       await axios.put(`${API_URL}/${endpoint}`, {
         transaction_id: bookingId,
         status: newStatus,
         priest_id: newStatus === "confirmed" ? selectedPriestId : null,
-        priest_name: newStatus === "confirmed" && selectedPriest ? selectedPriest.full_name : null,
+        priest_name:
+          newStatus === "confirmed" && selectedPriest
+            ? selectedPriest.full_name
+            : null,
         admin_comment: commentToUse,
       });
 
       if (newStatus === "confirmed") {
         await Logger.logApproveBooking(bookingId, bookingType);
-
       } else if (newStatus === "cancelled" || newStatus === "rejected") {
         await Logger.logRejectBooking(bookingId, bookingType);
-
       } else {
-        await Logger.logUpdateBooking(bookingId, bookingType, { status: newStatus });
+        await Logger.logUpdateBooking(bookingId, bookingType, {
+          status: newStatus,
+        });
       }
 
-      message.success(`Booking ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`);
+      message.success(
+        `Booking ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`,
+      );
       fetchAllBookings();
       setDetailModalVisible(false);
       setSelectedPriestId(null);
@@ -1534,11 +1892,9 @@ export default function BookingPendingRequests() {
       setConfirmModalVisible(false);
       setPendingAction(null);
       setQuickComment("");
-
     } catch (error) {
       console.error("Error updating booking status:", error);
       message.error("Failed to update booking status. Please try again.");
-
     } finally {
       setUpdateLoading(false);
     }
@@ -1556,7 +1912,7 @@ export default function BookingPendingRequests() {
     };
 
     const pastDuePendingBookings = allBookings.filter(
-      (booking) => booking.status === "pending" && isBookingDatePast(booking)
+      (booking) => booking.status === "pending" && isBookingDatePast(booking),
     );
 
     if (pastDuePendingBookings.length === 0) {
@@ -1579,11 +1935,16 @@ export default function BookingPendingRequests() {
           admin_comment: "Automatically rejected due to past due date",
         });
 
-        await Logger.logRejectBooking(booking.transaction_id, booking.bookingType);
+        await Logger.logRejectBooking(
+          booking.transaction_id,
+          booking.bookingType,
+        );
         return true;
-        
       } catch (error) {
-        console.error(`Error auto-rejecting booking ${booking.transaction_id}:`, error);
+        console.error(
+          `Error auto-rejecting booking ${booking.transaction_id}:`,
+          error,
+        );
         return false;
       }
     });
@@ -1595,11 +1956,13 @@ export default function BookingPendingRequests() {
   const handleQuickAction = (bookingId, bookingType, status) => {
     if (status === "confirmed") {
       const bookingToUpdate = bookings.find(
-        (b) => b.transaction_id === bookingId && b.bookingType === bookingType
+        (b) => b.transaction_id === bookingId && b.bookingType === bookingType,
       );
 
       if (bookingToUpdate && isBookingDatePast(bookingToUpdate)) {
-        message.error("Cannot confirm booking that is past its scheduled date.");
+        message.error(
+          "Cannot confirm booking that is past its scheduled date.",
+        );
         return;
       }
     }
@@ -1620,7 +1983,7 @@ export default function BookingPendingRequests() {
       pendingAction.bookingId,
       pendingAction.bookingType,
       pendingAction.status,
-      quickComment || null
+      quickComment || null,
     );
   };
 
@@ -1650,7 +2013,7 @@ export default function BookingPendingRequests() {
       let timeString = selectedBooking.time;
       if (editTime) {
         const timeValue = editTime.toDate();
-        timeString = `${timeValue.getHours().toString().padStart(2, '0')}:${timeValue.getMinutes().toString().padStart(2, '0')}`;
+        timeString = `${timeValue.getHours().toString().padStart(2, "0")}:${timeValue.getMinutes().toString().padStart(2, "0")}`;
       }
 
       // Handle date formatting - editDate is a dayjs object
@@ -1667,10 +2030,14 @@ export default function BookingPendingRequests() {
 
       await axios.put(`${API_URL}/${endpoint}`, updateData);
 
-      await Logger.logUpdateBooking(selectedBooking.transaction_id, selectedBooking.bookingType, {
-        date: dateISO,
-        time: timeString,
-      });
+      await Logger.logUpdateBooking(
+        selectedBooking.transaction_id,
+        selectedBooking.bookingType,
+        {
+          date: dateISO,
+          time: timeString,
+        },
+      );
 
       message.success("Booking updated successfully!");
       setEditModalVisible(false);
@@ -1680,10 +2047,12 @@ export default function BookingPendingRequests() {
       fetchAllBookings();
       setDetailModalVisible(false);
       setSelectedBooking(null);
-
     } catch (error) {
       console.error("Error updating booking:", error);
-      message.error(error.response?.data?.message || "Failed to update booking. Please try again.");
+      message.error(
+        error.response?.data?.message ||
+          "Failed to update booking. Please try again.",
+      );
     } finally {
       setEditLoading(false);
     }
@@ -1703,9 +2072,21 @@ export default function BookingPendingRequests() {
 
   const getStatusTag = (status) => {
     const statusConfig = {
-      pending: { color: "orange", icon: <ClockCircleOutlined />, text: "Pending" },
-      confirmed: { color: "green", icon: <CheckCircleOutlined />, text: "Confirmed" },
-      cancelled: { color: "red", icon: <CloseCircleOutlined />, text: "Cancelled" },
+      pending: {
+        color: "orange",
+        icon: <ClockCircleOutlined />,
+        text: "Pending",
+      },
+      confirmed: {
+        color: "green",
+        icon: <CheckCircleOutlined />,
+        text: "Confirmed",
+      },
+      cancelled: {
+        color: "red",
+        icon: <CloseCircleOutlined />,
+        text: "Cancelled",
+      },
     };
 
     const config = statusConfig[status] || statusConfig.pending;
@@ -1743,7 +2124,6 @@ export default function BookingPendingRequests() {
   const getName = (booking) => {
     if (booking.bookingType === "Wedding") {
       return `${booking.groom_first_name || ""} ${booking.groom_last_name || ""} & ${booking.bride_first_name || ""} ${booking.bride_last_name || ""}`.trim();
-
     } else if (booking.bookingType === "Burial") {
       return (
         booking.deceased_name ||
@@ -1753,19 +2133,24 @@ export default function BookingPendingRequests() {
         `${booking.first_name || ""} ${booking.last_name || ""}`.trim() ||
         "N/A"
       );
-
     } else {
       // For other booking types including Confession, prioritize user object with first_name/last_name
       // This ensures profile updates are reflected immediately
       if (booking.user) {
         // Try to construct name from first_name, middle_name, last_name
-        const userFullName = `${booking.user.first_name || ""} ${booking.user.middle_name || ""} ${booking.user.last_name || ""}`.trim();
+        const userFullName =
+          `${booking.user.first_name || ""} ${booking.user.middle_name || ""} ${booking.user.last_name || ""}`.trim();
         if (userFullName) return userFullName;
         // Fallback to user.name if it exists
         if (booking.user.name) return booking.user.name;
       }
       // Fallback to other fields
-      return booking.name || booking.full_name || `${booking.first_name || ""} ${booking.last_name || ""}`.trim() || "N/A";
+      return (
+        booking.name ||
+        booking.full_name ||
+        `${booking.first_name || ""} ${booking.last_name || ""}`.trim() ||
+        "N/A"
+      );
     }
   };
 
@@ -1780,7 +2165,9 @@ export default function BookingPendingRequests() {
 
     if (booking.time) {
       const timeStr = String(booking.time).trim();
-      const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/);
+      const timeMatch = timeStr.match(
+        /^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/,
+      );
 
       if (timeMatch) {
         const hours = parseInt(timeMatch[1], 10);
@@ -1795,22 +2182,36 @@ export default function BookingPendingRequests() {
   };
 
   const formatTimeOnly = (timeValue) => {
-    if (timeValue === null || timeValue === undefined || timeValue === '') {
+    if (timeValue === null || timeValue === undefined || timeValue === "") {
       return "N/A";
     }
 
     const timeStr = String(timeValue).trim();
 
-    if (!timeStr || timeStr === 'null' || timeStr === 'undefined' || timeStr === 'NaN') {
+    if (
+      !timeStr ||
+      timeStr === "null" ||
+      timeStr === "undefined" ||
+      timeStr === "NaN"
+    ) {
       return "N/A";
     }
 
-    const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/);
+    const timeMatch = timeStr.match(
+      /^(\d{1,2}):(\d{2})(?::\d{2})?(?:\.[\d]+)?$/,
+    );
     if (timeMatch) {
       const hours24 = parseInt(timeMatch[1], 10);
       const minutes = parseInt(timeMatch[2], 10);
 
-      if (!isNaN(hours24) && !isNaN(minutes) && hours24 >= 0 && hours24 <= 23 && minutes >= 0 && minutes <= 59) {
+      if (
+        !isNaN(hours24) &&
+        !isNaN(minutes) &&
+        hours24 >= 0 &&
+        hours24 <= 23 &&
+        minutes >= 0 &&
+        minutes <= 59
+      ) {
         const hours = hours24 % 12 || 12;
         const ampm = hours24 >= 12 ? "PM" : "AM";
 
@@ -1827,14 +2228,20 @@ export default function BookingPendingRequests() {
         hours = hours % 12 || 12;
         return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${ampm}`;
       }
-
     } catch (e) {
       // If date parsing fails, continue to return original or N/A
     }
 
-    console.warn('Unable to format time value:', timeValue, 'type:', typeof timeValue);
+    console.warn(
+      "Unable to format time value:",
+      timeValue,
+      "type:",
+      typeof timeValue,
+    );
     return "N/A";
   };
+
+  const subAdmin = Cookies.get("subAdmin") === "true";
 
   const columns = [
     {
@@ -1889,8 +2296,15 @@ export default function BookingPendingRequests() {
       key: "time",
       width: 70,
       render: (_, record) => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Time value for record:', record.transaction_id, 'time:', record.time, 'type:', typeof record.time);
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "Time value for record:",
+            record.transaction_id,
+            "time:",
+            record.time,
+            "type:",
+            typeof record.time,
+          );
         }
         return <span>{formatTimeOnly(record.time)}</span>;
       },
@@ -1909,68 +2323,85 @@ export default function BookingPendingRequests() {
       render: (date) => formatDate(date),
       width: 130,
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Space>
-          {/* View Details */}
-          <Tooltip title="View Details">
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              className="border-btn"
-              style={{ padding: '8px' }}
-              onClick={() => {
-                setSelectedBooking(record);
-                setDetailModalVisible(true);
-              }}
-            />
-          </Tooltip>
-
-          {record.status === "pending" && (
-            <>
-              {isBookingDatePast(record) ? (
-                <Tooltip title="Cannot confirm booking that is past its scheduled date">
+    // ... existing columns
+    ...(subAdmin
+      ? [] // If subAdmin is true, return an empty array (no column)
+      : [
+          {
+            // If subAdmin is false, return the Actions column object
+            title: "Actions",
+            key: "actions",
+            width: 150, // Increased width slightly so icons don't squash
+            render: (_, record) => (
+              <Space size="middle">
+                {/* View Details */}
+                <Tooltip title="View Details">
                   <Button
                     type="link"
-                    icon={<CheckOutlined />}
-                    className="cancelborder-btn"
-                    style={{ padding: '8px' }}
-                    disabled
-                  />
-                </Tooltip>
-              ) : (
-                <Tooltip title="Confirm Booking">
-                  <Button
-                    type="link"
-                    icon={<CheckOutlined />}
+                    icon={<EyeOutlined />}
                     className="border-btn"
-                    style={{ padding: '8px' }}
-                    onClick={() => handleQuickAction(record.transaction_id, record.bookingType, "confirmed")}
-                    loading={updateLoading}
+                    style={{ padding: "8px" }}
+                    onClick={() => {
+                      setSelectedBooking(record);
+                      setDetailModalVisible(true);
+                    }}
                   />
                 </Tooltip>
-              )}
 
-              <Tooltip title="Cancel Booking">
-                <Button
-                  type="link"
-                  icon={<CloseOutlined />}
-                  className="dangerborder-btn"
-                  style={{ padding: '8px' }}
+                {record.status === "pending" && (
+                  <>
+                    {isBookingDatePast(record) ? (
+                      <Tooltip title="Cannot confirm booking past its date">
+                        <Button
+                          type="link"
+                          icon={<CheckOutlined />}
+                          className="cancelborder-btn"
+                          style={{ padding: "8px" }}
+                          disabled
+                        />
+                      </Tooltip>
+                    ) : (
+                      <Tooltip title="Confirm Booking">
+                        <Button
+                          type="link"
+                          icon={<CheckOutlined />}
+                          className="border-btn"
+                          style={{ padding: "8px" }}
+                          onClick={() =>
+                            handleQuickAction(
+                              record.transaction_id,
+                              record.bookingType,
+                              "confirmed",
+                            )
+                          }
+                          loading={updateLoading}
+                        />
+                      </Tooltip>
+                    )}
 
-                  onClick={() => handleQuickAction(record.transaction_id, record.bookingType, "cancelled")}
-                  loading={updateLoading}
-                />
-              </Tooltip>
-            </>
-          )}
-        </Space>
-
-      ),
-      width: 80,
-    },
+                    <Tooltip title="Cancel Booking">
+                      <Button
+                        type="link"
+                        icon={<CloseOutlined />}
+                        danger
+                        className="dangerborder-btn"
+                        style={{ padding: "8px" }}
+                        onClick={() =>
+                          handleQuickAction(
+                            record.transaction_id,
+                            record.bookingType,
+                            "cancelled",
+                          )
+                        }
+                        loading={updateLoading}
+                      />
+                    </Tooltip>
+                  </>
+                )}
+              </Space>
+            ),
+          },
+        ]),
   ];
 
   const renderBookingDetails = () => {
@@ -1978,7 +2409,20 @@ export default function BookingPendingRequests() {
 
     const details = [];
     Object.keys(selectedBooking).forEach((key) => {
-      if (["_id", "__v", "bookingType", "typeLabel", "priest_id", "user", "uid", "createdAt", "updatedAt"].includes(key)) return;
+      if (
+        [
+          "_id",
+          "__v",
+          "bookingType",
+          "typeLabel",
+          "priest_id",
+          "user",
+          "uid",
+          "createdAt",
+          "updatedAt",
+        ].includes(key)
+      )
+        return;
       const value = selectedBooking[key];
 
       if (value !== null && value !== undefined && value !== "") {
@@ -1987,12 +2431,14 @@ export default function BookingPendingRequests() {
     });
 
     return (
-      <div style={{
-        height: '600px',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        width: '100%',
-      }}>
+      <div
+        style={{
+          height: "600px",
+          overflowY: "auto",
+          overflowX: "hidden",
+          width: "100%",
+        }}
+      >
         <Row gutter={[16, 16]}>
           {/* Booking Type */}
           <Col span={24}>
@@ -2018,7 +2464,9 @@ export default function BookingPendingRequests() {
                 loading={loadingPriests}
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.children?.toLowerCase() ?? '').includes(input.toLowerCase())
+                  (option?.children?.toLowerCase() ?? "").includes(
+                    input.toLowerCase(),
+                  )
                 }
               >
                 {priests.map((priest) => (
@@ -2028,7 +2476,10 @@ export default function BookingPendingRequests() {
                 ))}
               </Select>
               {selectedBooking.priest_name && (
-                <Text type="secondary" style={{ marginTop: 4, display: 'block' }}>
+                <Text
+                  type="secondary"
+                  style={{ marginTop: 4, display: "block" }}
+                >
                   Currently assigned: {selectedBooking.priest_name}
                 </Text>
               )}
@@ -2036,12 +2487,13 @@ export default function BookingPendingRequests() {
           )}
 
           {/* Show assigned priest if confirmed */}
-          {selectedBooking?.status === "confirmed" && selectedBooking.priest_name && (
-            <Col span={24}>
-              <Text strong>Assigned Priest:</Text>
-              <div>{selectedBooking.priest_name}</div>
-            </Col>
-          )}
+          {selectedBooking?.status === "confirmed" &&
+            selectedBooking.priest_name && (
+              <Col span={24}>
+                <Text strong>Assigned Priest:</Text>
+                <div>{selectedBooking.priest_name}</div>
+              </Col>
+            )}
 
           {/* Admin Comment Input - Show when confirming or cancelling pending booking */}
           {selectedBooking?.status === "pending" && (
@@ -2060,22 +2512,26 @@ export default function BookingPendingRequests() {
           )}
 
           {/* Show admin comment if booking is confirmed or cancelled and has a comment */}
-          {(selectedBooking?.status === "confirmed" || selectedBooking?.status === "cancelled") && selectedBooking?.admin_comment && (
-            <Col span={24}>
-              <Text strong>Admin Comment:</Text>
-              <div style={{
-                marginTop: 8,
-                padding: 12,
-                backgroundColor: '#f5f5f5',
-                borderRadius: 4,
-                border: '1px solid #d9d9d9',
-                whiteSpace: 'pre-wrap',
-                wordWrap: 'break-word'
-              }}>
-                {selectedBooking.admin_comment}
-              </div>
-            </Col>
-          )}
+          {(selectedBooking?.status === "confirmed" ||
+            selectedBooking?.status === "cancelled") &&
+            selectedBooking?.admin_comment && (
+              <Col span={24}>
+                <Text strong>Admin Comment:</Text>
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: 12,
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: 4,
+                    border: "1px solid #d9d9d9",
+                    whiteSpace: "pre-wrap",
+                    wordWrap: "break-word",
+                  }}
+                >
+                  {selectedBooking.admin_comment}
+                </div>
+              </Col>
+            )}
 
           {/* Payment Method */}
           {selectedBooking?.payment_method && (
@@ -2085,25 +2541,44 @@ export default function BookingPendingRequests() {
                 Payment Method:
               </Text>
               <div>
-                <Tag color={selectedBooking.payment_method === 'gcash' ? 'green' : 'blue'}>
-                  {selectedBooking.payment_method === 'gcash' ? 'GCash' : 'In-Person Payment'}
+                <Tag
+                  color={
+                    selectedBooking.payment_method === "gcash"
+                      ? "green"
+                      : "blue"
+                  }
+                >
+                  {selectedBooking.payment_method === "gcash"
+                    ? "GCash"
+                    : "In-Person Payment"}
                 </Tag>
               </div>
             </Col>
           )}
 
           {/* Amount */}
-          {selectedBooking?.amount !== undefined && selectedBooking?.amount !== null && (
-            <Col span={12}>
-              <Text strong>
-                <DollarOutlined style={{ marginRight: 8 }} />
-                Amount:
-              </Text>
-              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#52c41a' }}>
-                ₱{parseFloat(selectedBooking.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-            </Col>
-          )}
+          {selectedBooking?.amount !== undefined &&
+            selectedBooking?.amount !== null && (
+              <Col span={12}>
+                <Text strong>
+                  <DollarOutlined style={{ marginRight: 8 }} />
+                  Amount:
+                </Text>
+                <div
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    color: "#52c41a",
+                  }}
+                >
+                  ₱
+                  {parseFloat(selectedBooking.amount).toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </div>
+              </Col>
+            )}
 
           {/* Name */}
           <Col span={12}>
@@ -2126,30 +2601,34 @@ export default function BookingPendingRequests() {
                   <div style={{ marginTop: 8 }}>
                     {(() => {
                       let imageUrl = selectedBooking.groom_pic;
-                      if (!imageUrl.startsWith('http')) {
-                        const { data } = supabase.storage.from('bookings').getPublicUrl(selectedBooking.groom_pic);
-                        imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.groom_pic}`;
+                      if (!imageUrl.startsWith("http")) {
+                        const { data } = supabase.storage
+                          .from("bookings")
+                          .getPublicUrl(selectedBooking.groom_pic);
+                        imageUrl =
+                          data?.publicUrl ||
+                          `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.groom_pic}`;
                       }
                       return (
                         <img
                           src={imageUrl}
                           alt="Groom Photo"
                           style={{
-                            maxWidth: '100%',
-                            maxHeight: '200px',
+                            maxWidth: "100%",
+                            maxHeight: "200px",
                             borderRadius: 8,
-                            border: '1px solid #d9d9d9',
-                            cursor: 'pointer',
-                            objectFit: 'cover',
+                            border: "1px solid #d9d9d9",
+                            cursor: "pointer",
+                            objectFit: "cover",
                           }}
                           onClick={() => {
                             setSelectedImageUrl(imageUrl);
-                            setSelectedImageTitle('Groom Photo');
+                            setSelectedImageTitle("Groom Photo");
                             setImageModalVisible(true);
                           }}
                           onError={(e) => {
-                            console.error('Error loading groom photo:', e);
-                            e.target.style.display = 'none';
+                            console.error("Error loading groom photo:", e);
+                            e.target.style.display = "none";
                           }}
                         />
                       );
@@ -2163,30 +2642,34 @@ export default function BookingPendingRequests() {
                   <div style={{ marginTop: 8 }}>
                     {(() => {
                       let imageUrl = selectedBooking.bride_pic;
-                      if (!imageUrl.startsWith('http')) {
-                        const { data } = supabase.storage.from('bookings').getPublicUrl(selectedBooking.bride_pic);
-                        imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.bride_pic}`;
+                      if (!imageUrl.startsWith("http")) {
+                        const { data } = supabase.storage
+                          .from("bookings")
+                          .getPublicUrl(selectedBooking.bride_pic);
+                        imageUrl =
+                          data?.publicUrl ||
+                          `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.bride_pic}`;
                       }
                       return (
                         <img
                           src={imageUrl}
                           alt="Bride Photo"
                           style={{
-                            maxWidth: '100%',
-                            maxHeight: '200px',
+                            maxWidth: "100%",
+                            maxHeight: "200px",
                             borderRadius: 8,
-                            border: '1px solid #d9d9d9',
-                            cursor: 'pointer',
-                            objectFit: 'cover',
+                            border: "1px solid #d9d9d9",
+                            cursor: "pointer",
+                            objectFit: "cover",
                           }}
                           onClick={() => {
                             setSelectedImageUrl(imageUrl);
-                            setSelectedImageTitle('Bride Photo');
+                            setSelectedImageTitle("Bride Photo");
                             setImageModalVisible(true);
                           }}
                           onError={(e) => {
-                            console.error('Error loading bride photo:', e);
-                            e.target.style.display = 'none';
+                            console.error("Error loading bride photo:", e);
+                            e.target.style.display = "none";
                           }}
                         />
                       );
@@ -2257,39 +2740,66 @@ export default function BookingPendingRequests() {
             let godparentsShown = false;
 
             return details.map(({ key, value }) => {
-              if (['payment_method', 'amount', 'proof_of_payment', 'full_name', 'email', 'groom_pic', 'bride_pic',
-                'deceased_name', 'deceased_age', 'deceased_civil_status', 'requested_by',
-                'relationship_to_deceased', 'address', 'place_of_mass', 'mass_address'].includes(key)) return null;
+              if (
+                [
+                  "payment_method",
+                  "amount",
+                  "proof_of_payment",
+                  "full_name",
+                  "email",
+                  "groom_pic",
+                  "bride_pic",
+                  "deceased_name",
+                  "deceased_age",
+                  "deceased_civil_status",
+                  "requested_by",
+                  "relationship_to_deceased",
+                  "address",
+                  "place_of_mass",
+                  "mass_address",
+                ].includes(key)
+              )
+                return null;
 
-              if (selectedBooking?.bookingType === "Baptism" && [
-                'main_godfather_first_name',
-                'main_godfather_middle_name',
-                'main_godfather_last_name',
-                'main_godmother_first_name',
-                'main_godmother_middle_name',
-                'main_godmother_last_name',
-                'main_godfather',
-                'main_godmother'
-              ].includes(key)) return null;
+              if (
+                selectedBooking?.bookingType === "Baptism" &&
+                [
+                  "main_godfather_first_name",
+                  "main_godfather_middle_name",
+                  "main_godfather_last_name",
+                  "main_godmother_first_name",
+                  "main_godmother_middle_name",
+                  "main_godmother_last_name",
+                  "main_godfather",
+                  "main_godmother",
+                ].includes(key)
+              )
+                return null;
 
-              const isAddressField = key === 'address';
-              const showGodparentsAfterAddress = isAddressField && selectedBooking?.bookingType === "Baptism" && !godparentsShown;
+              const isAddressField = key === "address";
+              const showGodparentsAfterAddress =
+                isAddressField &&
+                selectedBooking?.bookingType === "Baptism" &&
+                !godparentsShown;
 
               if (isAddressField) addressShown = true;
               if (showGodparentsAfterAddress) godparentsShown = true;
 
-              const isImageField = typeof value === "string" && (
-                value.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                key.toLowerCase().includes('pic') ||
-                key.toLowerCase().includes('photo') ||
-                key.toLowerCase().includes('image')
-              );
+              const isImageField =
+                typeof value === "string" &&
+                (value.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+                  key.toLowerCase().includes("pic") ||
+                  key.toLowerCase().includes("photo") ||
+                  key.toLowerCase().includes("image"));
 
               return (
                 <Fragment key={key}>
                   <Col span={12}>
                     <Text strong>
-                      {key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}:
+                      {key
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      :
                     </Text>
 
                     <div style={{ marginTop: 4 }}>
@@ -2297,14 +2807,15 @@ export default function BookingPendingRequests() {
                         formatDateOnly(value)
                       ) : key === "time" ? (
                         formatTimeOnly(value)
-                      ) : typeof value === "string" && value.toLowerCase().endsWith(".pdf") ? (
+                      ) : typeof value === "string" &&
+                        value.toLowerCase().endsWith(".pdf") ? (
                         <Button
                           type="link"
                           icon={<EyeOutlined />}
                           onClick={() =>
                             window.open(
                               `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`,
-                              "_blank"
+                              "_blank",
                             )
                           }
                         >
@@ -2314,37 +2825,52 @@ export default function BookingPendingRequests() {
                         <div>
                           {(() => {
                             let imageUrl = value;
-                            if (!imageUrl.startsWith('http')) {
-                              const { data } = supabase.storage.from('bookings').getPublicUrl(value);
-                              imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`;
+                            if (!imageUrl.startsWith("http")) {
+                              const { data } = supabase.storage
+                                .from("bookings")
+                                .getPublicUrl(value);
+                              imageUrl =
+                                data?.publicUrl ||
+                                `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${value}`;
                             }
                             return (
                               <img
                                 src={imageUrl}
                                 alt={key.replace(/_/g, " ")}
                                 style={{
-                                  maxWidth: '100%',
-                                  maxHeight: '200px',
+                                  maxWidth: "100%",
+                                  maxHeight: "200px",
                                   borderRadius: 8,
-                                  border: '1px solid #d9d9d9',
-                                  cursor: 'pointer',
-                                  objectFit: 'cover',
+                                  border: "1px solid #d9d9d9",
+                                  cursor: "pointer",
+                                  objectFit: "cover",
                                 }}
                                 onClick={() => {
                                   setSelectedImageUrl(imageUrl);
-                                  setSelectedImageTitle(key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()));
+                                  setSelectedImageTitle(
+                                    key
+                                      .replace(/_/g, " ")
+                                      .replace(/\b\w/g, (l) => l.toUpperCase()),
+                                  );
                                   setImageModalVisible(true);
                                 }}
                                 onError={(e) => {
-                                  console.error(`Error loading ${key} image:`, e);
-                                  e.target.style.display = 'none';
+                                  console.error(
+                                    `Error loading ${key} image:`,
+                                    e,
+                                  );
+                                  e.target.style.display = "none";
                                 }}
                               />
                             );
                           })()}
                         </div>
                       ) : typeof value === "boolean" ? (
-                        value ? "Yes" : "No"
+                        value ? (
+                          "Yes"
+                        ) : (
+                          "No"
+                        )
                       ) : Array.isArray(value) ? (
                         <ul style={{ paddingLeft: 20 }}>
                           {value.map((v, i) => (
@@ -2352,7 +2878,9 @@ export default function BookingPendingRequests() {
                           ))}
                         </ul>
                       ) : typeof value === "object" ? (
-                        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(value, null, 2)}</pre>
+                        <pre style={{ whiteSpace: "pre-wrap" }}>
+                          {JSON.stringify(value, null, 2)}
+                        </pre>
                       ) : (
                         String(value)
                       )}
@@ -2368,8 +2896,12 @@ export default function BookingPendingRequests() {
                           <Text strong>Main Godfather Name:</Text>
                           <div>{selectedBooking.main_godfather_first_name}</div>
                           {selectedBooking.main_godfather?.relationship && (
-                            <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
-                              Relationship: {selectedBooking.main_godfather.relationship}
+                            <Text
+                              type="secondary"
+                              style={{ display: "block", marginTop: 4 }}
+                            >
+                              Relationship:{" "}
+                              {selectedBooking.main_godfather.relationship}
                             </Text>
                           )}
                         </Col>
@@ -2381,8 +2913,12 @@ export default function BookingPendingRequests() {
                           <Text strong>Main Godmother Name:</Text>
                           <div>{selectedBooking.main_godmother_first_name}</div>
                           {selectedBooking.main_godmother?.relationship && (
-                            <Text type="secondary" style={{ display: 'block', marginTop: 4 }}>
-                              Relationship: {selectedBooking.main_godmother.relationship}
+                            <Text
+                              type="secondary"
+                              style={{ display: "block", marginTop: 4 }}
+                            >
+                              Relationship:{" "}
+                              {selectedBooking.main_godmother.relationship}
                             </Text>
                           )}
                         </Col>
@@ -2395,46 +2931,62 @@ export default function BookingPendingRequests() {
           })()}
 
           {/* Proof of Payment Section */}
-          {selectedBooking?.payment_method === 'gcash' && selectedBooking?.proof_of_payment && (
-            <Col span={24}>
-              <div style={{ marginTop: 16, padding: 16, backgroundColor: '#f5f5f5', borderRadius: 8 }}>
-                <Text strong>
-                  <FileImageOutlined style={{ marginRight: 8 }} />
-                  Proof of Payment:
-                </Text>
-                <div style={{ marginTop: 12 }}>
-                  {(() => {
-                    let imageUrl = selectedBooking.proof_of_payment;
-                    if (!imageUrl.startsWith('http')) {
-                      const { data } = supabase.storage.from('bookings').getPublicUrl(selectedBooking.proof_of_payment);
-                      imageUrl = data?.publicUrl || `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.proof_of_payment}`;
-                    }
-                    return (
-                      <img
-                        src={imageUrl}
-                        alt="Proof of Payment"
-                        style={{
-                          maxWidth: '100%',
-                          maxHeight: '400px',
-                          borderRadius: 8,
-                          border: '1px solid #d9d9d9',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => window.open(imageUrl, '_blank')}
-                        onError={(e) => {
-                          console.error('Error loading proof of payment image:', e);
-                          e.target.style.display = 'none';
-                          const errorDiv = document.createElement('div');
-                          errorDiv.innerHTML = '<Text type="secondary">Failed to load proof of payment image</Text>';
-                          e.target.parentElement.appendChild(errorDiv);
-                        }}
-                      />
-                    );
-                  })()}
+          {selectedBooking?.payment_method === "gcash" &&
+            selectedBooking?.proof_of_payment && (
+              <Col span={24}>
+                <div
+                  style={{
+                    marginTop: 16,
+                    padding: 16,
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: 8,
+                  }}
+                >
+                  <Text strong>
+                    <FileImageOutlined style={{ marginRight: 8 }} />
+                    Proof of Payment:
+                  </Text>
+                  <div style={{ marginTop: 12 }}>
+                    {(() => {
+                      let imageUrl = selectedBooking.proof_of_payment;
+                      if (!imageUrl.startsWith("http")) {
+                        const { data } = supabase.storage
+                          .from("bookings")
+                          .getPublicUrl(selectedBooking.proof_of_payment);
+                        imageUrl =
+                          data?.publicUrl ||
+                          `https://qpwoatrmswpkgyxmzkjv.supabase.co/storage/v1/object/public/bookings/${selectedBooking.proof_of_payment}`;
+                      }
+                      return (
+                        <img
+                          src={imageUrl}
+                          alt="Proof of Payment"
+                          style={{
+                            maxWidth: "100%",
+                            maxHeight: "400px",
+                            borderRadius: 8,
+                            border: "1px solid #d9d9d9",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => window.open(imageUrl, "_blank")}
+                          onError={(e) => {
+                            console.error(
+                              "Error loading proof of payment image:",
+                              e,
+                            );
+                            e.target.style.display = "none";
+                            const errorDiv = document.createElement("div");
+                            errorDiv.innerHTML =
+                              '<Text type="secondary">Failed to load proof of payment image</Text>';
+                            e.target.parentElement.appendChild(errorDiv);
+                          }}
+                        />
+                      );
+                    })()}
+                  </div>
                 </div>
-              </div>
-            </Col>
-          )}
+              </Col>
+            )}
         </Row>
       </div>
     );
@@ -2458,37 +3010,61 @@ export default function BookingPendingRequests() {
       <div style={{ maxWidth: "95%", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 16,
+            }}
+          >
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
+                <Title
+                  level={2}
+                  style={{ margin: 0, color: "#262626", fontFamily: "Poppins" }}
+                >
                   Booking Pending Requests
                 </Title>
                 {isPolling && (
-                  <Tag color="green" style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontFamily: 'Poppins',
-                    fontWeight: 500
-                  }}>
-                    <span style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      backgroundColor: "#52c41a",
-                      display: "inline-block",
-                      boxShadow: "0 0 0 0 rgba(82, 196, 26, 1)",
-                      animation: "pulse 2s infinite",
-                    }}></span>
+                  <Tag
+                    color="green"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      fontFamily: "Poppins",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        backgroundColor: "#52c41a",
+                        display: "inline-block",
+                        boxShadow: "0 0 0 0 rgba(82, 196, 26, 1)",
+                        animation: "pulse 2s infinite",
+                      }}
+                    ></span>
                     Live
                   </Tag>
                 )}
               </div>
-              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins', display: 'block', marginTop: 4 }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 16,
+                  fontFamily: "Poppins",
+                  display: "block",
+                  marginTop: 4,
+                }}
+              >
                 Manage and track all booking requests
                 {lastUpdateTime && (
-                  <span style={{ marginLeft: 8, fontSize: 12, color: '#999' }}>
+                  <span style={{ marginLeft: 8, fontSize: 12, color: "#999" }}>
                     • Last updated: {lastUpdateTime.toLocaleTimeString()}
                   </span>
                 )}
@@ -2562,26 +3138,25 @@ export default function BookingPendingRequests() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 allowClear
                 style={{
-                  fontFamily: 'Poppins, sans-serif',
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
-                  padding: '10px 12px',
-                  height: '42px',
+                  padding: "10px 12px",
+                  height: "42px",
                 }}
               />
             </Col>
             <Col xs={24} sm={12} md={4}>
               <Select
                 style={{
-                  width: '100%',
-                  fontFamily: 'Poppins, sans-serif',
+                  width: "100%",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
-                  padding: '8px 12px',
-                  height: '42px',
+                  padding: "8px 12px",
+                  height: "42px",
                 }}
                 value={statusFilter}
                 onChange={setStatusFilter}
                 placeholder="Filter by status"
-
               >
                 <Option value="all">All Status</Option>
                 <Option value="pending">Pending</Option>
@@ -2592,12 +3167,13 @@ export default function BookingPendingRequests() {
             <Col xs={24} sm={12} md={4}>
               <Select
                 style={{
-                  width: '100%',
-                  fontFamily: 'Poppins, sans-serif',
+                  width: "100%",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
-                  padding: '8px 12px',
-                  height: '42px',
-                }} value={typeFilter}
+                  padding: "8px 12px",
+                  height: "42px",
+                }}
+                value={typeFilter}
                 onChange={setTypeFilter}
                 placeholder="Filter by type"
               >
@@ -2614,18 +3190,20 @@ export default function BookingPendingRequests() {
             <Col xs={24} sm={12} md={4}>
               <Select
                 style={{
-                  width: '100%',
-                  fontFamily: 'Poppins, sans-serif',
+                  width: "100%",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
-                  padding: '8px 12px',
-                  height: '42px',
+                  padding: "8px 12px",
+                  height: "42px",
                 }}
                 value={monthFilter}
                 onChange={setMonthFilter}
                 placeholder="Filter by month"
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                  (option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
                 }
               >
                 {getMonthOptions().map((option) => (
@@ -2662,7 +3240,9 @@ export default function BookingPendingRequests() {
           <Table
             columns={columns}
             dataSource={filteredBookings}
-            rowKey={(record) => `${record.bookingType}-${record.transaction_id || record._id}`}
+            rowKey={(record) =>
+              `${record.bookingType}-${record.transaction_id || record._id}`
+            }
             loading={loading}
             pagination={{
               pageSize: 20,
@@ -2691,8 +3271,14 @@ export default function BookingPendingRequests() {
               <Button
                 key="cancel"
                 className="cancelborder-btn"
-                style={{ padding: '10px' }}
-                onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "cancelled")}
+                style={{ padding: "10px" }}
+                onClick={() =>
+                  handleStatusUpdate(
+                    selectedBooking.transaction_id,
+                    selectedBooking.bookingType,
+                    "cancelled",
+                  )
+                }
                 loading={updateLoading}
               >
                 Cancel Booking
@@ -2702,13 +3288,17 @@ export default function BookingPendingRequests() {
               <Button
                 key="edit"
                 className="border-btn"
-                style={{ padding: '10px' }}
+                style={{ padding: "10px" }}
                 icon={<EditOutlined />}
                 onClick={() => {
                   setEditModalVisible(true);
                   // Initialize form with current booking data
-                  const bookingDate = selectedBooking.date ? dayjs(selectedBooking.date) : null;
-                  const bookingTime = selectedBooking.time ? dayjs(selectedBooking.time, 'HH:mm') : null;
+                  const bookingDate = selectedBooking.date
+                    ? dayjs(selectedBooking.date)
+                    : null;
+                  const bookingTime = selectedBooking.time
+                    ? dayjs(selectedBooking.time, "HH:mm")
+                    : null;
                   setEditDate(bookingDate);
                   setEditTime(bookingTime);
                   // Only initialize date and time fields
@@ -2718,12 +3308,18 @@ export default function BookingPendingRequests() {
                 Edit Booking
               </Button>
             ),
-            selectedBooking?.status === "pending" && (
-              isBookingDatePast(selectedBooking) ? (
-                <Tooltip key="confirm-disabled" title="Cannot confirm booking that is past its scheduled date">
+            selectedBooking?.status === "pending" &&
+              (isBookingDatePast(selectedBooking) ? (
+                <Tooltip
+                  key="confirm-disabled"
+                  title="Cannot confirm booking that is past its scheduled date"
+                >
                   <Button
                     type="primary"
-                    style={{ backgroundColor: "#d9d9d9", borderColor: "#d9d9d9" }}
+                    style={{
+                      backgroundColor: "#d9d9d9",
+                      borderColor: "#d9d9d9",
+                    }}
                     disabled
                   >
                     Confirm Booking
@@ -2733,14 +3329,19 @@ export default function BookingPendingRequests() {
                 <Button
                   key="confirm"
                   className="filled-btn"
-                  style={{ padding: '10px' }}
-                  onClick={() => handleStatusUpdate(selectedBooking.transaction_id, selectedBooking.bookingType, "confirmed")}
+                  style={{ padding: "10px" }}
+                  onClick={() =>
+                    handleStatusUpdate(
+                      selectedBooking.transaction_id,
+                      selectedBooking.bookingType,
+                      "confirmed",
+                    )
+                  }
                   loading={updateLoading}
                 >
                   Confirm Booking
                 </Button>
-              )
-            )
+              )),
           ].filter(Boolean)}
           width={800}
         >
@@ -2754,14 +3355,17 @@ export default function BookingPendingRequests() {
           onCancel={() => {
             setImageModalVisible(false);
             setSelectedImageUrl(null);
-            setSelectedImageTitle('');
+            setSelectedImageTitle("");
           }}
           footer={[
-            <Button key="close" onClick={() => {
-              setImageModalVisible(false);
-              setSelectedImageUrl(null);
-              setSelectedImageTitle('');
-            }}>
+            <Button
+              key="close"
+              onClick={() => {
+                setImageModalVisible(false);
+                setSelectedImageUrl(null);
+                setSelectedImageTitle("");
+              }}
+            >
               Close
             </Button>,
             <Button
@@ -2769,7 +3373,7 @@ export default function BookingPendingRequests() {
               type="primary"
               onClick={() => {
                 if (selectedImageUrl) {
-                  window.open(selectedImageUrl, '_blank');
+                  window.open(selectedImageUrl, "_blank");
                 }
               }}
             >
@@ -2780,22 +3384,23 @@ export default function BookingPendingRequests() {
           centered
         >
           {selectedImageUrl && (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ textAlign: "center", padding: "20px 0" }}>
               <img
                 src={selectedImageUrl}
                 alt={selectedImageTitle}
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '70vh',
+                  maxWidth: "100%",
+                  maxHeight: "70vh",
                   borderRadius: 8,
-                  border: '1px solid #d9d9d9',
-                  objectFit: 'contain',
+                  border: "1px solid #d9d9d9",
+                  objectFit: "contain",
                 }}
                 onError={(e) => {
-                  console.error('Error loading image in modal:', e);
-                  e.target.style.display = 'none';
-                  const errorDiv = document.createElement('div');
-                  errorDiv.innerHTML = '<Text type="secondary">Failed to load image</Text>';
+                  console.error("Error loading image in modal:", e);
+                  e.target.style.display = "none";
+                  const errorDiv = document.createElement("div");
+                  errorDiv.innerHTML =
+                    '<Text type="secondary">Failed to load image</Text>';
                   e.target.parentElement.appendChild(errorDiv);
                 }}
               />
@@ -2816,7 +3421,9 @@ export default function BookingPendingRequests() {
           style={{ top: 20 }}
         >
           <div style={{ marginBottom: 24 }}>
-            <Text strong style={{ marginRight: 8 }}>Select Sacrament:</Text>
+            <Text strong style={{ marginRight: 8 }}>
+              Select Sacrament:
+            </Text>
             <Select
               style={{ width: 200 }}
               placeholder="Choose a sacrament"
@@ -2849,15 +3456,23 @@ export default function BookingPendingRequests() {
           )}
 
           {!selectedBookingType && (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
-              <Text type="secondary">Please select a sacrament type to create a booking</Text>
+            <div
+              style={{ textAlign: "center", padding: "40px 0", color: "#999" }}
+            >
+              <Text type="secondary">
+                Please select a sacrament type to create a booking
+              </Text>
             </div>
           )}
         </Modal>
 
         {/* Quick Action Confirmation Modal */}
         <Modal
-          title={pendingAction?.status === "confirmed" ? "Confirm Booking" : "Cancel Booking"}
+          title={
+            pendingAction?.status === "confirmed"
+              ? "Confirm Booking"
+              : "Cancel Booking"
+          }
           open={confirmModalVisible}
           onCancel={() => {
             setConfirmModalVisible(false);
@@ -2866,9 +3481,14 @@ export default function BookingPendingRequests() {
             setSelectedPriestId(null);
           }}
           onOk={handleConfirmAction}
-          okText={pendingAction?.status === "confirmed" ? "Confirm" : "Cancel Booking"}
+          okText={
+            pendingAction?.status === "confirmed" ? "Confirm" : "Cancel Booking"
+          }
           okButtonProps={{
-            className: pendingAction?.status === "confirmed" ? "filled-btn" : "cancelborder-btn",
+            className:
+              pendingAction?.status === "confirmed"
+                ? "filled-btn"
+                : "cancelborder-btn",
             loading: updateLoading,
           }}
           cancelButtonProps={{ className: "border-btn" }}
@@ -2885,7 +3505,9 @@ export default function BookingPendingRequests() {
                 loading={loadingPriests}
                 showSearch
                 filterOption={(input, option) =>
-                  (option?.children?.toLowerCase() ?? '').includes(input.toLowerCase())
+                  (option?.children?.toLowerCase() ?? "").includes(
+                    input.toLowerCase(),
+                  )
                 }
               >
                 {priests.map((priest) => (
@@ -2933,12 +3555,14 @@ export default function BookingPendingRequests() {
                 <Col span={12}>
                   <Form.Item
                     label="Date"
-                    rules={[{ required: true, message: 'Please select date' }]}
+                    rules={[{ required: true, message: "Please select date" }]}
                   >
                     <DatePicker
-                      style={{ width: '100%' }}
+                      style={{ width: "100%" }}
                       value={editDate}
-                      onChange={(value) => setEditDate(value ? dayjs(value) : null)}
+                      onChange={(value) =>
+                        setEditDate(value ? dayjs(value) : null)
+                      }
                       format="YYYY-MM-DD"
                     />
                   </Form.Item>
@@ -2946,12 +3570,14 @@ export default function BookingPendingRequests() {
                 <Col span={12}>
                   <Form.Item
                     label="Time"
-                    rules={[{ required: true, message: 'Please select time' }]}
+                    rules={[{ required: true, message: "Please select time" }]}
                   >
                     <TimePicker
-                      style={{ width: '100%' }}
+                      style={{ width: "100%" }}
                       value={editTime}
-                      onChange={(value) => setEditTime(value ? dayjs(value) : null)}
+                      onChange={(value) =>
+                        setEditTime(value ? dayjs(value) : null)
+                      }
                       format="h:mm A"
                       minuteStep={10}
                     />
@@ -2961,15 +3587,21 @@ export default function BookingPendingRequests() {
 
               <Form.Item>
                 <Space>
-                  <Button type="primary" htmlType="submit" loading={editLoading}>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={editLoading}
+                  >
                     Update Booking
                   </Button>
-                  <Button onClick={() => {
-                    setEditModalVisible(false);
-                    editForm.resetFields();
-                    setEditDate(null);
-                    setEditTime(null);
-                  }}>
+                  <Button
+                    onClick={() => {
+                      setEditModalVisible(false);
+                      editForm.resetFields();
+                      setEditDate(null);
+                      setEditTime(null);
+                    }}
+                  >
                     Cancel
                   </Button>
                 </Space>

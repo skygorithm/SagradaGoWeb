@@ -46,6 +46,7 @@ import {
   InboxOutlined,
   KeyOutlined,
 } from "@ant-design/icons";
+import Cookies from "js-cookie";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -97,6 +98,9 @@ export default function AccountManagement() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const subAdmin = Cookies.get("subAdmin") === "true";
+  console.log("subAdmin", subAdmin);
+
   const [adminFormData, setAdminFormData] = useState({
     first_name: "",
     middle_name: "",
@@ -128,7 +132,9 @@ export default function AccountManagement() {
   const filteredEvents = userVolunteers.filter((volunteer) => {
     if (eventsSearchTerm) {
       const searchLower = eventsSearchTerm.toLowerCase();
-      const eventTitle = (volunteer.eventTitle || "General Volunteer").toLowerCase();
+      const eventTitle = (
+        volunteer.eventTitle || "General Volunteer"
+      ).toLowerCase();
       if (!eventTitle.includes(searchLower)) {
         return false;
       }
@@ -149,32 +155,31 @@ export default function AccountManagement() {
     return true;
   });
 
-  const volunteerCount = userVolunteers.filter(v => v.registration_type === "volunteer").length;
-  const participantCount = userVolunteers.filter(v => v.registration_type === "participant").length;
+  const volunteerCount = userVolunteers.filter(
+    (v) => v.registration_type === "volunteer",
+  ).length;
+  const participantCount = userVolunteers.filter(
+    (v) => v.registration_type === "participant",
+  ).length;
 
   useEffect(() => {
     if (activeTab === "users") {
       setFilterType("users");
-
     } else if (activeTab === "priests") {
       setFilterType("priests");
-
     } else {
       setFilterType("all");
     }
   }, [activeTab]);
-
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/getAllUsers`);
       setUsers(response.data);
-
     } catch (error) {
       console.error("Error fetching users:", error);
       message.error("Failed to fetch users. Please try again.");
-
     } finally {
       setLoading(false);
     }
@@ -185,14 +190,12 @@ export default function AccountManagement() {
 
     if (!showArchived) {
       filtered = filtered.filter((user) => !user.is_archived);
-
     } else {
       filtered = filtered.filter((user) => user.is_archived === true);
     }
 
     if (filterType === "priests") {
       filtered = filtered.filter((user) => user.is_priest === true);
-
     } else if (filterType === "users") {
       filtered = filtered.filter((user) => user.is_priest === false);
     }
@@ -212,7 +215,7 @@ export default function AccountManagement() {
           user.first_name?.toLowerCase().includes(term) ||
           user.last_name?.toLowerCase().includes(term) ||
           user.email?.toLowerCase().includes(term) ||
-          user.contact_number?.includes(term)
+          user.contact_number?.includes(term),
       );
     }
 
@@ -234,10 +237,8 @@ export default function AccountManagement() {
 
     if (numbers.length <= 2) {
       return numbers;
-
     } else if (numbers.length <= 4) {
       return `${numbers.slice(0, 2)}/${numbers.slice(2)}`;
-
     } else {
       return `${numbers.slice(0, 2)}/${numbers.slice(2, 4)}/${numbers.slice(4, 8)}`;
     }
@@ -290,28 +291,39 @@ export default function AccountManagement() {
 
   const checkEmailExists = async (email, currentUserEmail = null) => {
     try {
-      if (currentUserEmail && currentUserEmail.toLowerCase() === email.trim().toLowerCase()) {
+      if (
+        currentUserEmail &&
+        currentUserEmail.toLowerCase() === email.trim().toLowerCase()
+      ) {
         return false;
       }
 
-      const response = await axios.post(`${API_URL}/checkEmail`, { email: email.trim().toLowerCase() });
+      const response = await axios.post(`${API_URL}/checkEmail`, {
+        email: email.trim().toLowerCase(),
+      });
       return response.data.exists || false;
-
     } catch (error) {
       console.error("Error checking email:", error);
       return false;
     }
   };
 
-  const checkContactExists = async (contactNumber, currentUserContact = null) => {
+  const checkContactExists = async (
+    contactNumber,
+    currentUserContact = null,
+  ) => {
     try {
-      if (currentUserContact && currentUserContact.trim() === contactNumber.trim()) {
+      if (
+        currentUserContact &&
+        currentUserContact.trim() === contactNumber.trim()
+      ) {
         return false;
       }
 
-      const response = await axios.post(`${API_URL}/checkContact`, { contact_number: contactNumber.trim() });
+      const response = await axios.post(`${API_URL}/checkContact`, {
+        contact_number: contactNumber.trim(),
+      });
       return response.data.exists || false;
-
     } catch (error) {
       console.error("Error checking contact number:", error);
       return false;
@@ -343,10 +355,14 @@ export default function AccountManagement() {
   const validatePassword = (password) => {
     if (!password) return "Password is required";
     if (password.length < 8) return "Password must be at least 8 characters";
-    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter";
-    if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter";
-    if (!/[0-9]/.test(password)) return "Password must contain at least one number";
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return "Password must contain at least one special character";
+    if (!/[A-Z]/.test(password))
+      return "Password must contain at least one uppercase letter";
+    if (!/[a-z]/.test(password))
+      return "Password must contain at least one lowercase letter";
+    if (!/[0-9]/.test(password))
+      return "Password must contain at least one number";
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password))
+      return "Password must contain at least one special character";
     return "";
   };
 
@@ -382,8 +398,11 @@ export default function AccountManagement() {
 
     const passwordError = validatePassword(formData.password);
     if (passwordError) newErrors.password = passwordError;
-  
-    const confirmError = validatePasswordMatch(formData.password, formData.confirmPassword);
+
+    const confirmError = validatePasswordMatch(
+      formData.password,
+      formData.confirmPassword,
+    );
     if (confirmError) newErrors.confirmPassword = confirmError;
 
     const contactError = validateContactNumber(formData.contact_number);
@@ -425,12 +444,14 @@ export default function AccountManagement() {
 
       const emailExists = await checkEmailExists(formData.email);
       if (emailExists) {
-        newErrors.email = "Email is already in use. Please use a different email.";
+        newErrors.email =
+          "Email is already in use. Please use a different email.";
       }
 
       const contactExists = await checkContactExists(formData.contact_number);
       if (contactExists) {
-        newErrors.contact_number = "Contact number is already in use. Please use a different contact number.";
+        newErrors.contact_number =
+          "Contact number is already in use. Please use a different contact number.";
       }
 
       if (Object.keys(newErrors).length > 0) {
@@ -444,7 +465,7 @@ export default function AccountManagement() {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
-        formData.password
+        formData.password,
       );
       const user = userCredential.user;
       const uid = user.uid;
@@ -487,27 +508,28 @@ export default function AccountManagement() {
       setShowAddModal(false);
       resetForm();
       fetchUsers();
-
     } catch (error) {
       console.error("Error creating user:", error);
 
       if (error.response) {
         message.error(error.response.data.message || "Failed to create user.");
-
       } else if (error.code === "auth/email-already-in-use") {
         message.error("Email is already in use.");
-
       } else {
         message.error("Failed to create user. Please try again.");
       }
-
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddAdmin = async () => {
-    if (!adminFormData.email || !adminFormData.password || !adminFormData.first_name || !adminFormData.last_name) {
+    if (
+      !adminFormData.email ||
+      !adminFormData.password ||
+      !adminFormData.first_name ||
+      !adminFormData.last_name
+    ) {
       message.error("Please fill out all required fields.");
       return;
     }
@@ -523,7 +545,7 @@ export default function AccountManagement() {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         adminFormData.email,
-        adminFormData.password
+        adminFormData.password,
       );
       const user = userCredential.user;
       const uid = user.uid;
@@ -543,8 +565,12 @@ export default function AccountManagement() {
       });
       const newAdmin = response.data?.admin || response.data?.newAdmin;
 
-      const adminName = `${adminFormData.first_name} ${adminFormData.last_name}`.trim();
-      await Logger.logCreateAdmin(newAdmin?._id || newAdmin?.id || uid, adminName);
+      const adminName =
+        `${adminFormData.first_name} ${adminFormData.last_name}`.trim();
+      await Logger.logCreateAdmin(
+        newAdmin?._id || newAdmin?.id || uid,
+        adminName,
+      );
 
       message.success("Admin account created successfully!");
       setShowAddAdminModal(false);
@@ -560,20 +586,16 @@ export default function AccountManagement() {
         confirmPassword: "",
       });
       fetchUsers();
-
     } catch (error) {
       console.error("Error creating admin:", error);
 
       if (error.response) {
         message.error(error.response.data.message || "Failed to create admin.");
-
       } else if (error.code === "auth/email-already-in-use") {
         message.error("Email is already in use.");
-
       } else {
         message.error("Failed to create admin. Please try again.");
       }
-
     } finally {
       setLoading(false);
     }
@@ -582,7 +604,7 @@ export default function AccountManagement() {
   const handleUpdateRole = async (uid, newRole) => {
     Modal.confirm({
       title: "Confirm Role Change",
-      content: `Are you sure you want to ${newRole ? 'make this user a priest' : 'remove priest role from this user'}?`,
+      content: `Are you sure you want to ${newRole ? "make this user a priest" : "remove priest role from this user"}?`,
       onOk: async () => {
         try {
           setLoading(true);
@@ -591,17 +613,21 @@ export default function AccountManagement() {
             is_priest: newRole,
           });
 
-          const user = users.find(u => u.uid === uid);
-          const userName = user ? `${user.first_name} ${user.last_name}`.trim() : "Unknown User";
-          await Logger.logUpdateUser(uid, userName, { role_change: newRole ? "made_priest" : "removed_priest" });
+          const user = users.find((u) => u.uid === uid);
+          const userName = user
+            ? `${user.first_name} ${user.last_name}`.trim()
+            : "Unknown User";
+          await Logger.logUpdateUser(uid, userName, {
+            role_change: newRole ? "made_priest" : "removed_priest",
+          });
 
           message.success("User role updated successfully!");
           fetchUsers();
-
         } catch (error) {
           console.error("Error updating user role:", error);
-          message.error(error.response?.data?.message || "Failed to update user role.");
-
+          message.error(
+            error.response?.data?.message || "Failed to update user role.",
+          );
         } finally {
           setLoading(false);
         }
@@ -609,7 +635,12 @@ export default function AccountManagement() {
     });
   };
 
-  const handleToggleAccountStatus = async (uid, currentStatus, userName, userRecord = null) => {
+  const handleToggleAccountStatus = async (
+    uid,
+    currentStatus,
+    userName,
+    userRecord = null,
+  ) => {
     const isCurrentlyActive = currentStatus === true;
     const willEnable = !isCurrentlyActive;
 
@@ -621,7 +652,9 @@ export default function AccountManagement() {
       okText: willEnable ? "Enable" : "Disable",
       okButtonProps: {
         danger: !willEnable,
-        style: willEnable ? { backgroundColor: "#52c41a", borderColor: "#52c41a" } : undefined,
+        style: willEnable
+          ? { backgroundColor: "#52c41a", borderColor: "#52c41a" }
+          : undefined,
       },
       onOk: async () => {
         try {
@@ -632,21 +665,21 @@ export default function AccountManagement() {
             is_active: willEnable ? true : false,
           });
 
-
           if (willEnable) {
             await Logger.logEnableUser(uid, userName);
-
           } else {
             await Logger.logDisableUser(uid, userName);
           }
 
-          message.success(`Account ${willEnable ? 'enabled' : 'disabled'} successfully!`);
+          message.success(
+            `Account ${willEnable ? "enabled" : "disabled"} successfully!`,
+          );
           fetchUsers();
-
         } catch (error) {
           console.error("Error updating account status:", error);
-          message.error(error.response?.data?.message || "Failed to update account status.");
-
+          message.error(
+            error.response?.data?.message || "Failed to update account status.",
+          );
         } finally {
           setLoading(false);
         }
@@ -674,11 +707,11 @@ export default function AccountManagement() {
 
           message.success("Account archived successfully!");
           fetchUsers();
-
         } catch (error) {
           console.error("Error archiving account:", error);
-          message.error(error.response?.data?.message || "Failed to archive account.");
-
+          message.error(
+            error.response?.data?.message || "Failed to archive account.",
+          );
         } finally {
           setLoading(false);
         }
@@ -706,11 +739,11 @@ export default function AccountManagement() {
 
           message.success("Account unarchived successfully!");
           fetchUsers();
-
         } catch (error) {
           console.error("Error unarchiving account:", error);
-          message.error(error.response?.data?.message || "Failed to unarchive account.");
-
+          message.error(
+            error.response?.data?.message || "Failed to unarchive account.",
+          );
         } finally {
           setLoading(false);
         }
@@ -733,33 +766,35 @@ export default function AccountManagement() {
       setLoading(true);
       await sendPasswordResetEmail(auth, resettingPasswordUser.email);
 
-      const userName = `${resettingPasswordUser.first_name} ${resettingPasswordUser.last_name}`.trim() || resettingPasswordUser.email;
-      await Logger.logUpdateUser(resettingPasswordUser.uid, userName, { action: "password_reset_email_sent" });
+      const userName =
+        `${resettingPasswordUser.first_name} ${resettingPasswordUser.last_name}`.trim() ||
+        resettingPasswordUser.email;
+      await Logger.logUpdateUser(resettingPasswordUser.uid, userName, {
+        action: "password_reset_email_sent",
+      });
 
-      message.success(`Password reset email has been sent to ${resettingPasswordUser.email}`);
+      message.success(
+        `Password reset email has been sent to ${resettingPasswordUser.email}`,
+      );
       setShowResetPasswordModal(false);
       setResettingPasswordUser(null);
-
     } catch (error) {
       console.error("Error sending password reset email:", error);
 
-      let errorMessage = "Failed to send password reset email. Please try again.";
+      let errorMessage =
+        "Failed to send password reset email. Please try again.";
 
       if (error.code === "auth/invalid-email") {
         errorMessage = "Invalid email address.";
-
       } else if (error.code === "auth/user-not-found") {
         errorMessage = "User not found in Firebase Authentication.";
-
       } else if (error.code === "auth/too-many-requests") {
         errorMessage = "Too many requests. Please try again later.";
-
       } else if (error.message) {
         errorMessage = error.message;
       }
 
       message.error(errorMessage);
-
     } finally {
       setLoading(false);
     }
@@ -774,32 +809,33 @@ export default function AccountManagement() {
     if (!user.is_priest && user.uid) {
       try {
         setLoadingDonations(true);
-        const response = await axios.get(`${API_URL}/admin/getDonationsByUser/${user.uid}`);
+        const response = await axios.get(
+          `${API_URL}/admin/getDonationsByUser/${user.uid}`,
+        );
 
         if (response.data && response.data.donations) {
           setUserDonations(response.data.donations);
         }
-
       } catch (error) {
         console.error("Error fetching user donations:", error);
-
       } finally {
         setLoadingDonations(false);
       }
 
       try {
         setLoadingVolunteers(true);
-        const volunteerResponse = await axios.post(`${API_URL}/getUserVolunteers`, {
-          user_id: user.uid
-        });
+        const volunteerResponse = await axios.post(
+          `${API_URL}/getUserVolunteers`,
+          {
+            user_id: user.uid,
+          },
+        );
 
         if (volunteerResponse.data && volunteerResponse.data.volunteers) {
           setUserVolunteers(volunteerResponse.data.volunteers);
         }
-
       } catch (error) {
         console.error("Error fetching user volunteers:", error);
-
       } finally {
         setLoadingVolunteers(false);
       }
@@ -808,8 +844,12 @@ export default function AccountManagement() {
 
   const handleEditUser = (user) => {
     setEditingUser(user);
-    const birthdayValue = user.birthday ? dayjs(user.birthday).format("MM/DD/YYYY") : "";
-    const birthdayFormatted = user.birthday ? dayjs(user.birthday).format("YYYY-MM-DD") : "";
+    const birthdayValue = user.birthday
+      ? dayjs(user.birthday).format("MM/DD/YYYY")
+      : "";
+    const birthdayFormatted = user.birthday
+      ? dayjs(user.birthday).format("YYYY-MM-DD")
+      : "";
     setFormData({
       first_name: user.first_name || "",
       middle_name: user.middle_name || "",
@@ -844,7 +884,6 @@ export default function AccountManagement() {
     let birthdayToValidate = formData.birthday;
     if (birthdayDisplay && /^\d{2}\/\d{2}\/\d{4}$/.test(birthdayDisplay)) {
       birthdayToValidate = parseDateInput(birthdayDisplay);
-      
     } else if (!birthdayToValidate && birthdayDisplay) {
       birthdayToValidate = parseDateInput(birthdayDisplay);
     }
@@ -862,14 +901,22 @@ export default function AccountManagement() {
     try {
       setLoading(true);
 
-      const emailExists = await checkEmailExists(formData.email, editingUser?.email);
+      const emailExists = await checkEmailExists(
+        formData.email,
+        editingUser?.email,
+      );
       if (emailExists) {
-        newErrors.email = "Email is already in use. Please use a different email.";
+        newErrors.email =
+          "Email is already in use. Please use a different email.";
       }
 
-      const contactExists = await checkContactExists(formData.contact_number, editingUser?.contact_number);
+      const contactExists = await checkContactExists(
+        formData.contact_number,
+        editingUser?.contact_number,
+      );
       if (contactExists) {
-        newErrors.contact_number = "Contact number is already in use. Please use a different contact number.";
+        newErrors.contact_number =
+          "Contact number is already in use. Please use a different contact number.";
       }
 
       if (Object.keys(newErrors).length > 0) {
@@ -903,7 +950,6 @@ export default function AccountManagement() {
         if (formData.residency) {
           updatePayload.residency = formData.residency;
         }
-
       } else {
         updatePayload.previous_parish = undefined;
         updatePayload.residency = undefined;
@@ -913,7 +959,9 @@ export default function AccountManagement() {
 
       const userName = `${formData.first_name} ${formData.last_name}`.trim();
       await Logger.logUpdateUser(editingUser.uid, userName, {
-        updated_fields: Object.keys(updatePayload).filter(key => key !== 'uid')
+        updated_fields: Object.keys(updatePayload).filter(
+          (key) => key !== "uid",
+        ),
       });
 
       message.success("User updated successfully!");
@@ -921,17 +969,14 @@ export default function AccountManagement() {
       setEditingUser(null);
       resetForm();
       fetchUsers();
-
     } catch (error) {
       console.error("Error updating user:", error);
 
       if (error.response) {
         message.error(error.response.data.message || "Failed to update user.");
-
       } else {
         message.error("Failed to update user. Please try again.");
       }
-
     } finally {
       setLoading(false);
     }
@@ -996,7 +1041,10 @@ export default function AccountManagement() {
       dataIndex: "is_priest",
       key: "role",
       render: (isPriest) => (
-        <Tag color={isPriest ? "purple" : "blue"} icon={isPriest ? <TeamOutlined /> : <UserOutlined />}>
+        <Tag
+          color={isPriest ? "purple" : "blue"}
+          icon={isPriest ? <TeamOutlined /> : <UserOutlined />}
+        >
           {isPriest ? "Priest" : "User"}
         </Tag>
       ),
@@ -1007,13 +1055,11 @@ export default function AccountManagement() {
       key: "status",
       render: (isActive, record) => {
         if (record.is_archived) {
-          return (
-            <Tag color="default">
-              Archived
-            </Tag>
-          );
+          return <Tag color="default">Archived</Tag>;
         }
+
         const active = record.is_active === true;
+
         return (
           <Tag color={active ? "green" : "red"}>
             {active ? "Active" : "Disabled"}
@@ -1021,92 +1067,72 @@ export default function AccountManagement() {
         );
       },
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => {
-        const isActive = record.is_active === true;
-        const isArchived = record.is_archived === true;
-        const userName = `${record.first_name} ${record.last_name}`.trim() || record.email;
 
-        return (
-          <Space>
-            <Button
-              type="default"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetails(record)}
-              className="border-btn"
-              style={{ padding: '10px' }}
-              title="View Details"
-            />
+    // This says: If subAdmin is true, return empty array.
+    // If subAdmin is false (or undefined), return the column array.
+    ...(subAdmin
+      ? []
+      : [
+          {
+            title: "Actions",
+            key: "actions",
+            fixed: "right",
+            width: 250,
+            render: (_, record) => {
+              const isArchived = record.is_archived === true;
+              const userName =
+                `${record.first_name || ""} ${record.last_name || ""}`.trim() ||
+                record.email;
 
-            {!isArchived && (
-              <>
-                <Button
-                  type={record.is_priest ? "default" : "primary"}
-                  className={record.is_priest ? "dangerborder-btn" : "border-btn"}
-                  style={{ padding: '15px 14px', width: '130px' }}
-                  onClick={() => handleUpdateRole(record.uid, !record.is_priest)}
-                  loading={loading}
-                >
-                  {record.is_priest ? "Remove Priest" : "Make Priest"}
-                </Button>
+              return (
+                <Space>
+                  <Button
+                    type="default"
+                    icon={<EyeOutlined />}
+                    onClick={() => handleViewDetails(record)}
+                    className="border-btn"
+                    style={{ padding: "10px" }}
+                    title="View Details"
+                  />
 
-                {/* <Button
-                  type="default"
-                  icon={<KeyOutlined />}
-                  onClick={() => handleResetPassword(record)}
-                  className="border-btn"
-                  style={{ padding: '10px' }}
-                  title="Reset Password"
-                >
-                  Reset Password
-                </Button> */}
+                  {!isArchived && (
+                    <Button
+                      type={record.is_priest ? "default" : "primary"}
+                      className={
+                        record.is_priest ? "dangerborder-btn" : "border-btn"
+                      }
+                      style={{ padding: "15px 14px", width: "130px" }}
+                      onClick={() =>
+                        handleUpdateRole(record.uid, !record.is_priest)
+                      }
+                      loading={loading}
+                    >
+                      {record.is_priest ? "Remove Priest" : "Make Priest"}
+                    </Button>
+                  )}
 
-                {/* <Button
-                  type={isActive ? "default" : "primary"}
-                  danger={isActive}
-                  icon={isActive ? <StopOutlined /> : <CheckCircleOutlined />}
-                  onClick={() => handleToggleAccountStatus(record.uid, record.is_active, userName, record)}
-                  loading={loading}
-                  className={isActive ? "dangerborder-btn" : "border-btn"}
-                  style={{ padding: '10px' }}
-                  title={isActive ? "Disable Account" : "Enable Account"}
-                >
-                  {isActive ? "Disable" : "Enable"}
-                </Button> */}
-
-                {/* <Button
-                  type="default"
-                  danger
-                  icon={<InboxOutlined />}
-                  onClick={() => handleArchiveUser(record.uid, userName, record)}
-                  loading={loading}
-                  className="dangerborder-btn"
-                  style={{ padding: '10px' }}
-                  title="Archive Account"
-                >
-                  Archive
-                </Button> */}
-              </>
-            )}
-
-            {isArchived && (
-              <Button
-                type="primary"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleUnarchiveUser(record.uid, userName, record)}
-                loading={loading}
-                style={{ backgroundColor: "#52c41a", borderColor: "#52c41a", padding: '10px' }}
-                title="Unarchive Account"
-              >
-                Unarchive
-              </Button>
-            )}
-          </Space>
-        );
-      }
-    },
+                  {isArchived && (
+                    <Button
+                      type="primary"
+                      icon={<CheckCircleOutlined />}
+                      onClick={() =>
+                        handleUnarchiveUser(record.uid, userName, record)
+                      }
+                      loading={loading}
+                      style={{
+                        backgroundColor: "#52c41a",
+                        borderColor: "#52c41a",
+                      }}
+                      title="Unarchive Account"
+                    >
+                      Unarchive
+                    </Button>
+                  )}
+                </Space>
+              );
+            },
+          },
+        ]),
   ];
 
   return (
@@ -1114,12 +1140,31 @@ export default function AccountManagement() {
       <div style={{ maxWidth: "95%", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 16,
+            }}
+          >
             <div>
-              <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
+              <Title
+                level={2}
+                style={{ margin: 0, color: "#262626", fontFamily: "Poppins" }}
+              >
                 Account Management
               </Title>
-              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins', display: 'block', marginTop: 4 }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: 16,
+                  fontFamily: "Poppins",
+                  display: "block",
+                  marginTop: 4,
+                }}
+              >
                 Manage users and priests
               </Text>
             </div>
@@ -1198,10 +1243,24 @@ export default function AccountManagement() {
 
         {/* Search Field and Tabs Combined */}
         <Card style={{ marginBottom: 24, padding: 0 }}>
-          <div style={{ padding: "16px 24px", borderBottom: "1px solid #f0f0f0" }}>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end' }}>
+          <div
+            style={{ padding: "16px 24px", borderBottom: "1px solid #f0f0f0" }}
+          >
+            <div
+              style={{ display: "flex", gap: "16px", alignItems: "flex-end" }}
+            >
               <div style={{ flex: 1 }}>
-                <Text strong style={{ fontFamily: 'Poppins', fontSize: 14, display: 'block', marginBottom: 8 }}>Search:</Text>
+                <Text
+                  strong
+                  style={{
+                    fontFamily: "Poppins",
+                    fontSize: 14,
+                    display: "block",
+                    marginBottom: 8,
+                  }}
+                >
+                  Search:
+                </Text>
                 <Input
                   placeholder="Search by name, email, or contact number..."
                   prefix={<SearchOutlined style={{ marginRight: 8 }} />}
@@ -1209,24 +1268,34 @@ export default function AccountManagement() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   allowClear
                   style={{
-                    fontFamily: 'Poppins, sans-serif',
+                    fontFamily: "Poppins, sans-serif",
                     fontWeight: 500,
-                    padding: '10px 12px',
-                    height: '42px',
-                    width: '100%',
+                    padding: "10px 12px",
+                    height: "42px",
+                    width: "100%",
                   }}
                 />
               </div>
-              <div style={{ flex: '0 0 200px' }}>
-                <Text strong style={{ fontFamily: 'Poppins', fontSize: 14, display: 'block', marginBottom: 8 }}>Filter by Status:</Text>
+              <div style={{ flex: "0 0 200px" }}>
+                <Text
+                  strong
+                  style={{
+                    fontFamily: "Poppins",
+                    fontSize: 14,
+                    display: "block",
+                    marginBottom: 8,
+                  }}
+                >
+                  Filter by Status:
+                </Text>
                 <Select
                   value={statusFilter}
                   onChange={setStatusFilter}
                   style={{
-                    width: '100%',
-                    fontFamily: 'Poppins, sans-serif',
+                    width: "100%",
+                    fontFamily: "Poppins, sans-serif",
                     fontWeight: 500,
-                    height: '42px',
+                    height: "42px",
                   }}
                   placeholder="Select status"
                 >
@@ -1235,15 +1304,21 @@ export default function AccountManagement() {
                   <Option value="disabled">Disabled</Option>
                 </Select>
               </div>
-              <div style={{ flex: '0 0 150px', display: 'flex', alignItems: 'flex-end' }}>
+              <div
+                style={{
+                  flex: "0 0 150px",
+                  display: "flex",
+                  alignItems: "flex-end",
+                }}
+              >
                 <Button
                   type={showArchived ? "primary" : "default"}
                   onClick={() => setShowArchived(!showArchived)}
                   style={{
-                    fontFamily: 'Poppins, sans-serif',
+                    fontFamily: "Poppins, sans-serif",
                     fontWeight: 500,
-                    width: '100%',
-                    height: '42px'
+                    width: "100%",
+                    height: "42px",
                   }}
                 >
                   {showArchived ? "Hide Archived" : "Show Archived"}
@@ -1258,7 +1333,9 @@ export default function AccountManagement() {
               options={[
                 {
                   label: (
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
                       All ({users.length})
                     </span>
                   ),
@@ -1266,7 +1343,9 @@ export default function AccountManagement() {
                 },
                 {
                   label: (
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
                       <UserOutlined />
                       Users ({userCount})
                     </span>
@@ -1275,7 +1354,9 @@ export default function AccountManagement() {
                 },
                 {
                   label: (
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
                       <TeamOutlined />
                       Priests ({priestCount})
                     </span>
@@ -1296,10 +1377,11 @@ export default function AccountManagement() {
         {/* Users Table */}
         <Card>
           <div style={{ marginBottom: 16 }}>
-            <Text strong style={{ fontSize: 16, fontFamily: 'Poppins' }}>
+            <Text strong style={{ fontSize: 16, fontFamily: "Poppins" }}>
               {activeTab === "users" && `Users (${filteredUsers.length})`}
               {activeTab === "priests" && `Priests (${filteredUsers.length})`}
-              {activeTab === "all" && `${showArchived ? 'Archived' : 'All'} Accounts (${filteredUsers.length})`}
+              {activeTab === "all" &&
+                `${showArchived ? "Archived" : "All"} Accounts (${filteredUsers.length})`}
             </Text>
           </div>
           <Table
@@ -1321,9 +1403,11 @@ export default function AccountManagement() {
               emptyText: (
                 <Empty
                   description={
-                    activeTab === "users" ? "No users found" :
-                      activeTab === "priests" ? "No priests found" :
-                        "No accounts found"
+                    activeTab === "users"
+                      ? "No users found"
+                      : activeTab === "priests"
+                        ? "No priests found"
+                        : "No accounts found"
                   }
                 />
               ),
@@ -1348,7 +1432,14 @@ export default function AccountManagement() {
               <Row gutter={[16, 16]}>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       First Name
                     </Text>
                     <Text>{viewingUser.first_name || "N/A"}</Text>
@@ -1356,7 +1447,14 @@ export default function AccountManagement() {
                 </Col>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       Middle Name
                     </Text>
                     <Text>{viewingUser.middle_name || "N/A"}</Text>
@@ -1364,7 +1462,14 @@ export default function AccountManagement() {
                 </Col>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       Last Name
                     </Text>
                     <Text>{viewingUser.last_name || "N/A"}</Text>
@@ -1372,7 +1477,14 @@ export default function AccountManagement() {
                 </Col>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       Email
                     </Text>
                     <Text>{viewingUser.email || "N/A"}</Text>
@@ -1380,7 +1492,14 @@ export default function AccountManagement() {
                 </Col>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       Contact Number
                     </Text>
                     <Text>{viewingUser.contact_number || "N/A"}</Text>
@@ -1388,43 +1507,101 @@ export default function AccountManagement() {
                 </Col>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       Birthday
                     </Text>
-                    <Text>{viewingUser.birthday ? formatDate(viewingUser.birthday) : "N/A"}</Text>
+                    <Text>
+                      {viewingUser.birthday
+                        ? formatDate(viewingUser.birthday)
+                        : "N/A"}
+                    </Text>
                   </div>
                 </Col>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       Role
                     </Text>
-                    <Tag color={viewingUser.is_priest ? "purple" : "blue"} icon={viewingUser.is_priest ? <TeamOutlined /> : <UserOutlined />}>
+                    <Tag
+                      color={viewingUser.is_priest ? "purple" : "blue"}
+                      icon={
+                        viewingUser.is_priest ? (
+                          <TeamOutlined />
+                        ) : (
+                          <UserOutlined />
+                        )
+                      }
+                    >
                       {viewingUser.is_priest ? "Priest" : "User"}
                     </Tag>
                   </div>
                 </Col>
                 <Col xs={24} sm={12}>
                   <div style={{ marginBottom: 16 }}>
-                    <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                    <Text
+                      strong
+                      style={{
+                        display: "block",
+                        marginBottom: 4,
+                        color: "#666",
+                      }}
+                    >
                       Account Status
                     </Text>
                     {viewingUser.is_archived ? (
                       <>
-                        <Tag color="default" style={{ fontSize: "14px", padding: "4px 12px" }}>
+                        <Tag
+                          color="default"
+                          style={{ fontSize: "14px", padding: "4px 12px" }}
+                        >
                           Archived
                         </Tag>
-                        <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: "12px" }}>
+                        <Text
+                          type="secondary"
+                          style={{
+                            display: "block",
+                            marginTop: 4,
+                            fontSize: "12px",
+                          }}
+                        >
                           This account has been archived
                         </Text>
                       </>
                     ) : (
                       <>
-                        <Tag color={viewingUser.is_active === true ? "green" : "red"} style={{ fontSize: "14px", padding: "4px 12px" }}>
-                          {viewingUser.is_active === true ? "Active" : "Disabled"}
+                        <Tag
+                          color={
+                            viewingUser.is_active === true ? "green" : "red"
+                          }
+                          style={{ fontSize: "14px", padding: "4px 12px" }}
+                        >
+                          {viewingUser.is_active === true
+                            ? "Active"
+                            : "Disabled"}
                         </Tag>
                         {viewingUser.is_active !== true && (
-                          <Text type="secondary" style={{ display: "block", marginTop: 4, fontSize: "12px" }}>
+                          <Text
+                            type="secondary"
+                            style={{
+                              display: "block",
+                              marginTop: 4,
+                              fontSize: "12px",
+                            }}
+                          >
                             This account is disabled and cannot log in
                           </Text>
                         )}
@@ -1436,7 +1613,14 @@ export default function AccountManagement() {
                   <>
                     <Col xs={24} sm={12}>
                       <div style={{ marginBottom: 16 }}>
-                        <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                        <Text
+                          strong
+                          style={{
+                            display: "block",
+                            marginBottom: 4,
+                            color: "#666",
+                          }}
+                        >
                           Previous Parish
                         </Text>
                         <Text>{viewingUser.previous_parish || "N/A"}</Text>
@@ -1444,7 +1628,14 @@ export default function AccountManagement() {
                     </Col>
                     <Col xs={24} sm={12}>
                       <div style={{ marginBottom: 16 }}>
-                        <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                        <Text
+                          strong
+                          style={{
+                            display: "block",
+                            marginBottom: 4,
+                            color: "#666",
+                          }}
+                        >
                           Residency
                         </Text>
                         <Text>{viewingUser.residency || "N/A"}</Text>
@@ -1456,7 +1647,14 @@ export default function AccountManagement() {
                   <>
                     <Col xs={24} sm={12}>
                       <div style={{ marginBottom: 16 }}>
-                        <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                        <Text
+                          strong
+                          style={{
+                            display: "block",
+                            marginBottom: 4,
+                            color: "#666",
+                          }}
+                        >
                           Total Donations
                         </Text>
                         {loadingDonations ? (
@@ -1472,13 +1670,26 @@ export default function AccountManagement() {
                     </Col>
                     <Col xs={24} sm={12}>
                       <div style={{ marginBottom: 16 }}>
-                        <Text strong style={{ display: "block", marginBottom: 4, color: "#666" }}>
+                        <Text
+                          strong
+                          style={{
+                            display: "block",
+                            marginBottom: 4,
+                            color: "#666",
+                          }}
+                        >
                           Events Volunteered/Participated
                         </Text>
                         {loadingVolunteers ? (
                           <Spin size="small" />
                         ) : (
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                            }}
+                          >
                             <Text>
                               {userVolunteers.length > 0
                                 ? `${userVolunteers.length} event(s)`
@@ -1490,7 +1701,10 @@ export default function AccountManagement() {
                                 icon={<CalendarOutlined />}
                                 size="small"
                                 onClick={() => setShowEventsModal(true)}
-                                style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+                                style={{
+                                  backgroundColor: "#b87d3e",
+                                  borderColor: "#b87d3e",
+                                }}
                               >
                                 View Events
                               </Button>
@@ -1505,77 +1719,165 @@ export default function AccountManagement() {
                           <Spin tip="Loading donations..." />
                         </div>
                       </Col>
-                    ) : userDonations.length > 0 && (
-                      <Col xs={24}>
-                        <div style={{ marginBottom: 16 }}>
-                          <Text strong style={{ display: "block", marginBottom: 8, color: "#666" }}>
-                            Donation Details
-                          </Text>
-                          <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #f0f0f0", borderRadius: "4px", padding: "12px" }}>
-                            {userDonations.map((donation, index) => (
-                              <div key={donation._id || index} style={{ marginBottom: index < userDonations.length - 1 ? 12 : 0, paddingBottom: index < userDonations.length - 1 ? 12 : 0, borderBottom: index < userDonations.length - 1 ? "1px solid #f0f0f0" : "none" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                  <div>
-                                    <Text strong>₱{donation.amount?.toLocaleString() || "0"}</Text>
-                                    <Text style={{ marginLeft: 8, color: "#666" }}>
-                                      ({donation.paymentMethod || "N/A"})
-                                    </Text>
+                    ) : (
+                      userDonations.length > 0 && (
+                        <Col xs={24}>
+                          <div style={{ marginBottom: 16 }}>
+                            <Text
+                              strong
+                              style={{
+                                display: "block",
+                                marginBottom: 8,
+                                color: "#666",
+                              }}
+                            >
+                              Donation Details
+                            </Text>
+                            <div
+                              style={{
+                                maxHeight: "200px",
+                                overflowY: "auto",
+                                border: "1px solid #f0f0f0",
+                                borderRadius: "4px",
+                                padding: "12px",
+                              }}
+                            >
+                              {userDonations.map((donation, index) => (
+                                <div
+                                  key={donation._id || index}
+                                  style={{
+                                    marginBottom:
+                                      index < userDonations.length - 1 ? 12 : 0,
+                                    paddingBottom:
+                                      index < userDonations.length - 1 ? 12 : 0,
+                                    borderBottom:
+                                      index < userDonations.length - 1
+                                        ? "1px solid #f0f0f0"
+                                        : "none",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <div>
+                                      <Text strong>
+                                        ₱
+                                        {donation.amount?.toLocaleString() ||
+                                          "0"}
+                                      </Text>
+                                      <Text
+                                        style={{ marginLeft: 8, color: "#666" }}
+                                      >
+                                        ({donation.paymentMethod || "N/A"})
+                                      </Text>
+                                    </div>
+                                    <Tag
+                                      color={
+                                        donation.status === "confirmed"
+                                          ? "green"
+                                          : donation.status === "pending"
+                                            ? "orange"
+                                            : "red"
+                                      }
+                                    >
+                                      {donation.status || "N/A"}
+                                    </Tag>
                                   </div>
-                                  <Tag color={donation.status === "confirmed" ? "green" : donation.status === "pending" ? "orange" : "red"}>
-                                    {donation.status || "N/A"}
-                                  </Tag>
-                                </div>
-                                {donation.intercession && (
-                                  <Text style={{ display: "block", marginTop: 4, fontSize: "12px", color: "#999" }}>
-                                    Intercession: {donation.intercession}
+                                  {donation.intercession && (
+                                    <Text
+                                      style={{
+                                        display: "block",
+                                        marginTop: 4,
+                                        fontSize: "12px",
+                                        color: "#999",
+                                      }}
+                                    >
+                                      Intercession: {donation.intercession}
+                                    </Text>
+                                  )}
+                                  <Text
+                                    style={{
+                                      display: "block",
+                                      marginTop: 4,
+                                      fontSize: "11px",
+                                      color: "#999",
+                                    }}
+                                  >
+                                    {donation.createdAt
+                                      ? formatDate(donation.createdAt)
+                                      : "N/A"}
                                   </Text>
-                                )}
-                                <Text style={{ display: "block", marginTop: 4, fontSize: "11px", color: "#999" }}>
-                                  {donation.createdAt ? formatDate(donation.createdAt) : "N/A"}
-                                </Text>
-                              </div>
-                            ))}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      </Col>
+                        </Col>
+                      )
                     )}
                   </>
                 )}
               </Row>
-              <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <div
+                style={{
+                  marginTop: 24,
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: 8,
+                }}
+              >
                 {!viewingUser.is_archived && (
                   <>
                     <Button
                       type="default"
                       icon={<KeyOutlined />}
                       onClick={() => handleResetPassword(viewingUser)}
-                      style={{ padding: '10px' }}
+                      style={{ padding: "10px" }}
                     >
                       Reset Password
                     </Button>
                     <Button
-                      type={viewingUser.is_active === true ? "default" : "primary"}
+                      type={
+                        viewingUser.is_active === true ? "default" : "primary"
+                      }
                       danger={viewingUser.is_active === true}
-                      icon={viewingUser.is_active === true ? <StopOutlined /> : <CheckCircleOutlined />}
-                      onClick={() => handleToggleAccountStatus(
-                        viewingUser.uid,
-                        viewingUser.is_active,
-                        `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
-                        viewingUser
-                      )}
+                      icon={
+                        viewingUser.is_active === true ? (
+                          <StopOutlined />
+                        ) : (
+                          <CheckCircleOutlined />
+                        )
+                      }
+                      onClick={() =>
+                        handleToggleAccountStatus(
+                          viewingUser.uid,
+                          viewingUser.is_active,
+                          `${viewingUser.first_name} ${viewingUser.last_name}`.trim() ||
+                            viewingUser.email,
+                          viewingUser,
+                        )
+                      }
                       loading={loading}
                     >
-                      {viewingUser.is_active === true ? "Disable Account" : "Enable Account"}
+                      {viewingUser.is_active === true
+                        ? "Disable Account"
+                        : "Enable Account"}
                     </Button>
                     <Button
                       type="default"
                       danger
                       icon={<InboxOutlined />}
-                      onClick={() => handleArchiveUser(
-                        viewingUser.uid,
-                        `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
-                        viewingUser
-                      )}
+                      onClick={() =>
+                        handleArchiveUser(
+                          viewingUser.uid,
+                          `${viewingUser.first_name} ${viewingUser.last_name}`.trim() ||
+                            viewingUser.email,
+                          viewingUser,
+                        )
+                      }
                       loading={loading}
                     >
                       Archive Account
@@ -1584,7 +1886,10 @@ export default function AccountManagement() {
                       type="primary"
                       icon={<EditOutlined />}
                       onClick={() => handleEditUser(viewingUser)}
-                      style={{ backgroundColor: "#b87d3e", borderColor: "#b87d3e" }}
+                      style={{
+                        backgroundColor: "#b87d3e",
+                        borderColor: "#b87d3e",
+                      }}
                     >
                       Edit User
                     </Button>
@@ -1594,13 +1899,19 @@ export default function AccountManagement() {
                   <Button
                     type="primary"
                     icon={<CheckCircleOutlined />}
-                    onClick={() => handleUnarchiveUser(
-                      viewingUser.uid,
-                      `${viewingUser.first_name} ${viewingUser.last_name}`.trim() || viewingUser.email,
-                      viewingUser
-                    )}
+                    onClick={() =>
+                      handleUnarchiveUser(
+                        viewingUser.uid,
+                        `${viewingUser.first_name} ${viewingUser.last_name}`.trim() ||
+                          viewingUser.email,
+                        viewingUser,
+                      )
+                    }
                     loading={loading}
-                    style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                    style={{
+                      backgroundColor: "#52c41a",
+                      borderColor: "#52c41a",
+                    }}
                   >
                     Unarchive Account
                   </Button>
@@ -1688,9 +1999,14 @@ export default function AccountManagement() {
                     value={formData.contact_number}
                     onChange={(e) => handleContactNumberChange(e.target.value)}
                     onBlur={() => {
-                      const error = validateContactNumber(formData.contact_number);
+                      const error = validateContactNumber(
+                        formData.contact_number,
+                      );
                       if (error) {
-                        setErrors((prev) => ({ ...prev, contact_number: error }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          contact_number: error,
+                        }));
                       }
                     }}
                     placeholder="09XXXXXXXXX (11 digits, starts with 09)"
@@ -1720,7 +2036,10 @@ export default function AccountManagement() {
                       } else {
                         setFormData({ ...formData, birthday: "" });
                         setBirthdayDisplay("");
-                        setErrors((prev) => ({ ...prev, birthday: "Birthday is required" }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          birthday: "Birthday is required",
+                        }));
                       }
                     }}
                     format="MM/DD/YYYY"
@@ -1729,7 +2048,11 @@ export default function AccountManagement() {
                     inputReadOnly={true}
                     allowClear={true}
                     disabledDate={(current) => {
-                      return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
+                      return (
+                        current &&
+                        (current > dayjs().endOf("day") ||
+                          current < dayjs().subtract(120, "years"))
+                      );
                     }}
                   />
                 </Form.Item>
@@ -1773,7 +2096,10 @@ export default function AccountManagement() {
                       <Input
                         value={formData.previous_parish}
                         onChange={(e) =>
-                          setFormData({ ...formData, previous_parish: e.target.value })
+                          setFormData({
+                            ...formData,
+                            previous_parish: e.target.value,
+                          })
                         }
                         placeholder="Enter previous parish"
                       />
@@ -1797,7 +2123,14 @@ export default function AccountManagement() {
                 </>
               )}
             </Row>
-            <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <div
+              style={{
+                marginTop: 24,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+              }}
+            >
               <Button
                 onClick={() => {
                   setShowEditModal(false);
@@ -1896,9 +2229,14 @@ export default function AccountManagement() {
                     value={formData.contact_number}
                     onChange={(e) => handleContactNumberChange(e.target.value)}
                     onBlur={() => {
-                      const error = validateContactNumber(formData.contact_number);
+                      const error = validateContactNumber(
+                        formData.contact_number,
+                      );
                       if (error) {
-                        setErrors((prev) => ({ ...prev, contact_number: error }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          contact_number: error,
+                        }));
                       }
                     }}
                     placeholder="09XXXXXXXXX (11 digits, starts with 09)"
@@ -1928,7 +2266,10 @@ export default function AccountManagement() {
                       } else {
                         setFormData({ ...formData, birthday: "" });
                         setBirthdayDisplay("");
-                        setErrors((prev) => ({ ...prev, birthday: "Birthday is required" }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          birthday: "Birthday is required",
+                        }));
                       }
                     }}
                     format="MM/DD/YYYY"
@@ -1937,7 +2278,11 @@ export default function AccountManagement() {
                     inputReadOnly={true}
                     allowClear={true}
                     disabledDate={(current) => {
-                      return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
+                      return (
+                        current &&
+                        (current > dayjs().endOf("day") ||
+                          current < dayjs().subtract(120, "years"))
+                      );
                     }}
                   />
                 </Form.Item>
@@ -1978,15 +2323,21 @@ export default function AccountManagement() {
                       const newPassword = e.target.value;
                       setFormData({ ...formData, password: newPassword });
                       setPasswordRules(getPasswordRules(newPassword));
-                      
+
                       // Clear password error when typing
                       if (errors.password) {
                         setErrors((prev) => ({ ...prev, password: "" }));
                       }
                       // Re-validate confirm password if it exists
                       if (formData.confirmPassword) {
-                        const confirmError = validatePasswordMatch(newPassword, formData.confirmPassword);
-                        setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
+                        const confirmError = validatePasswordMatch(
+                          newPassword,
+                          formData.confirmPassword,
+                        );
+                        setErrors((prev) => ({
+                          ...prev,
+                          confirmPassword: confirmError,
+                        }));
                       }
                     }}
                     onBlur={() => {
@@ -1996,8 +2347,14 @@ export default function AccountManagement() {
                       }
                       // Also validate confirm password match
                       if (formData.confirmPassword) {
-                        const confirmError = validatePasswordMatch(formData.password, formData.confirmPassword);
-                        setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
+                        const confirmError = validatePasswordMatch(
+                          formData.password,
+                          formData.confirmPassword,
+                        );
+                        setErrors((prev) => ({
+                          ...prev,
+                          confirmPassword: confirmError,
+                        }));
                       }
                     }}
                     placeholder="Enter password"
@@ -2007,23 +2364,38 @@ export default function AccountManagement() {
                   />
 
                   <div style={{ marginTop: 8, fontSize: 12 }}>
-                    <div style={{ color: passwordRules.length ? "green" : "red" }}>
+                    <div
+                      style={{ color: passwordRules.length ? "green" : "red" }}
+                    >
                       • At least 8 characters
                     </div>
-                    <div style={{ color: passwordRules.uppercase ? "green" : "red" }}>
+                    <div
+                      style={{
+                        color: passwordRules.uppercase ? "green" : "red",
+                      }}
+                    >
                       • At least 1 uppercase letter
                     </div>
-                    <div style={{ color: passwordRules.lowercase ? "green" : "red" }}>
+                    <div
+                      style={{
+                        color: passwordRules.lowercase ? "green" : "red",
+                      }}
+                    >
                       • At least 1 lowercase letter
                     </div>
-                    <div style={{ color: passwordRules.number ? "green" : "red" }}>
+                    <div
+                      style={{ color: passwordRules.number ? "green" : "red" }}
+                    >
                       • At least 1 number
                     </div>
-                    <div style={{ color: passwordRules.specialChar ? "green" : "red" }}>
+                    <div
+                      style={{
+                        color: passwordRules.specialChar ? "green" : "red",
+                      }}
+                    >
                       • At least 1 special character
                     </div>
                   </div>
-        
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
@@ -2040,24 +2412,39 @@ export default function AccountManagement() {
                     value={formData.confirmPassword}
                     onChange={(e) => {
                       const newConfirmPassword = e.target.value;
-                      setFormData({ ...formData, confirmPassword: newConfirmPassword });
+                      setFormData({
+                        ...formData,
+                        confirmPassword: newConfirmPassword,
+                      });
                       // Clear error when typing
                       if (errors.confirmPassword) {
                         setErrors((prev) => ({ ...prev, confirmPassword: "" }));
                       }
                       // Validate match if password exists
                       if (formData.password) {
-                        const error = validatePasswordMatch(formData.password, newConfirmPassword);
+                        const error = validatePasswordMatch(
+                          formData.password,
+                          newConfirmPassword,
+                        );
                         // if (error) {
                         //   setErrors((prev) => ({ ...prev, confirmPassword: error }));
                         // }
-                        setErrors(prev => ({ ...prev, confirmPassword: error }));
+                        setErrors((prev) => ({
+                          ...prev,
+                          confirmPassword: error,
+                        }));
                       }
                     }}
                     onBlur={() => {
                       if (formData.password) {
-                        const error = validatePasswordMatch(formData.password, formData.confirmPassword);
-                        setErrors((prev) => ({ ...prev, confirmPassword: error }));
+                        const error = validatePasswordMatch(
+                          formData.password,
+                          formData.confirmPassword,
+                        );
+                        setErrors((prev) => ({
+                          ...prev,
+                          confirmPassword: error,
+                        }));
                       }
                     }}
                     placeholder="Confirm password"
@@ -2086,7 +2473,10 @@ export default function AccountManagement() {
                       <Input
                         value={formData.previous_parish}
                         onChange={(e) =>
-                          setFormData({ ...formData, previous_parish: e.target.value })
+                          setFormData({
+                            ...formData,
+                            previous_parish: e.target.value,
+                          })
                         }
                         placeholder="Enter previous parish"
                       />
@@ -2110,10 +2500,17 @@ export default function AccountManagement() {
                 </>
               )}
             </Row>
-            <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <div
+              style={{
+                marginTop: 24,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+              }}
+            >
               <Button
                 className="cancelborder-btn"
-                style={{ padding: '10px' }}
+                style={{ padding: "10px" }}
                 onClick={() => {
                   setShowAddModal(false);
                   resetForm();
@@ -2123,7 +2520,7 @@ export default function AccountManagement() {
               </Button>
               <Button
                 className="filled-btn"
-                style={{ padding: '10px' }}
+                style={{ padding: "10px" }}
                 onClick={handleAddUser}
                 loading={loading}
               >
@@ -2168,7 +2565,10 @@ export default function AccountManagement() {
                   <Input
                     value={adminFormData.first_name}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, first_name: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        first_name: e.target.value,
+                      })
                     }
                     placeholder="Enter first name"
                   />
@@ -2179,7 +2579,10 @@ export default function AccountManagement() {
                   <Input
                     value={adminFormData.middle_name}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, middle_name: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        middle_name: e.target.value,
+                      })
                     }
                     placeholder="Enter middle name"
                   />
@@ -2196,7 +2599,10 @@ export default function AccountManagement() {
                   <Input
                     value={adminFormData.last_name}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, last_name: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        last_name: e.target.value,
+                      })
                     }
                     placeholder="Enter last name"
                   />
@@ -2207,7 +2613,10 @@ export default function AccountManagement() {
                   <Input
                     value={adminFormData.contact_number}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, contact_number: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        contact_number: e.target.value,
+                      })
                     }
                     placeholder="Enter contact number"
                   />
@@ -2216,10 +2625,17 @@ export default function AccountManagement() {
               <Col xs={24} sm={8}>
                 <Form.Item label="Birthday">
                   <DatePicker
-                    value={adminFormData.birthday ? dayjs(adminFormData.birthday) : null}
+                    value={
+                      adminFormData.birthday
+                        ? dayjs(adminFormData.birthday)
+                        : null
+                    }
                     onChange={(date) => {
                       if (date) {
-                        setAdminFormData({ ...adminFormData, birthday: date.format("YYYY-MM-DD") });
+                        setAdminFormData({
+                          ...adminFormData,
+                          birthday: date.format("YYYY-MM-DD"),
+                        });
                       } else {
                         setAdminFormData({ ...adminFormData, birthday: "" });
                       }
@@ -2230,7 +2646,11 @@ export default function AccountManagement() {
                     inputReadOnly={true}
                     allowClear={true}
                     disabledDate={(current) => {
-                      return current && (current > dayjs().endOf('day') || current < dayjs().subtract(120, 'years'));
+                      return (
+                        current &&
+                        (current > dayjs().endOf("day") ||
+                          current < dayjs().subtract(120, "years"))
+                      );
                     }}
                   />
                 </Form.Item>
@@ -2240,7 +2660,10 @@ export default function AccountManagement() {
                   <Input
                     value={adminFormData.profile}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, profile: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        profile: e.target.value,
+                      })
                     }
                     placeholder="Enter profile picture URL"
                   />
@@ -2258,7 +2681,10 @@ export default function AccountManagement() {
                     type="email"
                     value={adminFormData.email}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, email: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        email: e.target.value,
+                      })
                     }
                     placeholder="Enter email"
                   />
@@ -2275,7 +2701,10 @@ export default function AccountManagement() {
                   <Input.Password
                     value={adminFormData.password}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, password: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        password: e.target.value,
+                      })
                     }
                     placeholder="Enter password"
                     iconRender={(visible) =>
@@ -2295,7 +2724,10 @@ export default function AccountManagement() {
                   <Input.Password
                     value={adminFormData.confirmPassword}
                     onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, confirmPassword: e.target.value })
+                      setAdminFormData({
+                        ...adminFormData,
+                        confirmPassword: e.target.value,
+                      })
                     }
                     placeholder="Confirm password"
                     iconRender={(visible) =>
@@ -2305,7 +2737,14 @@ export default function AccountManagement() {
                 </Form.Item>
               </Col>
             </Row>
-            <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <div
+              style={{
+                marginTop: 24,
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+              }}
+            >
               <Button
                 onClick={() => {
                   setShowAddAdminModal(false);
@@ -2326,7 +2765,7 @@ export default function AccountManagement() {
               </Button>
               <Button
                 className="filled-btn"
-                style={{ padding: '10px' }}
+                style={{ padding: "10px" }}
                 onClick={handleAddAdmin}
                 loading={loading}
               >
@@ -2340,8 +2779,11 @@ export default function AccountManagement() {
         <Modal
           title={
             <div>
-              <Text strong style={{ fontSize: 18, fontFamily: 'Poppins' }}>
-                Events - {viewingUser ? `${viewingUser.first_name} ${viewingUser.last_name}` : 'User'}
+              <Text strong style={{ fontSize: 18, fontFamily: "Poppins" }}>
+                Events -{" "}
+                {viewingUser
+                  ? `${viewingUser.first_name} ${viewingUser.last_name}`
+                  : "User"}
               </Text>
             </div>
           }
@@ -2357,11 +2799,21 @@ export default function AccountManagement() {
           maskClosable={true}
         >
           {/* Counts and Stats */}
-          <div style={{ marginBottom: 24, padding: 16, background: "#f5f5f5", borderRadius: 8 }}>
+          <div
+            style={{
+              marginBottom: 24,
+              padding: 16,
+              background: "#f5f5f5",
+              borderRadius: 8,
+            }}
+          >
             <Row gutter={16}>
               <Col xs={24} sm={8}>
                 <div style={{ textAlign: "center" }}>
-                  <Text type="secondary" style={{ display: "block", fontSize: 12, marginBottom: 4 }}>
+                  <Text
+                    type="secondary"
+                    style={{ display: "block", fontSize: 12, marginBottom: 4 }}
+                  >
                     Total Events
                   </Text>
                   <Text strong style={{ fontSize: 24, color: "#262626" }}>
@@ -2371,7 +2823,10 @@ export default function AccountManagement() {
               </Col>
               <Col xs={24} sm={8}>
                 <div style={{ textAlign: "center" }}>
-                  <Text type="secondary" style={{ display: "block", fontSize: 12, marginBottom: 4 }}>
+                  <Text
+                    type="secondary"
+                    style={{ display: "block", fontSize: 12, marginBottom: 4 }}
+                  >
                     Volunteered
                   </Text>
                   <Text strong style={{ fontSize: 24, color: "#1890ff" }}>
@@ -2381,7 +2836,10 @@ export default function AccountManagement() {
               </Col>
               <Col xs={24} sm={8}>
                 <div style={{ textAlign: "center" }}>
-                  <Text type="secondary" style={{ display: "block", fontSize: 12, marginBottom: 4 }}>
+                  <Text
+                    type="secondary"
+                    style={{ display: "block", fontSize: 12, marginBottom: 4 }}
+                  >
                     Participated
                   </Text>
                   <Text strong style={{ fontSize: 24, color: "#52c41a" }}>
@@ -2397,7 +2855,15 @@ export default function AccountManagement() {
             <div style={{ padding: "16px" }}>
               <Row gutter={16}>
                 <Col xs={24} sm={12}>
-                  <Text strong style={{ fontFamily: 'Poppins', fontSize: 14, display: 'block', marginBottom: 8 }}>
+                  <Text
+                    strong
+                    style={{
+                      fontFamily: "Poppins",
+                      fontSize: 14,
+                      display: "block",
+                      marginBottom: 8,
+                    }}
+                  >
                     Search Event:
                   </Text>
                   <Input
@@ -2407,25 +2873,33 @@ export default function AccountManagement() {
                     onChange={(e) => setEventsSearchTerm(e.target.value)}
                     allowClear
                     style={{
-                      fontFamily: 'Poppins, sans-serif',
+                      fontFamily: "Poppins, sans-serif",
                       fontWeight: 500,
-                      padding: '10px 12px',
-                      height: '42px',
+                      padding: "10px 12px",
+                      height: "42px",
                     }}
                   />
                 </Col>
                 <Col xs={24} sm={6}>
-                  <Text strong style={{ fontFamily: 'Poppins', fontSize: 14, display: 'block', marginBottom: 8 }}>
+                  <Text
+                    strong
+                    style={{
+                      fontFamily: "Poppins",
+                      fontSize: 14,
+                      display: "block",
+                      marginBottom: 8,
+                    }}
+                  >
                     Type:
                   </Text>
                   <Select
                     value={eventsFilterType}
                     onChange={setEventsFilterType}
                     style={{
-                      width: '100%',
-                      fontFamily: 'Poppins, sans-serif',
+                      width: "100%",
+                      fontFamily: "Poppins, sans-serif",
                       fontWeight: 500,
-                      height: '42px',
+                      height: "42px",
                     }}
                   >
                     <Option value="all">All Types</Option>
@@ -2434,17 +2908,25 @@ export default function AccountManagement() {
                   </Select>
                 </Col>
                 <Col xs={24} sm={6}>
-                  <Text strong style={{ fontFamily: 'Poppins', fontSize: 14, display: 'block', marginBottom: 8 }}>
+                  <Text
+                    strong
+                    style={{
+                      fontFamily: "Poppins",
+                      fontSize: 14,
+                      display: "block",
+                      marginBottom: 8,
+                    }}
+                  >
                     Status:
                   </Text>
                   <Select
                     value={eventsStatusFilter}
                     onChange={setEventsStatusFilter}
                     style={{
-                      width: '100%',
-                      fontFamily: 'Poppins, sans-serif',
+                      width: "100%",
+                      fontFamily: "Poppins, sans-serif",
                       fontWeight: 500,
-                      height: '42px',
+                      height: "42px",
                     }}
                   >
                     <Option value="all">All Status</Option>
@@ -2466,7 +2948,9 @@ export default function AccountManagement() {
             ) : filteredEvents.length === 0 ? (
               <Empty
                 description={
-                  eventsSearchTerm || eventsFilterType !== "all" || eventsStatusFilter !== "all"
+                  eventsSearchTerm ||
+                  eventsFilterType !== "all" ||
+                  eventsStatusFilter !== "all"
                     ? "No events match your filters"
                     : "No events found"
                 }
@@ -2484,22 +2968,64 @@ export default function AccountManagement() {
                     }}
                     bodyStyle={{ padding: 16 }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                      }}
+                    >
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                          <Text strong style={{ fontSize: 16, fontFamily: 'Poppins' }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            marginBottom: 8,
+                          }}
+                        >
+                          <Text
+                            strong
+                            style={{ fontSize: 16, fontFamily: "Poppins" }}
+                          >
                             {volunteer.eventTitle || "General Volunteer"}
                           </Text>
-                          <Tag color={volunteer.registration_type === "volunteer" ? "blue" : "green"}>
-                            {volunteer.registration_type === "volunteer" ? "Volunteer" : "Participant"}
+                          <Tag
+                            color={
+                              volunteer.registration_type === "volunteer"
+                                ? "blue"
+                                : "green"
+                            }
+                          >
+                            {volunteer.registration_type === "volunteer"
+                              ? "Volunteer"
+                              : "Participant"}
                           </Tag>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
-                          <Tag color={volunteer.status === "confirmed" ? "green" : volunteer.status === "pending" ? "orange" : "red"}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            marginTop: 8,
+                          }}
+                        >
+                          <Tag
+                            color={
+                              volunteer.status === "confirmed"
+                                ? "green"
+                                : volunteer.status === "pending"
+                                  ? "orange"
+                                  : "red"
+                            }
+                          >
                             {volunteer.status || "pending"}
                           </Tag>
                           <Text type="secondary" style={{ fontSize: 12 }}>
-                            Registered: {volunteer.createdAt ? formatDate(volunteer.createdAt) : "N/A"}
+                            Registered:{" "}
+                            {volunteer.createdAt
+                              ? formatDate(volunteer.createdAt)
+                              : "N/A"}
                           </Text>
                         </div>
                       </div>
@@ -2512,7 +3038,8 @@ export default function AccountManagement() {
 
           <div style={{ marginTop: 16, textAlign: "right" }}>
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Showing {filteredEvents.length} of {userVolunteers.length} event(s)
+              Showing {filteredEvents.length} of {userVolunteers.length}{" "}
+              event(s)
             </Text>
           </div>
         </Modal>
@@ -2521,8 +3048,11 @@ export default function AccountManagement() {
         <Modal
           title={
             <div>
-              <Text strong style={{ fontSize: 18, fontFamily: 'Poppins' }}>
-                Reset Password - {resettingPasswordUser ? `${resettingPasswordUser.first_name} ${resettingPasswordUser.last_name}` : 'User'}
+              <Text strong style={{ fontSize: 18, fontFamily: "Poppins" }}>
+                Reset Password -{" "}
+                {resettingPasswordUser
+                  ? `${resettingPasswordUser.first_name} ${resettingPasswordUser.last_name}`
+                  : "User"}
               </Text>
             </div>
           }
@@ -2536,15 +3066,37 @@ export default function AccountManagement() {
           maskClosable={true}
         >
           <div style={{ padding: "16px 0" }}>
-            <Text style={{ display: "block", marginBottom: 16, fontSize: 14, color: "#666" }}>
+            <Text
+              style={{
+                display: "block",
+                marginBottom: 16,
+                fontSize: 14,
+                color: "#666",
+              }}
+            >
               Are you sure you want to send a password reset email to{" "}
               <Text strong>{resettingPasswordUser?.email}</Text>?
             </Text>
-            <Text style={{ display: "block", fontSize: 13, color: "#999", fontStyle: "italic" }}>
-              The user will receive an email with instructions to reset their password.
+            <Text
+              style={{
+                display: "block",
+                fontSize: 13,
+                color: "#999",
+                fontStyle: "italic",
+              }}
+            >
+              The user will receive an email with instructions to reset their
+              password.
             </Text>
           </div>
-          <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 8 }}>
+          <div
+            style={{
+              marginTop: 24,
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 8,
+            }}
+          >
             <Button
               onClick={() => {
                 setShowResetPasswordModal(false);
@@ -2564,9 +3116,7 @@ export default function AccountManagement() {
             </Button>
           </div>
         </Modal>
-
       </div>
     </div>
   );
 }
-

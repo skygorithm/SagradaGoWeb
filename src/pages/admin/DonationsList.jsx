@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import Cookies from "js-cookie";
 import {
   Card,
   Table,
@@ -27,7 +28,7 @@ import {
   PictureOutlined,
   EditOutlined,
   CheckOutlined,
-  CloseOutlined
+  CloseOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -90,13 +91,11 @@ export default function DonationsList() {
         total: response.data.pagination.total,
         pages: response.data.pagination.pages,
       }));
-
     } catch (error) {
       console.error("Error fetching donations:", error);
       if (showLoading) {
         message.error("Failed to fetch donations. Please try again.");
       }
-
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -123,13 +122,10 @@ export default function DonationsList() {
 
         if (paymentMethodFilter === "In Kind") {
           return method.toLowerCase() === "in kind";
-
         } else if (paymentMethodFilter === "GCash") {
           return method.toLowerCase() === "gcash";
-
         } else if (paymentMethodFilter === "Cash") {
           return method.toLowerCase() === "cash";
-
         }
         return true;
       });
@@ -140,9 +136,11 @@ export default function DonationsList() {
       filtered = filtered.filter(
         (donation) =>
           (donation.name || donation.user_name)?.toLowerCase().includes(term) ||
-          (donation.email || donation.user_email)?.toLowerCase().includes(term) ||
+          (donation.email || donation.user_email)
+            ?.toLowerCase()
+            .includes(term) ||
           donation.paymentMethod?.toLowerCase().includes(term) ||
-          donation.intercession?.toLowerCase().includes(term)
+          donation.intercession?.toLowerCase().includes(term),
       );
     }
 
@@ -158,15 +156,13 @@ export default function DonationsList() {
       });
 
       message.success(
-        `Donation ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`
+        `Donation ${newStatus === "confirmed" ? "confirmed" : newStatus === "cancelled" ? "cancelled" : "updated"} successfully.`,
       );
       fetchDonations(false);
       setDetailModalVisible(false);
-
     } catch (error) {
       console.error("Error updating donation status:", error);
       message.error("Failed to update donation status. Please try again.");
-
     } finally {
       setUpdateLoading(false);
     }
@@ -194,9 +190,21 @@ export default function DonationsList() {
 
   const getStatusTag = (status) => {
     const statusConfig = {
-      pending: { color: "orange", icon: <ClockCircleOutlined />, text: "Pending" },
-      confirmed: { color: "green", icon: <CheckCircleOutlined />, text: "Confirmed" },
-      cancelled: { color: "red", icon: <CloseCircleOutlined />, text: "Cancelled" },
+      pending: {
+        color: "orange",
+        icon: <ClockCircleOutlined />,
+        text: "Pending",
+      },
+      confirmed: {
+        color: "green",
+        icon: <CheckCircleOutlined />,
+        text: "Confirmed",
+      },
+      cancelled: {
+        color: "red",
+        icon: <CloseCircleOutlined />,
+        text: "Cancelled",
+      },
     };
 
     const config = statusConfig[status] || statusConfig.pending;
@@ -244,13 +252,17 @@ export default function DonationsList() {
     }
   };
 
+  const subAdmin = Cookies.get("subAdmin") === "true";
+
   const columns = [
     {
       title: "Donor Name",
       dataIndex: "user_name",
       key: "user_name",
       width: 300,
-      render: (_, record) => <Text strong>{record.name || record.user_name || "N/A"}</Text>,
+      render: (_, record) => (
+        <Text strong>{record.name || record.user_name || "N/A"}</Text>
+      ),
     },
     {
       title: "Email",
@@ -299,46 +311,59 @@ export default function DonationsList() {
       render: (date) => formatDate(date),
       sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
     },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="View Details">
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              className="border-btn"
-              style={{ padding: '8px' }}
-              onClick={() => {
-                setSelectedDonation(record);
-                setDetailModalVisible(true);
-              }}
-            />
-          </Tooltip>
-          {record.status === "pending" && (
-            <>
-              <Button
-                type="link"
-                icon={<CheckOutlined />}
-                className="border-btn"
-                style={{ padding: '8px' }}
-                onClick={() => handleStatusUpdate(record._id, "confirmed")}
-                loading={updateLoading}
-              />
-              <Button
-                type="link"
-                icon={<CloseOutlined />}
-                className="dangerborder-btn"
-                style={{ padding: '8px' }}
-                onClick={() => handleStatusUpdate(record._id, "cancelled")}
-                loading={updateLoading}
-              />
-            </>
-          )}
-        </Space>
-      ),
-    },
+    ...(subAdmin
+      ? []
+      : [
+          {
+            title: "Actions",
+            key: "actions",
+            width: 120,
+            render: (_, record) => (
+              <Space size="small">
+                <Tooltip title="View Details">
+                  <Button
+                    type="link"
+                    icon={<EyeOutlined />}
+                    className="border-btn"
+                    style={{ padding: "8px" }}
+                    onClick={() => {
+                      setSelectedDonation(record);
+                      setDetailModalVisible(true);
+                    }}
+                  />
+                </Tooltip>
+                {record.status === "pending" && (
+                  <>
+                    <Tooltip title="Confirm">
+                      <Button
+                        type="link"
+                        icon={<CheckOutlined />}
+                        className="border-btn"
+                        style={{ padding: "8px" }}
+                        onClick={() =>
+                          handleStatusUpdate(record._id, "confirmed")
+                        }
+                        loading={updateLoading}
+                      />
+                    </Tooltip>
+                    <Tooltip title="Cancel">
+                      <Button
+                        type="link"
+                        icon={<CloseOutlined />}
+                        className="dangerborder-btn"
+                        style={{ padding: "8px" }}
+                        onClick={() =>
+                          handleStatusUpdate(record._id, "cancelled")
+                        }
+                        loading={updateLoading}
+                      />
+                    </Tooltip>
+                  </>
+                )}
+              </Space>
+            ),
+          },
+        ]),
   ];
 
   return (
@@ -346,12 +371,24 @@ export default function DonationsList() {
       <div style={{ maxWidth: "95%", margin: "0 auto", marginTop: 20 }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <div>
-              <Title level={2} style={{ margin: 0, color: "#262626", fontFamily: 'Poppins' }}>
+              <Title
+                level={2}
+                style={{ margin: 0, color: "#262626", fontFamily: "Poppins" }}
+              >
                 Donations Management
               </Title>
-              <Text type="secondary" style={{ fontSize: 16, fontFamily: 'Poppins' }}>
+              <Text
+                type="secondary"
+                style={{ fontSize: 16, fontFamily: "Poppins" }}
+              >
                 Manage and track all donations
               </Text>
             </div>
@@ -413,21 +450,21 @@ export default function DonationsList() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 allowClear
                 style={{
-                  fontFamily: 'Poppins, sans-serif',
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
-                  padding: '10px 12px',
-                  height: '42px',
+                  padding: "10px 12px",
+                  height: "42px",
                 }}
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Select
                 style={{
-                  width: '100%',
-                  fontFamily: 'Poppins, sans-serif',
+                  width: "100%",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
-                  padding: '8px 12px',
-                  height: '42px',
+                  padding: "8px 12px",
+                  height: "42px",
                 }}
                 value={statusFilter}
                 onChange={setStatusFilter}
@@ -442,11 +479,11 @@ export default function DonationsList() {
             <Col xs={24} sm={12} md={6}>
               <Select
                 style={{
-                  width: '100%',
-                  fontFamily: 'Poppins, sans-serif',
+                  width: "100%",
+                  fontFamily: "Poppins, sans-serif",
                   fontWeight: 500,
-                  padding: '8px 12px',
-                  height: '42px',
+                  padding: "8px 12px",
+                  height: "42px",
                 }}
                 value={paymentMethodFilter}
                 onChange={setPaymentMethodFilter}
@@ -499,7 +536,9 @@ export default function DonationsList() {
                 key="confirm"
                 type="primary"
                 style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
-                onClick={() => handleStatusUpdate(selectedDonation._id, "confirmed")}
+                onClick={() =>
+                  handleStatusUpdate(selectedDonation._id, "confirmed")
+                }
                 loading={updateLoading}
               >
                 Confirm Donation
@@ -509,7 +548,9 @@ export default function DonationsList() {
               <Button
                 key="cancel"
                 danger
-                onClick={() => handleStatusUpdate(selectedDonation._id, "cancelled")}
+                onClick={() =>
+                  handleStatusUpdate(selectedDonation._id, "cancelled")
+                }
                 loading={updateLoading}
               >
                 Cancel Donation
@@ -523,21 +564,37 @@ export default function DonationsList() {
               <Row gutter={[16, 16]}>
                 <Col span={12}>
                   <Text strong>Donor Name:</Text>
-                  <div>{selectedDonation.name || selectedDonation.user_name || "N/A"}</div>
+                  <div>
+                    {selectedDonation.name ||
+                      selectedDonation.user_name ||
+                      "N/A"}
+                  </div>
                 </Col>
                 <Col span={12}>
                   <Text strong>Email:</Text>
-                  <div>{selectedDonation.email || selectedDonation.user_email || "N/A"}</div>
+                  <div>
+                    {selectedDonation.email ||
+                      selectedDonation.user_email ||
+                      "N/A"}
+                  </div>
                 </Col>
                 <Col span={12}>
                   <Text strong>Amount:</Text>
-                  <div style={{ color: "#52c41a", fontSize: "18px", fontWeight: "bold" }}>
+                  <div
+                    style={{
+                      color: "#52c41a",
+                      fontSize: "18px",
+                      fontWeight: "bold",
+                    }}
+                  >
                     {formatCurrency(selectedDonation.amount)}
                   </div>
                 </Col>
                 <Col span={12}>
                   <Text strong>Payment Method:</Text>
-                  <div>{getPaymentMethodTag(selectedDonation.paymentMethod)}</div>
+                  <div>
+                    {getPaymentMethodTag(selectedDonation.paymentMethod)}
+                  </div>
                 </Col>
                 <Col span={12}>
                   <Text strong>Status:</Text>
@@ -550,7 +607,14 @@ export default function DonationsList() {
                 {selectedDonation.intercession && (
                   <Col span={24}>
                     <Text strong>Intercession:</Text>
-                    <div style={{ marginTop: 8, padding: 12, background: "#f5f5f5", borderRadius: 4 }}>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        padding: 12,
+                        background: "#f5f5f5",
+                        borderRadius: 4,
+                      }}
+                    >
                       {selectedDonation.intercession}
                     </div>
                   </Col>
@@ -562,7 +626,12 @@ export default function DonationsList() {
                       <Button
                         type="link"
                         icon={<PictureOutlined />}
-                        onClick={() => handleViewImage(selectedDonation.donationImage, "Donation Image")}
+                        onClick={() =>
+                          handleViewImage(
+                            selectedDonation.donationImage,
+                            "Donation Image",
+                          )
+                        }
                       >
                         View Image
                       </Button>
@@ -576,7 +645,12 @@ export default function DonationsList() {
                       <Button
                         type="link"
                         icon={<PictureOutlined />}
-                        onClick={() => handleViewImage(selectedDonation.receipt, "GCash Receipt")}
+                        onClick={() =>
+                          handleViewImage(
+                            selectedDonation.receipt,
+                            "GCash Receipt",
+                          )
+                        }
                       >
                         View Receipt
                       </Button>
