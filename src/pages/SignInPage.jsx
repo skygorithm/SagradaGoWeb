@@ -403,6 +403,8 @@ export default function SignInPage() {
       });
 
       const userData = loginResponse.data.user;
+      
+      
 
       // Check if Regular User account is disabled
       if (userData.is_active === false) {
@@ -415,7 +417,12 @@ export default function SignInPage() {
 
       // Set State & Storage
       setCurrentUser(backendUser);
+
+
       localStorage.setItem("currentUser", JSON.stringify(backendUser));
+
+
+      
 
       // Set Cookies
       Cookies.set("email", inputEmail, { expires: 7 });
@@ -426,6 +433,8 @@ export default function SignInPage() {
         `${backendUser.first_name} ${backendUser.middle_name} ${backendUser.last_name}`.trim(),
         { expires: 7 },
       );
+      console.log("Backend User Data:", backendUser);
+      
       Cookies.set("contact", backendUser.contact_number, { expires: 7 });
 
       const sessionTimeout = Date.now() + 5 * 60 * 1000;
@@ -441,17 +450,30 @@ export default function SignInPage() {
         setError(err.response.data?.message || "Access denied.");
       } else if (err.response?.status === 404 || err.code === "ERR_NETWORK") {
         // Backend unreachable: sign in with Firebase only so user can still use the app
-        const displayName = firebaseUser.displayName?.trim() || "";
-        const nameParts = displayName ? displayName.split(/\s+/) : [];
+
+
+
+            const findUserResponse = await axios.post(`${API_URL}/findUser`, {
+              uid: firebaseUser.uid,  
+            });
+
+
+
+            const currentUserData = findUserResponse.data.user;
+            console.log("find user respoonse",findUserResponse.data.user);
+            
+        
+
         const minimalUser = normalizeUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email || inputEmail,
-          first_name: nameParts[0] || "",
-          middle_name: nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "",
-          last_name: nameParts.length > 1 ? nameParts[nameParts.length - 1] : "",
-          contact_number: "",
+          first_name: currentUserData?.first_name || "",
+          middle_name: currentUserData?.middle_name || "",
+          last_name: currentUserData?.last_name || "",
+          contact_number: currentUserData?.contact_number || "",
           is_admin: false,
         });
+        
 
         setCurrentUser(minimalUser);
         localStorage.setItem("currentUser", JSON.stringify(minimalUser));
