@@ -348,6 +348,12 @@ export default function SignInPage() {
       return;
     }
 
+    if (!API_URL) {
+      setError("App is misconfigured: API URL is missing. Please contact support.");
+      setLoading(false);
+      return;
+    }
+
     try {
       // --- Step 2: Check for Admin Privileges ---
       const adminResponse = await axios.post(`${API_URL}/findAdmin`, {
@@ -433,6 +439,34 @@ export default function SignInPage() {
         setError("Invalid credentials or session expired.");
       } else if (err.response?.status === 403) {
         setError(err.response.data?.message || "Access denied.");
+      } else if (err.response?.status === 404 || err.code === "ERR_NETWORK") {
+        // Backend unreachable: sign in with Firebase only so user can still use the app
+        const displayName = firebaseUser.displayName?.trim() || "";
+        const nameParts = displayName ? displayName.split(/\s+/) : [];
+        const minimalUser = normalizeUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || inputEmail,
+          first_name: nameParts[0] || "",
+          middle_name: nameParts.length > 2 ? nameParts.slice(1, -1).join(" ") : "",
+          last_name: nameParts.length > 1 ? nameParts[nameParts.length - 1] : "",
+          contact_number: "",
+          is_admin: false,
+        });
+
+        setCurrentUser(minimalUser);
+        localStorage.setItem("currentUser", JSON.stringify(minimalUser));
+        localStorage.setItem("limitedAccess", "true"); // backend was unavailable
+        Cookies.set("email", inputEmail, { expires: 7 });
+        Cookies.set("uid", minimalUser.uid, { expires: 7 });
+        Cookies.set("isAdmin", "false", { expires: 7 });
+        Cookies.set("fullname", `${minimalUser.first_name} ${minimalUser.middle_name} ${minimalUser.last_name}`.trim(), { expires: 7 });
+        Cookies.set("contact", minimalUser.contact_number || "", { expires: 7 });
+
+        const sessionTimeout = Date.now() + 5 * 60 * 1000;
+        localStorage.setItem("sessionTimeout", sessionTimeout.toString());
+
+        navigate("/");
+        setShowSignin(false);
       } else {
         setError("An error occurred during login. Please try again.");
       }

@@ -70,6 +70,20 @@ export default function ChatBot({ isOpen, onClose }) {
 
   const sendMessage = async () => {
     if (!inputBot.trim() || loading) return;
+    if (!uid) {
+      message.warning("Please sign in to use the AI chat.");
+      return;
+    }
+    if (!API_URL) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: "Chat service is not configured. Please try again later.",
+        },
+      ]);
+      return;
+    }
     const userMessage = { role: "user", text: inputBot.trim() };
     setMessages((prev) => [...prev, userMessage]);
     setInputBot("");
@@ -80,16 +94,18 @@ export default function ChatBot({ isOpen, onClose }) {
         userId: uid,
         message: userMessage.text,
       });
-      const aiMessage = { role: "ai", text: res.data.message };
+      const aiMessage = { role: "ai", text: res.data?.message ?? "No response." };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
+      const is404 = error.response?.status === 404;
+      const isNetwork = error.code === "ERR_NETWORK";
+      const friendlyMsg =
+        is404 || isNetwork
+          ? "Chat service is temporarily unavailable. Please try again in a few moments."
+          : "I'm having trouble connecting. Please try again later.";
       setMessages((prev) => [
         ...prev,
-        {
-          role: "ai",
-          text:
-            "I'm having trouble connecting. Please try again later." + error,
-        },
+        { role: "ai", text: friendlyMsg },
       ]);
     } finally {
       setLoading(false);
