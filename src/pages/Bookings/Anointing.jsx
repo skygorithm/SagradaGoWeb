@@ -552,7 +552,7 @@ export default function Anointing() {
               cursor: isLoading ? "not-allowed" : "pointer",
             }}
           >
-            {isLoading ? "Processing Request..." : "Confirm Anointing Booking"}
+            {isLoading ? "Processing Booking..." : "Submit Booking"}
           </button>
         </div>
       </div>
