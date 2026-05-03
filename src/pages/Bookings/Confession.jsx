@@ -321,7 +321,7 @@ export default function Confession() {
 
         <div className="submit-btn-container" style={{ marginTop: "30px" }}>
           <button className="submit-button" onClick={handleSubmit}>
-            {isLoading ? "Processing Booking..." : "Submit Booking"}
+            {loading ? "Processing Booking..." : "Submit Booking"}
           </button>
         </div>
       </div>
