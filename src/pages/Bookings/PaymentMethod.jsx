@@ -57,7 +57,7 @@ export default function PaymentMethod() {
 
   return (
     <div className="w-full py-7! px-4! flex flex-col items-center gap-3 mt-20! justify-center">
-      <div className="bg-red-300 p-7! flex flex-col items-center gap-4">
+      <div className="bg-gray-400 p-7! flex flex-col items-center gap-4">
 
 
 
