@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../../Constants";
@@ -85,8 +85,6 @@ export default function AccountManagement() {
     contact_number: "",
     birthday: "",
     email: "",
-    password: "",
-    confirmPassword: "",
     is_priest: false,
     previous_parish: "",
     residency: "",
@@ -95,8 +93,6 @@ export default function AccountManagement() {
   const [birthdayDisplay, setBirthdayDisplay] = useState("");
 
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const subAdmin = Cookies.get("subAdmin") === "true";
   console.log("subAdmin", subAdmin);
@@ -396,15 +392,6 @@ export default function AccountManagement() {
     if (!formData.last_name) newErrors.last_name = "Last name is required";
     if (!formData.email) newErrors.email = "Email is required";
 
-    const passwordError = validatePassword(formData.password);
-    if (passwordError) newErrors.password = passwordError;
-
-    const confirmError = validatePasswordMatch(
-      formData.password,
-      formData.confirmPassword,
-    );
-    if (confirmError) newErrors.confirmPassword = confirmError;
-
     const contactError = validateContactNumber(formData.contact_number);
     if (contactError) {
       newErrors.contact_number = contactError;
@@ -462,16 +449,6 @@ export default function AccountManagement() {
 
       setErrors({});
 
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        formData.email,
-        formData.password,
-      );
-      const user = userCredential.user;
-      const uid = user.uid;
-
-      await sendEmailVerification(user);
-
       const formattedBirthday = formData.birthday
         ? dayjs(formData.birthday).format("YYYY-MM-DD")
         : "";
@@ -483,8 +460,6 @@ export default function AccountManagement() {
         contact_number: formData.contact_number,
         birthday: formattedBirthday,
         email: formData.email,
-        password: formData.password,
-        uid: uid,
         is_priest: formData.is_priest,
       };
 
@@ -498,13 +473,19 @@ export default function AccountManagement() {
         }
       }
 
-      const response = await axios.post(`${API_URL}/createUser`, createPayload);
+      const response = await axios.post(
+        `${API_URL}/admin/createUser`,
+        createPayload,
+      );
       const newUser = response.data.newUser;
 
       const userName = `${formData.first_name} ${formData.last_name}`.trim();
-      await Logger.logCreateUser(newUser?.uid || uid, userName);
+      await Logger.logCreateUser(newUser?.uid, userName);
 
-      message.success("User created successfully!");
+      message.success(
+        response.data.message ||
+          "User created successfully. A temporary password has been emailed.",
+      );
       setShowAddModal(false);
       resetForm();
       fetchUsers();
@@ -857,8 +838,6 @@ export default function AccountManagement() {
       contact_number: user.contact_number || "",
       birthday: birthdayFormatted,
       email: user.email || "",
-      password: "",
-      confirmPassword: "",
       is_priest: user.is_priest || false,
       previous_parish: user.previous_parish || "",
       residency: user.residency || "",
@@ -990,8 +969,6 @@ export default function AccountManagement() {
       contact_number: "",
       birthday: "",
       email: "",
-      password: "",
-      confirmPassword: "",
       is_priest: isPriest,
       previous_parish: "",
       residency: "",
@@ -1765,7 +1742,7 @@ export default function AccountManagement() {
                                   >
                                     <div>
                                       <Text strong>
-                                        ₱
+                                        â‚±
                                         {donation.amount?.toLocaleString() ||
                                           "0"}
                                       </Text>
@@ -2307,152 +2284,21 @@ export default function AccountManagement() {
                   />
                 </Form.Item>
               </Col>
-              <Col xs={24} sm={12}>
-                <Form.Item
-                  label={
-                    <>
-                      Password <span style={{ color: "red" }}>*</span>
-                    </>
-                  }
-                  validateStatus={errors.password ? "error" : ""}
-                  help={errors.password}
+              <Col xs={24}>
+                <div
+                  style={{
+                    background: "#e6f4ff",
+                    border: "1px solid #91caff",
+                    borderRadius: 8,
+                    padding: "12px 16px",
+                    marginBottom: 8,
+                  }}
                 >
-                  <Input.Password
-                    value={formData.password}
-                    onChange={(e) => {
-                      const newPassword = e.target.value;
-                      setFormData({ ...formData, password: newPassword });
-                      setPasswordRules(getPasswordRules(newPassword));
-
-                      // Clear password error when typing
-                      if (errors.password) {
-                        setErrors((prev) => ({ ...prev, password: "" }));
-                      }
-                      // Re-validate confirm password if it exists
-                      if (formData.confirmPassword) {
-                        const confirmError = validatePasswordMatch(
-                          newPassword,
-                          formData.confirmPassword,
-                        );
-                        setErrors((prev) => ({
-                          ...prev,
-                          confirmPassword: confirmError,
-                        }));
-                      }
-                    }}
-                    onBlur={() => {
-                      const error = validatePassword(formData.password);
-                      if (error) {
-                        setErrors((prev) => ({ ...prev, password: error }));
-                      }
-                      // Also validate confirm password match
-                      if (formData.confirmPassword) {
-                        const confirmError = validatePasswordMatch(
-                          formData.password,
-                          formData.confirmPassword,
-                        );
-                        setErrors((prev) => ({
-                          ...prev,
-                          confirmPassword: confirmError,
-                        }));
-                      }
-                    }}
-                    placeholder="Enter password"
-                    iconRender={(visible) =>
-                      visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-                    }
-                  />
-
-                  <div style={{ marginTop: 8, fontSize: 12 }}>
-                    <div
-                      style={{ color: passwordRules.length ? "green" : "red" }}
-                    >
-                      • At least 8 characters
-                    </div>
-                    <div
-                      style={{
-                        color: passwordRules.uppercase ? "green" : "red",
-                      }}
-                    >
-                      • At least 1 uppercase letter
-                    </div>
-                    <div
-                      style={{
-                        color: passwordRules.lowercase ? "green" : "red",
-                      }}
-                    >
-                      • At least 1 lowercase letter
-                    </div>
-                    <div
-                      style={{ color: passwordRules.number ? "green" : "red" }}
-                    >
-                      • At least 1 number
-                    </div>
-                    <div
-                      style={{
-                        color: passwordRules.specialChar ? "green" : "red",
-                      }}
-                    >
-                      • At least 1 special character
-                    </div>
-                  </div>
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12}>
-                <Form.Item
-                  label={
-                    <>
-                      Confirm Password <span style={{ color: "red" }}>*</span>
-                    </>
-                  }
-                  validateStatus={errors.confirmPassword ? "error" : ""}
-                  help={errors.confirmPassword}
-                >
-                  <Input.Password
-                    value={formData.confirmPassword}
-                    onChange={(e) => {
-                      const newConfirmPassword = e.target.value;
-                      setFormData({
-                        ...formData,
-                        confirmPassword: newConfirmPassword,
-                      });
-                      // Clear error when typing
-                      if (errors.confirmPassword) {
-                        setErrors((prev) => ({ ...prev, confirmPassword: "" }));
-                      }
-                      // Validate match if password exists
-                      if (formData.password) {
-                        const error = validatePasswordMatch(
-                          formData.password,
-                          newConfirmPassword,
-                        );
-                        // if (error) {
-                        //   setErrors((prev) => ({ ...prev, confirmPassword: error }));
-                        // }
-                        setErrors((prev) => ({
-                          ...prev,
-                          confirmPassword: error,
-                        }));
-                      }
-                    }}
-                    onBlur={() => {
-                      if (formData.password) {
-                        const error = validatePasswordMatch(
-                          formData.password,
-                          formData.confirmPassword,
-                        );
-                        setErrors((prev) => ({
-                          ...prev,
-                          confirmPassword: error,
-                        }));
-                      }
-                    }}
-                    placeholder="Confirm password"
-                    iconRender={(visible) =>
-                      visible ? <EyeOutlined /> : <EyeInvisibleOutlined />
-                    }
-                  />
-                </Form.Item>
+                  <Text style={{ fontSize: 13 }}>
+                    A secure temporary password will be generated and emailed to
+                    the user. They must set a new password on first login.
+                  </Text>
+                </div>
               </Col>
               <Col xs={24}>
                 <Form.Item>

@@ -9,6 +9,11 @@
   z-index: 50;
 }
 
+.change-password-overlay {
+  z-index: 200;
+  background-color: rgba(0, 0, 0, 0.55);
+}
+
 .modal-card {
   background-color: #fff;
   border-radius: 16px;

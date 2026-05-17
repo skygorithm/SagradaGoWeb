@@ -5,11 +5,13 @@ import Button from "../components/Button";
 import { NavbarContext } from "../context/AllContext";
 import SignUpPage from "./SignUpPage";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
+import ChangePasswordModal from "../components/ChangePasswordModal";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import { API_URL } from "../Constants";
 import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import "../styles/signup.css";
 
 export default function SignInPage() {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ export default function SignInPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [pendingLogin, setPendingLogin] = useState(null);
 
   // async function SignIn() {
   //   setError("");
@@ -266,7 +270,7 @@ export default function SignInPage() {
 
   //     const backendUser = loginResponse.data.user;
   //     setCurrentUser(backendUser);
-  //     localStorage.setItem("currentUser", JSON.stringify(backendUser));
+  //     localStorage.setItem("currentUser", JSON.stringify(sessionUser));
 
   //     Cookies.set("email", inputEmail, { expires: 7 });
   //     Cookies.set("uid", backendUser.uid, { expires: 7 });
@@ -303,6 +307,29 @@ export default function SignInPage() {
   //     setLoading(false);
   //   }
   // }
+
+  const completeUserSession = (backendUser, email) => {
+    const sessionUser = { ...backendUser, must_change_password: false };
+    setCurrentUser(sessionUser);
+    localStorage.setItem("currentUser", JSON.stringify(sessionUser));
+    Cookies.set("email", email, { expires: 7 });
+    Cookies.set("uid", backendUser.uid, { expires: 7 });
+    Cookies.set("isAdmin", "false", { expires: 7 });
+    Cookies.set(
+      "fullname",
+      `${backendUser.first_name} ${backendUser.middle_name} ${backendUser.last_name}`.trim(),
+      { expires: 7 },
+    );
+    Cookies.set("contact", backendUser.contact_number, { expires: 7 });
+
+    const sessionTimeout = Date.now() + 5 * 60 * 1000;
+    localStorage.setItem("sessionTimeout", sessionTimeout.toString());
+
+    navigate("/");
+    setShowSignin(false);
+    setShowChangePassword(false);
+    setPendingLogin(null);
+  };
 
   async function SignIn() {
     setError("");
@@ -403,8 +430,6 @@ export default function SignInPage() {
       });
 
       const userData = loginResponse.data.user;
-      
-      
 
       // Check if Regular User account is disabled
       if (userData.is_active === false) {
@@ -413,35 +438,36 @@ export default function SignInPage() {
         return;
       }
 
-      const backendUser = normalizeUser(userData);
+      let backendUser = normalizeUser(userData);
+      let mustChangePassword = userData.must_change_password === true;
 
-      // Set State & Storage
-      setCurrentUser(backendUser);
+      // Confirm flag from findUser (DB source of truth)
+      try {
+        const findUserResponse = await axios.post(`${API_URL}/findUser`, {
+          uid: firebaseUser.uid,
+        });
+        const profile = findUserResponse.data?.user;
+        if (profile) {
+          backendUser = normalizeUser({ ...backendUser, ...profile });
+          if (profile.must_change_password === true) {
+            mustChangePassword = true;
+          }
+        }
+      } catch (findErr) {
+        console.warn("Could not verify must_change_password:", findErr);
+      }
 
+      if (mustChangePassword) {
+        setPendingLogin({
+          firebaseUser,
+          backendUser,
+          currentPassword: inputPassword,
+        });
+        setShowChangePassword(true);
+        return;
+      }
 
-      localStorage.setItem("currentUser", JSON.stringify(backendUser));
-
-
-      
-
-      // Set Cookies
-      Cookies.set("email", inputEmail, { expires: 7 });
-      Cookies.set("uid", backendUser.uid, { expires: 7 });
-      Cookies.set("isAdmin", "false", { expires: 7 });
-      Cookies.set(
-        "fullname",
-        `${backendUser.first_name} ${backendUser.middle_name} ${backendUser.last_name}`.trim(),
-        { expires: 7 },
-      );
-      console.log("Backend User Data:", backendUser);
-      
-      Cookies.set("contact", backendUser.contact_number, { expires: 7 });
-
-      const sessionTimeout = Date.now() + 5 * 60 * 1000;
-      localStorage.setItem("sessionTimeout", sessionTimeout.toString());
-
-      navigate("/");
-      setShowSignin(false);
+      completeUserSession(backendUser, inputEmail);
     } catch (err) {
       console.error("Backend validation failed:", err);
       if (err.response?.status === 401) {
@@ -460,9 +486,6 @@ export default function SignInPage() {
 
 
             const currentUserData = findUserResponse.data.user;
-            console.log("find user respoonse",findUserResponse.data.user);
-            
-        
 
         const minimalUser = normalizeUser({
           uid: firebaseUser.uid,
@@ -473,7 +496,16 @@ export default function SignInPage() {
           contact_number: currentUserData?.contact_number || "",
           is_admin: false,
         });
-        
+
+        if (currentUserData?.must_change_password === true) {
+          setPendingLogin({
+            firebaseUser,
+            backendUser: minimalUser,
+            currentPassword: inputPassword,
+          });
+          setShowChangePassword(true);
+          return;
+        }
 
         setCurrentUser(minimalUser);
         localStorage.setItem("currentUser", JSON.stringify(minimalUser));
@@ -481,7 +513,11 @@ export default function SignInPage() {
         Cookies.set("email", inputEmail, { expires: 7 });
         Cookies.set("uid", minimalUser.uid, { expires: 7 });
         Cookies.set("isAdmin", "false", { expires: 7 });
-        Cookies.set("fullname", `${minimalUser.first_name} ${minimalUser.middle_name} ${minimalUser.last_name}`.trim(), { expires: 7 });
+        Cookies.set(
+          "fullname",
+          `${minimalUser.first_name} ${minimalUser.middle_name} ${minimalUser.last_name}`.trim(),
+          { expires: 7 },
+        );
         Cookies.set("contact", minimalUser.contact_number || "", { expires: 7 });
 
         const sessionTimeout = Date.now() + 5 * 60 * 1000;
@@ -607,14 +643,26 @@ export default function SignInPage() {
       {showSignup ? (
         <SignUpPage />
       ) : (
-        <div className="modal-overlay">
+        <>
+        <div
+          className="modal-overlay"
+          style={showChangePassword ? { pointerEvents: "none" } : undefined}
+        >
           <div className="modal-card">
             <div className="modal-close">
               <button
+                type="button"
                 onClick={() => {
+                  if (showChangePassword) return;
                   setShowSignin(false);
                   setShowSignup(false);
                 }}
+                disabled={showChangePassword}
+                style={
+                  showChangePassword
+                    ? { opacity: 0.4, cursor: "not-allowed" }
+                    : undefined
+                }
               >
                 ✕
               </button>
@@ -681,11 +729,25 @@ export default function SignInPage() {
             </button>
 
             <ForgotPasswordModal
-              visible={showForgotPassword}
+              visible={showForgotPassword && !showChangePassword}
               onClose={() => setShowForgotPassword(false)}
             />
           </div>
         </div>
+
+        {showChangePassword && pendingLogin && (
+          <ChangePasswordModal
+            visible={showChangePassword}
+            email={inputEmail}
+            uid={pendingLogin.backendUser.uid}
+            currentPassword={pendingLogin.currentPassword}
+            firebaseUser={pendingLogin.firebaseUser}
+            onSuccess={() =>
+              completeUserSession(pendingLogin.backendUser, inputEmail)
+            }
+          />
+        )}
+        </>
       )}
     </>
   );
